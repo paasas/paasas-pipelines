@@ -8,10 +8,11 @@ resources:
     paths:
     - .concourse/images/paasas-terraform
 
-- name: terraform-image
-  type: docker-image
+- name: terraform-release
+  type: github-release
   source:
-    repository: hashicorp/terraform
+    owner: hashicorp
+    repository: terraform
 
 - name: paasas-terraform-image
   type: docker-image
@@ -24,7 +25,7 @@ jobs:
 - name: publish-paasas-terraform-image
   plan:
   - in_parallel:
-    - get: terraform-image
+    - get: terraform-release
       trigger: true
       version: every
       params:
@@ -40,7 +41,7 @@ jobs:
           repository: busybox
       inputs:
       - name: paasas-terraform-image-src
-      - name: terraform-image
+      - name: terraform-release
       outputs: 
       - name: "build-args"
       run:
@@ -49,7 +50,7 @@ jobs:
     params: 
       build: paasas-terraform-image-src/.concourse/images/paasas-terraform
       tag_as_latest: true
-      tag_file: terraform-image/tag
+      tag_file: terraform-release/version
       build_args_file: build-args/build-args.json
     get_params: 
       skip_download: true

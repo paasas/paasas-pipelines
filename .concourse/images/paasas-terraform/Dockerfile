@@ -1,6 +1,6 @@
 ARG TERRAFORM_VERSION
 
-FROM hashicorp/terraform:${TERRAFORM_VERSION}
+FROM hashicorp/terraform:$TERRAFORM_VERSION
 
 RUN apk update
 

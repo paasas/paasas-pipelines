@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TERRAFORM_VERSION=$(cat terraform-image/tag)
+TERRAFORM_VERSION=$(cat terraform-release/version)
 
 read -r -d '' BUILD_ARGS << EOM
 {
