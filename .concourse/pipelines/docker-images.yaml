@@ -1,0 +1,53 @@
+resources:
+- name: ci-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse
+
+- name: paasas-terraform-image-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse/images/paasas-terraform
+
+- name: terraform-image
+  type: docker-image
+  source:
+    repository: hashicorp/terraform
+
+- name: paasas-terraform-image
+  type: docker-image
+  source:
+    repository: ((registry.publicUrl))/paasas-terraform
+    username: ((registry.username))
+    password: ((registry.password))
+
+jobs:
+- name: publish-paasas-terraform-image
+  plan:
+  - in_parallel:
+    - get: terraform-image
+      trigger: true
+      version: every
+      params:
+        skip_download: true
+    - get: paasas-terraform-image-src
+      trigger: true
+    - get: ci-src
+  - put: paasas-terraform-image
+    params: 
+      build: ci-image-src/.concourse/images/paasas-terraform
+      tag_as_latest: true
+      tag_file: terraform-image/tag
+    get_params: 
+      skip_download: true
+
+display:
+  background_image: https://64.media.tumblr.com/d5cc2ecd26a4d02a840d5a91f515c318/tumblr_n04563a3vR1qj86bro1_500.gifv

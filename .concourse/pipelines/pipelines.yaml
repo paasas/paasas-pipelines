@@ -1,0 +1,17 @@
+resources:
+- name: docker-images-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse/pipelines/docker-images.yaml
+
+jobs:
+- name: docker-images
+  plan:
+  - get: docker-images-src
+    trigger: true
+  - set_pipeline: docker-images
+    file: docker-images-src/.concourse/pipelines/docker-images.yaml

@@ -1,0 +1,133 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
+resources:
+- name: ci-src
+  type: git
+  source: 
+    uri: ((ci-git-uri))
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse
+
+- name: dev-pr
+  type: pull-request
+  source:
+    access_token: ((github.accessToken))
+    repository: ((github-repository))
+    paths:
+    - teams/ax360/frontend/dev.yaml
+
+- name: dev-src
+  type: git
+  source: 
+    uri: ((git-uri))
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - teams/ax360/frontend/dev.yaml
+
+- name: staging-pr
+  type: pull-request
+  source:
+    access_token: ((github.accessToken))
+    repository: ((github-repository))
+    paths:
+    - teams/ax360/frontend/staging.yaml
+
+- name: staging-src
+  type: git
+  source: 
+    uri: ((git-uri))
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - teams/ax360/frontend/staging.yaml
+
+- name: prod-pr
+  type: pull-request
+  source:
+    access_token: ((github.accessToken))
+    repository: ((github-repository))
+    paths:
+    - teams/ax360/frontend/prod.yaml
+
+- name: prod-src
+  type: git
+  source: 
+    uri: ((git-uri))
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - teams/ax360/frontend/prod.yaml
+
+jobs:
+- name: terraform-plan-dev
+  plan:
+  - in_parallel:
+    - get: dev-pr
+      trigger: true
+    - get: ci-src 
+  - in_parallel:
+    - put: dev-pr
+      params:
+        path: dev-pr
+        status: pending
+    - task: terraform-plan
+      file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+      input_mapping:
+        src: dev-pr
+  - put: dev-infra-pr
+    params:
+      comment_file: terraform-out/plan.md
+      path: dev-infra-pr
+      status: success
+  on_failure:
+    do:
+    - put: dev-infra-pr
+      params:
+        path: dev-infra-pr
+        status: failure
+
+- name: terraform-apply-dev
+  plan:
+  - in_parallel:
+    - get: src-dev
+      trigger: true
+    - get: ci-src 
+  - task: terraform-apply
+    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+    input_mapping:
+      src: src-dev
+    params:
+      MANIFEST: src/teams/ax360/frontend/dev.yaml
+
+- name: terraform-apply-staging
+  plan:
+  - in_parallel:
+    - get: src-staging
+      trigger: true
+    - get: ci-src 
+  - task: terraform-apply
+    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+    input_mapping:
+      src: src-staging
+    params:
+      MANIFEST: src/teams/ax360/frontend/staging.yaml
+
+- name: terraform-apply-prod
+  plan:
+  - in_parallel:
+    - get: src-prod
+      trigger: true
+    - get: ci-src 
+  - task: terraform-apply
+    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+    input_mapping:
+      src: src-prod
+    params:
+      MANIFEST: src/teams/ax360/frontend/prod.yaml

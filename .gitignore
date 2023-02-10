@@ -1,0 +1,15 @@
+.classpath
+.settings
+.project
+.factorypath
+
+target
+
+node_modules/
+*.iml
+.idea/
+.docusaurus/
+.DS_STORE
+.next/
+
+pom.xml.versionsBackup
