@@ -41,7 +41,7 @@ jobs:
       outputs: 
       - name: "build-args"
       run:
-        path: paasas-terraform-image-src/images/paasas-terraform
+        path: paasas-terraform-image-src/.concourse/images/paasas-terraform
   - put: paasas-terraform-image
     params: 
       build: paasas-terraform-image-src/.concourse/images/paasas-terraform
