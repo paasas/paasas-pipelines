@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 TERRAFORM_VERSION=$(cat terraform-image/tag)
 
