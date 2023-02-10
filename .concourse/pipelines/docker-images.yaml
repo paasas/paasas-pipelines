@@ -40,6 +40,7 @@ jobs:
           repository: busybox
       inputs:
       - name: paasas-terraform-image-src
+      - name: terraform-image
       outputs: 
       - name: "build-args"
       run:
