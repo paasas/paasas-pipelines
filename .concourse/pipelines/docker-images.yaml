@@ -40,12 +40,21 @@ jobs:
         skip_download: true
     - get: paasas-terraform-image-src
       trigger: true
-    - get: ci-src
+  - task: prepare-build-args
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: { repository: busybox }
+      outputs: ["build-args"]
+      run:
+        path: paasas-terraform-image-src/images/paasas-terraform
   - put: paasas-terraform-image
     params: 
       build: paasas-terraform-image-src/.concourse/images/paasas-terraform
       tag_as_latest: true
       tag_file: terraform-image/tag
+      build_args_file: build-args/build-args.json
     get_params: 
       skip_download: true
 
