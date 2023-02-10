@@ -38,6 +38,8 @@ jobs:
         type: registry-image
         source: 
           repository: busybox
+      inputs:
+      - name: paasas-terraform-image-src
       outputs: 
       - name: "build-args"
       run:
