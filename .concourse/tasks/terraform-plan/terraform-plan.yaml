@@ -1,0 +1,26 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: hashicorp/terraform
+    tag: 1.3.7
+
+inputs:
+- name: ci-src
+- name: platform-manifest
+- name: src
+- name: terraform-lts-src
+- name: terraform-next-src
+
+outputs:
+- name: terraform-out
+
+caches:
+- path: .terraform
+
+params:
+  SOURCE_PATH:  
+run:
+  path: ci-src/.concourse/tasks/terraform-plan/terraform-plan.sh

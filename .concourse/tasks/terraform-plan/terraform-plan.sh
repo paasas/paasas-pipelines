@@ -10,8 +10,6 @@ if [ -z "${PLATFORM_MANIFEST_PATH}" ]; then
   exit 1
 fi
 
-set -x
-
 WORKDIR=$(pwd)
 
 TERRAFORM_BASELINE=$(yq '.infraVersion' platform-manifest/$PLATFORM_MANIFEST_PATH) && \
@@ -26,9 +24,10 @@ if [ $? -ne 0 ]; then
 fi
 
 yq -o=json -I=0 '.terraformfVars' ${WORKDIR}/platform-manifest/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}tfVars.json && \
-  terraform apply \
+  terraform plan \
     --input=false \
     -var-file=${WORKDIR}/tfvars.json \
-    -auto-approve && \
-  terraform show \
-    -json > ${WORKDIR}/terraform-state/state.json
+    -no-color | tee ${WORKDIR}/terraform-out/plan.log && \
+  echo '```' > ${WORKDIR}/terraform-out/plan.md && \
+  cat ${WORKDIR}/terraform-out/plan.log >> ${WORKDIR}/terraform-out/plan.md && \
+  echo '```' >> ${WORKDIR}/terraform-out/plan.md
