@@ -1,13 +1,4 @@
 resources:
-- name: ci-src
-  type: git
-  source: 
-    uri: git@github.com:paasas/paasas-pipelines.git
-    private_key: ((git.ssh-private-key))
-    branch: main
-    paths:
-    - .concourse
-
 - name: paasas-terraform-image-src
   type: git
   source: 
