@@ -45,8 +45,10 @@ jobs:
       platform: linux
       image_resource:
         type: registry-image
-        source: { repository: busybox }
-      outputs: ["build-args"]
+        source: 
+          repository: busybox
+      outputs: 
+      - name: "build-args"
       run:
         path: paasas-terraform-image-src/images/paasas-terraform
   - put: paasas-terraform-image
