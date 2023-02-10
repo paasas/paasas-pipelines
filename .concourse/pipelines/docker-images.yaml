@@ -43,7 +43,7 @@ jobs:
     - get: ci-src
   - put: paasas-terraform-image
     params: 
-      build: ci-image-src/.concourse/images/paasas-terraform
+      build: paasas-terraform-image-src/.concourse/images/paasas-terraform
       tag_as_latest: true
       tag_file: terraform-image/tag
     get_params: 
