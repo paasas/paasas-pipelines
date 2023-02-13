@@ -5,6 +5,8 @@ if [ -z "${TARGETS_DIRECTORY}" ]; then
   exit 1
 fi
 
+set -x
+
 paasas-pipelines \
     platforms-src/$TARGETS_DIRECTORY \
     pipelines/pipelines.yaml && \

@@ -27,6 +27,6 @@ jobs:
   - task: generate-pipelines
     file: ci-src/.concourse/tasks/generate-platform-pipelines/generate-platform-pipelines.yaml
     params:
-      TARGETS_DIRECTORY: platforms-src/teams
+      TARGETS_DIRECTORY: teams
   - set_pipeline: platforms-demo
     file: pipelines/pipelines.yaml
