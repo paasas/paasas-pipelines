@@ -35,7 +35,8 @@ jobs:
     file: ci-src/.concourse/tasks/build/build.yaml
   - put: paasas-pipelines-release
     params:
-      tag: verson/version
+      name: version/version
+      tag: version/version
       globs:
       - build/pipelines-concourse
       generate_release_notes: true
