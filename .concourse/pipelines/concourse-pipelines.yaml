@@ -83,6 +83,7 @@ jobs:
       - name: paasas-pipelines-release
       outputs:
       - name: build-args
+      - name: paasas-pipelines-image-src
       run:
         path: ci-src/.concourse/images/paasas-pipelines/prepare-docker-build.sh
   - put: paasas-pipelines-image
