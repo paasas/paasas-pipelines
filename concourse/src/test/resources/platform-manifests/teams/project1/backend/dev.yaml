@@ -1,0 +1,5 @@
+infraBaseline: next
+terraformVars:
+  project: project1-backend-dev 
+  domain: dev.backend.project1.my-domain.com
+  sharedVpc: my-shared-vpc

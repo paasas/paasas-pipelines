@@ -1,4 +1,13 @@
 resources:
+- name: concourse-pipelines-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse/pipelines/concourse-pipelines.yaml
+    
 - name: docker-images-src
   type: git
   source: 
@@ -9,6 +18,13 @@ resources:
     - .concourse/pipelines/docker-images.yaml
 
 jobs:
+- name: concourse-pipelines
+  plan:
+  - get: concourse-pipelines-src
+    trigger: true
+  - set_pipeline: docker-images
+    file: concourse-pipelines-src/.concourse/pipelines/concourse-pipelines.yaml
+    
 - name: docker-images
   plan:
   - get: docker-images-src

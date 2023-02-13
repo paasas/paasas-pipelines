@@ -7,10 +7,34 @@
   </parent>
   <artifactId>pipelines-concourse</artifactId>
   
+  <build>
+	<plugins>
+	  <plugin>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-maven-plugin</artifactId>
+	  </plugin>
+	</plugins>
+  </build>
+  
   <dependencies>
 	<dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-json</artifactId>
+	</dependency>
+	<dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+	</dependency>
+	
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+	
+	<dependency>
+	  <groupId>org.springframework.boot</groupId>
+	  <artifactId>spring-boot-starter-test</artifactId>
+	  <scope>test</scope>
 	</dependency>
   </dependencies>
 </project>

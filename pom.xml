@@ -12,7 +12,30 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   
+  <properties>
+	  <google-cloud-build.version>3.8.0</google-cloud-build.version>
+  </properties>
+  
   <modules>
+  	<module>cloud-build</module>
   	<module>concourse</module>
   </modules>
+  
+  <dependencyManagement>
+	<dependencies>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-build</artifactId>
+        <version>${google-cloud-build.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
 </project>

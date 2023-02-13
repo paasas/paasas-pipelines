@@ -7,127 +7,226 @@ resource_types:
 resources:
 - name: ci-src
   type: git
-  source: 
-    uri: ((ci-git-uri))
+  source:
+    uri: git@github.com:daniellavoie/infra-as-code-demo.git
     private_key: ((git.ssh-private-key))
     branch: main
     paths:
     - .concourse
-
-- name: dev-pr
+- name: terraform-lts-src
+  type: git
+  source:
+    uri: git@github.com:daniellavoie/infra-as-code-demo.git
+    private_key: ((git.ssh-private-key))
+    branch: v2
+    paths:
+    - terraform/infra/lts
+- name: terraform-next-src
+  type: git
+  source:
+    uri: git@github.com:daniellavoie/infra-as-code-demo.git
+    private_key: ((git.ssh-private-key))
+    branch: v2
+    paths:
+    - terraform/infra/next
+- name: ax360-frontend-dev-platform-pr
   type: pull-request
   source:
     access_token: ((github.accessToken))
-    repository: ((github-repository))
+    repository: paasas/paasas-pipelines
     paths:
     - teams/ax360/frontend/dev.yaml
 
-- name: dev-src
+- name: ax360-frontend-dev-platform-src
   type: git
-  source: 
-    uri: ((git-uri))
+  source:
+    uri: git@github.com:daniellavoie/infra-as-code-demo.git
     private_key: ((git.ssh-private-key))
-    branch: main
+    branch: v2
+    paths:
+    - teams/ax360/frontend/dev.yaml
+- name: ax360-frontend-prod-platform-pr
+  type: pull-request
+  source:
+    access_token: ((github.accessToken))
+    repository: paasas/paasas-pipelines
     paths:
     - teams/ax360/frontend/dev.yaml
 
-- name: staging-pr
+- name: ax360-frontend-prod-platform-src
+  type: git
+  source:
+    uri: git@github.com:daniellavoie/infra-as-code-demo.git
+    private_key: ((git.ssh-private-key))
+    branch: v2
+    paths:
+    - teams/ax360/frontend/dev.yaml
+- name: ax360-frontend-staging-platform-pr
   type: pull-request
   source:
     access_token: ((github.accessToken))
-    repository: ((github-repository))
+    repository: paasas/paasas-pipelines
     paths:
-    - teams/ax360/frontend/staging.yaml
+    - teams/ax360/frontend/dev.yaml
 
-- name: staging-src
+- name: ax360-frontend-staging-platform-src
   type: git
-  source: 
-    uri: ((git-uri))
-    private_key: ((git.ssh-private-key))
-    branch: main
-    paths:
-    - teams/ax360/frontend/staging.yaml
-
-- name: prod-pr
-  type: pull-request
   source:
-    access_token: ((github.accessToken))
-    repository: ((github-repository))
-    paths:
-    - teams/ax360/frontend/prod.yaml
-
-- name: prod-src
-  type: git
-  source: 
-    uri: ((git-uri))
+    uri: git@github.com:daniellavoie/infra-as-code-demo.git
     private_key: ((git.ssh-private-key))
-    branch: main
+    branch: v2
     paths:
-    - teams/ax360/frontend/prod.yaml
+    - teams/ax360/frontend/dev.yaml
 
 jobs:
-- name: terraform-plan-dev
+- name: ax360-frontend-dev-terraform-apply
   plan:
   - in_parallel:
-    - get: dev-pr
+    - get: ax360-frontend-dev-platform-src
       trigger: true
-    - get: ci-src 
-  - in_parallel:
-    - put: dev-pr
-      params:
-        path: dev-pr
-        status: pending
-    - task: terraform-plan
-      file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
-      input_mapping:
-        src: dev-pr
-  - put: dev-infra-pr
-    params:
-      comment_file: terraform-out/plan.md
-      path: dev-infra-pr
-      status: success
-  on_failure:
-    do:
-    - put: dev-infra-pr
-      params:
-        path: dev-infra-pr
-        status: failure
-
-- name: terraform-apply-dev
-  plan:
-  - in_parallel:
-    - get: src-dev
-      trigger: true
-    - get: ci-src 
-  - task: terraform-apply
-    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
-    input_mapping:
-      src: src-dev
-    params:
-      MANIFEST: src/teams/ax360/frontend/dev.yaml
-
-- name: terraform-apply-staging
-  plan:
-  - in_parallel:
-    - get: src-staging
-      trigger: true
-    - get: ci-src 
+    - get: ci-src
+    - get: terraform-lts-src
+    - get: terraform-next-src
   - task: terraform-apply
     file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
     input_mapping:
       src: src-staging
     params:
-      MANIFEST: src/teams/ax360/frontend/staging.yaml
+      PLATFORM_MANIFEST_PATH: teams/ax360/frontend/dev.yaml
 
-- name: terraform-apply-prod
+- name: ax360-frontend-dev-terraform-plan
   plan:
   - in_parallel:
-    - get: src-prod
+    - get: ax360-frontend-dev-platform-pr
       trigger: true
-    - get: ci-src 
+    - get: ci-src
+  - in_parallel:
+    - put: ax360-frontend-dev-platform-pr
+      params:
+        path: ax360-frontend-dev-platform-pr
+        status: pending
+    - get: terraform-lts-src
+    - get: terraform-next-src
+  - task: terraform-plan
+    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+    input_mapping:
+      src: ax360-frontend-dev-platform-pr
+    params:
+      PLATFORM_MANIFEST_PATH: teams/ax360/frontend/dev.yaml
+  - put: ax360-frontend-dev-platform-pr
+    params:
+      comment_file: terraform-out/plan.md
+      path: ax360-frontend-dev-platform-pr
+      status: success
+  on_failure:
+    do:
+    - put: ax360-frontend-dev-platform-pr
+      params:
+        path: ax360-frontend-dev-infra-pr
+        status: failure
+- name: ax360-frontend-prod-terraform-apply
+  plan:
+  - in_parallel:
+    - get: ax360-frontend-prod-platform-src
+      trigger: true
+    - get: ci-src
+    - get: terraform-lts-src
+    - get: terraform-next-src
   - task: terraform-apply
     file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
     input_mapping:
-      src: src-prod
+      src: src-staging
     params:
-      MANIFEST: src/teams/ax360/frontend/prod.yaml
+      PLATFORM_MANIFEST_PATH: teams/ax360/frontend/dev.yaml
+
+- name: ax360-frontend-prod-terraform-plan
+  plan:
+  - in_parallel:
+    - get: ax360-frontend-prod-platform-pr
+      trigger: true
+    - get: ci-src
+  - in_parallel:
+    - put: ax360-frontend-prod-platform-pr
+      params:
+        path: ax360-frontend-prod-platform-pr
+        status: pending
+    - get: terraform-lts-src
+    - get: terraform-next-src
+  - task: terraform-plan
+    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+    input_mapping:
+      src: ax360-frontend-prod-platform-pr
+    params:
+      PLATFORM_MANIFEST_PATH: teams/ax360/frontend/dev.yaml
+  - put: ax360-frontend-prod-platform-pr
+    params:
+      comment_file: terraform-out/plan.md
+      path: ax360-frontend-prod-platform-pr
+      status: success
+  on_failure:
+    do:
+    - put: ax360-frontend-prod-platform-pr
+      params:
+        path: ax360-frontend-prod-infra-pr
+        status: failure
+- name: ax360-frontend-staging-terraform-apply
+  plan:
+  - in_parallel:
+    - get: ax360-frontend-staging-platform-src
+      trigger: true
+    - get: ci-src
+    - get: terraform-lts-src
+    - get: terraform-next-src
+  - task: terraform-apply
+    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+    input_mapping:
+      src: src-staging
+    params:
+      PLATFORM_MANIFEST_PATH: teams/ax360/frontend/dev.yaml
+
+- name: ax360-frontend-staging-terraform-plan
+  plan:
+  - in_parallel:
+    - get: ax360-frontend-staging-platform-pr
+      trigger: true
+    - get: ci-src
+  - in_parallel:
+    - put: ax360-frontend-staging-platform-pr
+      params:
+        path: ax360-frontend-staging-platform-pr
+        status: pending
+    - get: terraform-lts-src
+    - get: terraform-next-src
+  - task: terraform-plan
+    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+    input_mapping:
+      src: ax360-frontend-staging-platform-pr
+    params:
+      PLATFORM_MANIFEST_PATH: teams/ax360/frontend/dev.yaml
+  - put: ax360-frontend-staging-platform-pr
+    params:
+      comment_file: terraform-out/plan.md
+      path: ax360-frontend-staging-platform-pr
+      status: success
+  on_failure:
+    do:
+    - put: ax360-frontend-staging-platform-pr
+      params:
+        path: ax360-frontend-staging-infra-pr
+        status: failure
+
+groups:
+- name: ax360-frontend-dev
+  jobs:
+  - ax360-frontend-dev-terraform-plan
+  - ax360-frontend-dev-terraform-apply
+
+- name: ax360-frontend-prod
+  jobs:
+  - ax360-frontend-prod-terraform-plan
+  - ax360-frontend-prod-terraform-apply
+
+- name: ax360-frontend-staging
+  jobs:
+  - ax360-frontend-staging-terraform-plan
+  - ax360-frontend-staging-terraform-apply

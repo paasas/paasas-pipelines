@@ -1,0 +1,42 @@
+resources:
+- name: src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    ignore_paths:
+    - .concourse
+    
+- name: ci-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse
+
+- name: paasas-pipelines-release
+  type: github-release
+  source:
+    owner: paasas
+    repository: paasas-pipeline
+
+jobs:
+- name: publish-paasas-pipelines
+  plan:
+  - in_parallel:
+    - get: src
+      trigger: true
+      version: every
+    - get: ci-src
+  - task: build
+    file: ci-src/.concourse/tasks/build/build.yaml
+- put: paasas-pipelines-release
+  params:
+    tag: verson/version
+    globs:
+    - build/**
+    generate_release_notes: true
+  background_image: https://64.media.tumblr.com/d5cc2ecd26a4d02a840d5a91f515c318/tumblr_n04563a3vR1qj86bro1_500.gifv
