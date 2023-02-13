@@ -1,5 +1,5 @@
 resources:
-- name: paasas-graal-vm-src
+- name: paasas-graal-vm-image-src
   type: git
   source: 
     uri: git@github.com:paasas/paasas-pipelines.git
@@ -41,11 +41,11 @@ resources:
 jobs:
 - name: paasas-graal-vm
   plan:
-  - get: paasas-graal-vm-src
+  - get: paasas-graal-vm-image-src
     trigger: true
   - put: paasas-graal-vm-image
     params: 
-      build: paasas-terraform-image-src/.concourse/images/paasas-graal-vm
+      build: paasas-graal-vm-image-src/.concourse/images/paasas-graal-vm
       tag_as_latest: true
     get_params: 
       skip_download: true
