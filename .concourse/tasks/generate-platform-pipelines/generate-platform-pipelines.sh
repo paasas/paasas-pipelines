@@ -5,7 +5,7 @@ if [ -z "${TARGETS_DIRECTORY}" ]; then
   exit 1
 fi
 
-concourse-pipelines \
+paasas-pipelines \
     platforms-src/$TARGETS_DIRECTORY \
     pipelines/pipelines.yaml && \
   echo "Generated pipeline: \n\n$(cat pipelines/pipelines.yaml)"
