@@ -8,14 +8,14 @@ image_resource:
     tag: latest
 
 inputs:
-- name: platform-src
+- name: platforms-src
 - name: ci-src
 
 outputs:
 - name: pipelines
 
 env:
-  
+  TARGETS_DIRECTORY: 
 
 run:
   path: ci-src/.concourse/tasks/generate-platform-pipelines/generate-platform-pipelines.sh
