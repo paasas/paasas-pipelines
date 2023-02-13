@@ -39,4 +39,3 @@ jobs:
     globs:
     - build/**
     generate_release_notes: true
-  background_image: https://64.media.tumblr.com/d5cc2ecd26a4d02a840d5a91f515c318/tumblr_n04563a3vR1qj86bro1_500.gifv
