@@ -63,7 +63,7 @@ jobs:
     - get: paasas-pipelines-image-src
       trigger: true
     - get: paasas-pipelines-release
-      passed_by: ["publish-paasas-pipelines"]
+      passed: ["publish-paasas-pipelines"]
       trigger: true
       version: every
       params:
