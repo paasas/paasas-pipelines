@@ -2,8 +2,8 @@ FROM alpine
 
 ARG VERSION
 
-ADD paasas-pipelines-release/concourse-pipelines /usr/bin/pipelines-concourse
+ADD paasas-pipelines /usr/bin/paasas-pipelines
 
-RUN chmod +x /usr/bin/pipelines-concourse
+RUN chmod +x /usr/bin/paasas-pipelines
 
-ENTRYPOINT pipelines-concourse
+ENTRYPOINT paasas-pipelines
