@@ -24,6 +24,22 @@ resources:
     owner: paasas
     repository: paasas-pipelines
 
+- name: paasas-pipelines-image-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse/images/paasas-pipelines
+
+- name: paasas-pipelines-image
+  type: docker-image
+  source:
+    repository: ((registry.publicUrl))/paasas-pipelines
+    username: ((registry.username))
+    password: ((registry.password))
+
 jobs:
 - name: publish-paasas-pipelines
   plan:
@@ -40,3 +56,39 @@ jobs:
       tag: version/version
       globs:
       - build/pipelines-concourse
+
+- name: publish-paasas-pipelines-docker-image
+  plan:
+  - in_parallel:
+    - get: paasas-pipelines-image-src
+      trigger: true
+    - get: paasas-pipelines-release
+      passed_by: ["publish-paasas-pipelines"]
+      trigger: true
+      version: every
+      params:
+        skip_download: true
+    - get: ci-src
+  - task: prepare-build-args
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: 
+          repository: busybox
+      inputs:
+      - name: ci-src
+      - name: paasas-pipelines-image-src
+      - name: paasas-pipelines-release
+      outputs: 
+      - name: build-args
+      run:
+        path: ci-src/.concourse/images/paasas-pipelines/prepare-build-args.sh
+  - put: paasas-pipelines-image
+    params: 
+      build: paasas-pipelines-image-src/.concourse/images/paasas-pipelines
+      tag_as_latest: true
+      tag_file: version/version
+      build_args_file: build-args/build-args.json
+    get_params: 
+      skip_download: true
