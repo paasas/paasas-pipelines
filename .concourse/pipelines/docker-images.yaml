@@ -1,4 +1,13 @@
 resources:
+- name: paasas-graal-vm-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse/images/paasas-graal-vm
+    
 - name: paasas-terraform-image-src
   type: git
   source: 
@@ -22,7 +31,25 @@ resources:
     username: ((registry.username))
     password: ((registry.password))
 
+- name: paasas-graal-vm-image
+  type: docker-image
+  source:
+    repository: ((registry.publicUrl))/paasas-graal-vm
+    username: ((registry.username))
+    password: ((registry.password))
+
 jobs:
+- name: paasas-graal-vm
+  plan:
+  - get: paasas-graal-vm-src
+    trigger: true
+  - put: paasas-graal-vm-image
+    params: 
+      build: paasas-terraform-image-src/.concourse/images/paasas-graal-vm
+      tag_as_latest: true
+    get_params: 
+      skip_download: true
+
 - name: publish-paasas-terraform-image
   plan:
   - in_parallel:
