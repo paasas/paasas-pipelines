@@ -65,7 +65,7 @@ public class GeneratePlatformPipeline extends AbstractCommand {
 
 	private TargetConfig toTargetConfig(String file) {
 		return TargetConfig.builder()
-				.name(file.replace("/", "-"))
+				.name(file.replace("/", "-").replace(".yaml", "").replace(".yml", ""))
 				.platformManifestPath(file)
 				.build();
 	}

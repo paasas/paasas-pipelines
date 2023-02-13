@@ -33,7 +33,7 @@ public abstract class ExpectedPipeline {
 			    branch: v2
 			    paths:
 			    - terraform/infra/next
-			- name: project1-backend-dev.yaml-platform-pr
+			- name: project1-backend-dev-platform-pr
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
@@ -41,7 +41,7 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - project1/backend/dev.yaml
 
-			- name: project1-backend-dev.yaml-platform-src
+			- name: project1-backend-dev-platform-src
 			  type: git
 			  source:
 			    uri: v2
@@ -49,7 +49,7 @@ public abstract class ExpectedPipeline {
 			    branch: https://github.com/paasas/deployment-repository
 			    paths:
 			    - project1/backend/dev.yaml
-			- name: project1-backend-prod.yaml-platform-pr
+			- name: project1-backend-prod-platform-pr
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
@@ -57,7 +57,7 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - project1/backend/prod.yaml
 
-			- name: project1-backend-prod.yaml-platform-src
+			- name: project1-backend-prod-platform-src
 			  type: git
 			  source:
 			    uri: v2
@@ -65,7 +65,7 @@ public abstract class ExpectedPipeline {
 			    branch: https://github.com/paasas/deployment-repository
 			    paths:
 			    - project1/backend/prod.yaml
-			- name: project1-frontend-dev.yaml-platform-pr
+			- name: project1-frontend-dev-platform-pr
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
@@ -73,7 +73,7 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - project1/frontend/dev.yaml
 
-			- name: project1-frontend-dev.yaml-platform-src
+			- name: project1-frontend-dev-platform-src
 			  type: git
 			  source:
 			    uri: v2
@@ -81,7 +81,7 @@ public abstract class ExpectedPipeline {
 			    branch: https://github.com/paasas/deployment-repository
 			    paths:
 			    - project1/frontend/dev.yaml
-			- name: project1-frontend-prod.yaml-platform-pr
+			- name: project1-frontend-prod-platform-pr
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
@@ -89,7 +89,7 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - project1/frontend/prod.yaml
 
-			- name: project1-frontend-prod.yaml-platform-src
+			- name: project1-frontend-prod-platform-src
 			  type: git
 			  source:
 			    uri: v2
@@ -99,10 +99,10 @@ public abstract class ExpectedPipeline {
 			    - project1/frontend/prod.yaml
 
 			jobs:
-			- name: project1-backend-dev.yaml-terraform-apply
+			- name: project1-backend-dev-terraform-apply
 			  plan:
 			  - in_parallel:
-			    - get: project1-backend-dev.yaml-platform-src
+			    - get: project1-backend-dev-platform-src
 			      trigger: true
 			    - get: ci-src
 			    - get: terraform-lts-src
@@ -114,40 +114,40 @@ public abstract class ExpectedPipeline {
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/backend/dev.yaml
 
-			- name: project1-backend-dev.yaml-terraform-plan
+			- name: project1-backend-dev-terraform-plan
 			  plan:
 			  - in_parallel:
-			    - get: project1-backend-dev.yaml-platform-pr
+			    - get: project1-backend-dev-platform-pr
 			      trigger: true
 			    - get: ci-src
 			  - in_parallel:
-			    - put: project1-backend-dev.yaml-platform-pr
+			    - put: project1-backend-dev-platform-pr
 			      params:
-			        path: project1-backend-dev.yaml-platform-pr
+			        path: project1-backend-dev-platform-pr
 			        status: pending
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
 			    input_mapping:
-			      src: project1-backend-dev.yaml-platform-pr
+			      src: project1-backend-dev-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/backend/dev.yaml
-			  - put: project1-backend-dev.yaml-platform-pr
+			  - put: project1-backend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
-			      path: project1-backend-dev.yaml-platform-pr
+			      path: project1-backend-dev-platform-pr
 			      status: success
 			  on_failure:
 			    do:
-			    - put: project1-backend-dev.yaml-platform-pr
+			    - put: project1-backend-dev-platform-pr
 			      params:
-			        path: project1-backend-dev.yaml-infra-pr
+			        path: project1-backend-dev-infra-pr
 			        status: failure
-			- name: project1-backend-prod.yaml-terraform-apply
+			- name: project1-backend-prod-terraform-apply
 			  plan:
 			  - in_parallel:
-			    - get: project1-backend-prod.yaml-platform-src
+			    - get: project1-backend-prod-platform-src
 			      trigger: true
 			    - get: ci-src
 			    - get: terraform-lts-src
@@ -159,40 +159,40 @@ public abstract class ExpectedPipeline {
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/backend/prod.yaml
 
-			- name: project1-backend-prod.yaml-terraform-plan
+			- name: project1-backend-prod-terraform-plan
 			  plan:
 			  - in_parallel:
-			    - get: project1-backend-prod.yaml-platform-pr
+			    - get: project1-backend-prod-platform-pr
 			      trigger: true
 			    - get: ci-src
 			  - in_parallel:
-			    - put: project1-backend-prod.yaml-platform-pr
+			    - put: project1-backend-prod-platform-pr
 			      params:
-			        path: project1-backend-prod.yaml-platform-pr
+			        path: project1-backend-prod-platform-pr
 			        status: pending
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
 			    input_mapping:
-			      src: project1-backend-prod.yaml-platform-pr
+			      src: project1-backend-prod-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/backend/prod.yaml
-			  - put: project1-backend-prod.yaml-platform-pr
+			  - put: project1-backend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
-			      path: project1-backend-prod.yaml-platform-pr
+			      path: project1-backend-prod-platform-pr
 			      status: success
 			  on_failure:
 			    do:
-			    - put: project1-backend-prod.yaml-platform-pr
+			    - put: project1-backend-prod-platform-pr
 			      params:
-			        path: project1-backend-prod.yaml-infra-pr
+			        path: project1-backend-prod-infra-pr
 			        status: failure
-			- name: project1-frontend-dev.yaml-terraform-apply
+			- name: project1-frontend-dev-terraform-apply
 			  plan:
 			  - in_parallel:
-			    - get: project1-frontend-dev.yaml-platform-src
+			    - get: project1-frontend-dev-platform-src
 			      trigger: true
 			    - get: ci-src
 			    - get: terraform-lts-src
@@ -204,40 +204,40 @@ public abstract class ExpectedPipeline {
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/frontend/dev.yaml
 
-			- name: project1-frontend-dev.yaml-terraform-plan
+			- name: project1-frontend-dev-terraform-plan
 			  plan:
 			  - in_parallel:
-			    - get: project1-frontend-dev.yaml-platform-pr
+			    - get: project1-frontend-dev-platform-pr
 			      trigger: true
 			    - get: ci-src
 			  - in_parallel:
-			    - put: project1-frontend-dev.yaml-platform-pr
+			    - put: project1-frontend-dev-platform-pr
 			      params:
-			        path: project1-frontend-dev.yaml-platform-pr
+			        path: project1-frontend-dev-platform-pr
 			        status: pending
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
 			    input_mapping:
-			      src: project1-frontend-dev.yaml-platform-pr
+			      src: project1-frontend-dev-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/frontend/dev.yaml
-			  - put: project1-frontend-dev.yaml-platform-pr
+			  - put: project1-frontend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
-			      path: project1-frontend-dev.yaml-platform-pr
+			      path: project1-frontend-dev-platform-pr
 			      status: success
 			  on_failure:
 			    do:
-			    - put: project1-frontend-dev.yaml-platform-pr
+			    - put: project1-frontend-dev-platform-pr
 			      params:
-			        path: project1-frontend-dev.yaml-infra-pr
+			        path: project1-frontend-dev-infra-pr
 			        status: failure
-			- name: project1-frontend-prod.yaml-terraform-apply
+			- name: project1-frontend-prod-terraform-apply
 			  plan:
 			  - in_parallel:
-			    - get: project1-frontend-prod.yaml-platform-src
+			    - get: project1-frontend-prod-platform-src
 			      trigger: true
 			    - get: ci-src
 			    - get: terraform-lts-src
@@ -249,56 +249,56 @@ public abstract class ExpectedPipeline {
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/frontend/prod.yaml
 
-			- name: project1-frontend-prod.yaml-terraform-plan
+			- name: project1-frontend-prod-terraform-plan
 			  plan:
 			  - in_parallel:
-			    - get: project1-frontend-prod.yaml-platform-pr
+			    - get: project1-frontend-prod-platform-pr
 			      trigger: true
 			    - get: ci-src
 			  - in_parallel:
-			    - put: project1-frontend-prod.yaml-platform-pr
+			    - put: project1-frontend-prod-platform-pr
 			      params:
-			        path: project1-frontend-prod.yaml-platform-pr
+			        path: project1-frontend-prod-platform-pr
 			        status: pending
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
 			    input_mapping:
-			      src: project1-frontend-prod.yaml-platform-pr
+			      src: project1-frontend-prod-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: project1/frontend/prod.yaml
-			  - put: project1-frontend-prod.yaml-platform-pr
+			  - put: project1-frontend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
-			      path: project1-frontend-prod.yaml-platform-pr
+			      path: project1-frontend-prod-platform-pr
 			      status: success
 			  on_failure:
 			    do:
-			    - put: project1-frontend-prod.yaml-platform-pr
+			    - put: project1-frontend-prod-platform-pr
 			      params:
-			        path: project1-frontend-prod.yaml-infra-pr
+			        path: project1-frontend-prod-infra-pr
 			        status: failure
 
 			groups:
-			- name: project1-backend-dev.yaml
+			- name: project1-backend-dev
 			  jobs:
-			  - project1-backend-dev.yaml-terraform-plan
-			  - project1-backend-dev.yaml-terraform-apply
+			  - project1-backend-dev-terraform-plan
+			  - project1-backend-dev-terraform-apply
 
-			- name: project1-backend-prod.yaml
+			- name: project1-backend-prod
 			  jobs:
-			  - project1-backend-prod.yaml-terraform-plan
-			  - project1-backend-prod.yaml-terraform-apply
+			  - project1-backend-prod-terraform-plan
+			  - project1-backend-prod-terraform-apply
 
-			- name: project1-frontend-dev.yaml
+			- name: project1-frontend-dev
 			  jobs:
-			  - project1-frontend-dev.yaml-terraform-plan
-			  - project1-frontend-dev.yaml-terraform-apply
+			  - project1-frontend-dev-terraform-plan
+			  - project1-frontend-dev-terraform-apply
 
-			- name: project1-frontend-prod.yaml
+			- name: project1-frontend-prod
 			  jobs:
-			  - project1-frontend-prod.yaml-terraform-plan
-			  - project1-frontend-prod.yaml-terraform-apply
+			  - project1-frontend-prod-terraform-plan
+			  - project1-frontend-prod-terraform-apply
 			""";
 }
