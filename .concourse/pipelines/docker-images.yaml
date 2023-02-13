@@ -13,6 +13,7 @@ resources:
   source:
     owner: hashicorp
     repository: terraform
+    access_token: ((github.accessToken))
 
 - name: paasas-terraform-image
   type: docker-image
