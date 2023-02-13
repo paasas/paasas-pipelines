@@ -20,8 +20,10 @@ resources:
 - name: paasas-pipelines-release
   type: github-release
   source:
+    access_token: ((github.accessToken))
     owner: paasas
     repository: paasas-pipelines
+    user: concourse-paasas
 
 jobs:
 - name: publish-paasas-pipelines
