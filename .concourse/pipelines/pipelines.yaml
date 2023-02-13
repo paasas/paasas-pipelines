@@ -22,7 +22,7 @@ jobs:
   plan:
   - get: concourse-pipelines-src
     trigger: true
-  - set_pipeline: docker-images
+  - set_pipeline: concourse-pipelines
     file: concourse-pipelines-src/.concourse/pipelines/concourse-pipelines.yaml
     
 - name: docker-images
