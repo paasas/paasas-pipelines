@@ -8,6 +8,9 @@ fi
 set -x
 
 paasas-pipelines \
+    generate-pipeline \
     platforms-src/$TARGETS_DIRECTORY \
     pipelines/pipelines.yaml && \
-  echo "Generated pipeline: \n\n$(cat pipelines/pipelines.yaml)"
+  echo "Generated pipeline:"
+  echo ""
+  echo $(cat pipelines/pipelines.yaml)
