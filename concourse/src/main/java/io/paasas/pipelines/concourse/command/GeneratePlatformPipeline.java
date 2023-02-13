@@ -43,6 +43,7 @@ public class GeneratePlatformPipeline extends AbstractCommand {
 	private List<TargetConfig> scanTargets(String directory) {
 		return listYamlFiles(directory)
 				.stream()
+				.sorted()
 				.map(this::toTargetConfig)
 				.toList();
 	}
