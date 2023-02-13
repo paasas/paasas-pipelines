@@ -21,7 +21,7 @@ resources:
   type: github-release
   source:
     owner: paasas
-    repository: paasas-pipeline
+    repository: paasas-pipelines
 
 jobs:
 - name: publish-paasas-pipelines
