@@ -13,4 +13,4 @@ paasas-pipelines \
     pipelines/pipelines.yaml && \
   echo "Generated pipeline:"
   echo ""
-  echo $(cat pipelines/pipelines.yaml)
+  echo "$(cat pipelines/pipelines.yaml)"
