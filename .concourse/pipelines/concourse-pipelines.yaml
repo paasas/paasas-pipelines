@@ -62,13 +62,14 @@ jobs:
   - in_parallel:
     - get: paasas-pipelines-image-src
       trigger: true
+    - get: ci-src
     - get: paasas-pipelines-release
       passed: ["publish-paasas-pipelines"]
       trigger: true
       version: every
       params:
-        skip_download: true
-    - get: ci-src
+        globs:
+        - pipelines-concourse
   - task: prepare-build-args
     config:
       platform: linux
@@ -80,10 +81,10 @@ jobs:
       - name: ci-src
       - name: paasas-pipelines-image-src
       - name: paasas-pipelines-release
-      outputs: 
+      outputs:
       - name: build-args
       run:
-        path: ci-src/.concourse/images/paasas-pipelines/prepare-build-args.sh
+        path: ci-src/.concourse/images/paasas-pipelines/prepare-docker-build.sh
   - put: paasas-pipelines-image
     params: 
       build: paasas-pipelines-image-src/.concourse/images/paasas-pipelines
