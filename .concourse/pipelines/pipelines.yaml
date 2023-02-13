@@ -16,6 +16,15 @@ resources:
     branch: main
     paths:
     - .concourse/pipelines/docker-images.yaml
+    
+- name: platform-demo-pipelines-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse/pipelines/platforms-demo-pipelines.yaml
 
 jobs:
 - name: concourse-pipelines
@@ -31,3 +40,10 @@ jobs:
     trigger: true
   - set_pipeline: docker-images
     file: docker-images-src/.concourse/pipelines/docker-images.yaml
+    
+- name: platform-demo-pipelines
+  plan:
+  - get: platform-demo-pipelines-src
+    trigger: true
+  - set_pipeline: platform-demo-pipelines
+    file: platform-demo-pipelines-src/.concourse/pipelines/platforms-demo-pipelines.yaml
