@@ -37,5 +37,5 @@ jobs:
     params:
       tag: verson/version
       globs:
-      - build/**
+      - build/pipelines-concourse
       generate_release_notes: true
