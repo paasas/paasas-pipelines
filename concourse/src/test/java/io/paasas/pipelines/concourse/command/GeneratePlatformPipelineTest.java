@@ -89,10 +89,6 @@ public class GeneratePlatformPipelineTest {
 				"invalid-dir");
 	}
 
-	public void assertCommand() {
-
-	}
-
 	private GeneratePlatformPipeline command() {
 		var configuration = new PipelinesConcourseConfiguration(
 				"https://github.com/paasas/paasas-pipelines",
@@ -100,6 +96,7 @@ public class GeneratePlatformPipelineTest {
 				"teams/",
 				"v2",
 				"https://github.com/daniellavoie/infra-as-code-demo",
+				"terraform-states",
 				"https://github.com/daniellavoie/infra-as-code-demo");
 
 		var platformPipeline = new PlatformPipeline(configuration);
