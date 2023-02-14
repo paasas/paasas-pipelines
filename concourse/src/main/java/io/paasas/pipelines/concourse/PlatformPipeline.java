@@ -157,7 +157,10 @@ public class PlatformPipeline {
 								.collect(Collectors.joining("\n")));
 	}
 
-	private static String resources(TargetConfig targetConfig, String githubRepository, String platformSrcBranch,
+	private static String resources(
+			TargetConfig targetConfig,
+			String githubRepository,
+			String platformSrcBranch,
 			String platformSrcUri) {
 		return RESOURCES
 				.replace("{GITHUB_REPOSITORY}", githubRepository)

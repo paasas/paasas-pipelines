@@ -75,6 +75,12 @@ public class GeneratePlatformPipelineTest {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public void assertTargetScanner() {
+		var command = command();
+		
+		command.listYamlFiles(DIRECTORY.toAbsolutePath().toString());
+	}
 
 	@Test
 	public void assertInvalidArgumentCount() throws IOException {

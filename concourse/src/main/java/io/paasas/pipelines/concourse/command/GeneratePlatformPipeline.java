@@ -33,8 +33,10 @@ public class GeneratePlatformPipeline extends AbstractCommand {
 		assertIsDirectory(directory);
 		assertIsWritableFile(pipelineFile);
 
+		var targets = scanTargets(directory);
+
 		try {
-			Files.writeString(Path.of(pipelineFile), platformPipeline.pipeline(scanTargets(directory)));
+			Files.writeString(Path.of(pipelineFile), platformPipeline.pipeline(targets));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -54,8 +56,8 @@ public class GeneratePlatformPipeline extends AbstractCommand {
 		try (Stream<Path> walk = Files.walk(Paths.get(directory))) {
 			return walk
 					.filter(p -> !Files.isDirectory(p))
-					.map(p -> p.toString().toLowerCase())
-					.filter(f -> f.endsWith(".yaml") || f.endsWith(".yml"))
+					.map(p -> p.toAbsolutePath().toString())
+					.filter(f -> f.toLowerCase().endsWith(".yaml") || f.toLowerCase().endsWith(".yml"))
 					.map(file -> file.substring(absolutePath.length() + 1))
 					.toList();
 		} catch (IOException e) {
