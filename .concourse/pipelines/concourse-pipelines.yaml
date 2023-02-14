@@ -41,6 +41,23 @@ jobs:
     - get: ci-src
   - task: build
     file: ci-src/.concourse/tasks/build/build.yaml
+  - task: prepare-build-args
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source: 
+          repository: busybox
+      inputs:
+      - name: build
+      - name: ci-src
+      - name: src
+      - name: version
+      outputs:
+      - name: build-args
+      - name: src
+      run:
+        path: ci-src/.concourse/images/paasas-pipelines/prepare-docker-build.sh
   - in_parallel:
     - put: paasas-pipelines-release
       params:
@@ -48,22 +65,6 @@ jobs:
         tag: version/version
         globs:
         - build/pipelines-concourse
-    - task: prepare-build-args
-      config:
-        platform: linux
-        image_resource:
-          type: registry-image
-          source: 
-            repository: busybox
-        inputs:
-        - name: ci-src
-        - name: build
-        - name: src
-        outputs:
-        - name: build-args
-        - name: src
-        run:
-          path: ci-src/.concourse/images/paasas-pipelines/prepare-docker-build.sh
     - put: paasas-pipelines-image
       params: 
         build: src/.concourse/images/paasas-pipelines

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=$(cat paasas-pipelines-release/version)
+VERSION=$(cat version/version)
 
 read -r -d '' BUILD_ARGS << EOM
 {
