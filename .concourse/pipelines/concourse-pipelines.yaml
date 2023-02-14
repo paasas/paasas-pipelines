@@ -50,47 +50,34 @@ jobs:
     - get: ci-src
   - task: build
     file: ci-src/.concourse/tasks/build/build.yaml
-  - put: paasas-pipelines-release
-    params:
-      name: version/version
-      tag: version/version
-      globs:
-      - build/pipelines-concourse
-
-- name: publish-paasas-pipelines-docker-image
-  plan:
   - in_parallel:
-    - get: paasas-pipelines-image-src
-      trigger: true
-    - get: ci-src
-    - get: paasas-pipelines-release
-      passed: ["publish-paasas-pipelines"]
-      trigger: true
-      version: every
+    - put: paasas-pipelines-release
       params:
+        name: version/version
+        tag: version/version
         globs:
-        - pipelines-concourse
-  - task: prepare-build-args
-    config:
-      platform: linux
-      image_resource:
-        type: registry-image
-        source: 
-          repository: busybox
-      inputs:
-      - name: ci-src
-      - name: paasas-pipelines-image-src
-      - name: paasas-pipelines-release
-      outputs:
-      - name: build-args
-      - name: paasas-pipelines-image-src
-      run:
-        path: ci-src/.concourse/images/paasas-pipelines/prepare-docker-build.sh
-  - put: paasas-pipelines-image
-    params: 
-      build: paasas-pipelines-image-src/.concourse/images/paasas-pipelines
-      tag_as_latest: true
-      tag_file: paasas-pipelines-release/version
-      build_args_file: build-args/build-args.json
-    get_params: 
-      skip_download: true
+        - build/pipelines-concourse
+    - task: prepare-build-args
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source: 
+            repository: busybox
+        inputs:
+        - name: ci-src
+        - name: build
+        - name: paasas-pipelines-image-src
+        outputs:
+        - name: build-args
+        - name: paasas-pipelines-image-src
+        run:
+          path: ci-src/.concourse/images/paasas-pipelines/prepare-docker-build.sh
+    - put: paasas-pipelines-image
+      params: 
+        build: paasas-pipelines-image-src/.concourse/images/paasas-pipelines
+        tag_as_latest: true
+        tag_file: paasas-pipelines-release/version
+        build_args_file: build-args/build-args.json
+      get_params: 
+        skip_download: true

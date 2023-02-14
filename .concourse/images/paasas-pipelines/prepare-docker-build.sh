@@ -8,6 +8,6 @@ read -r -d '' BUILD_ARGS << EOM
 }
 EOM
 
-cp paasas-pipelines-release/pipelines-concourse paasas-pipelines-image-src/.concourse/images/paasas-pipelines/paasas-pipelines
+cp build/pipelines-concourse paasas-pipelines-image-src/.concourse/images/paasas-pipelines/paasas-pipelines
 
 echo "$BUILD_ARGS" > build-args/build-args.json
