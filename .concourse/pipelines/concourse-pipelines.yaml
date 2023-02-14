@@ -24,15 +24,6 @@ resources:
     owner: paasas
     repository: paasas-pipelines
 
-- name: paasas-pipelines-image-src
-  type: git
-  source: 
-    uri: git@github.com:paasas/paasas-pipelines.git
-    private_key: ((git.ssh-private-key))
-    branch: main
-    paths:
-    - .concourse/images/paasas-pipelines
-
 - name: paasas-pipelines-image
   type: docker-image
   source:
@@ -67,15 +58,15 @@ jobs:
         inputs:
         - name: ci-src
         - name: build
-        - name: paasas-pipelines-image-src
+        - name: src
         outputs:
         - name: build-args
-        - name: paasas-pipelines-image-src
+        - name: src
         run:
           path: ci-src/.concourse/images/paasas-pipelines/prepare-docker-build.sh
     - put: paasas-pipelines-image
       params: 
-        build: paasas-pipelines-image-src/.concourse/images/paasas-pipelines
+        build: src/.concourse/images/paasas-pipelines
         tag_as_latest: true
         tag_file: paasas-pipelines-release/version
         build_args_file: build-args/build-args.json
