@@ -27,7 +27,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-yq -o=json -I=0 '.terraformfVars' ${WORKDIR}/platform-manifest/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tfVars.json && \
+yq -o=json -I=0 '.terraformfVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tfVars.json && \
   terraform apply \
     --input=false \
     -var-file=${WORKDIR}/tfvars.json \
