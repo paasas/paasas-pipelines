@@ -142,6 +142,7 @@ public class PlatformPipeline {
 								.map(targetConfig -> resources(
 										targetConfig,
 										configuration.getGithubRepository(),
+										configuration.getPlatformPathPrefix(),
 										configuration.getPlatformSrcBranch(),
 										configuration.getPlatformSrcUri()))
 								.collect(Collectors.joining("\n")))
@@ -160,6 +161,7 @@ public class PlatformPipeline {
 	private static String resources(
 			TargetConfig targetConfig,
 			String githubRepository,
+			String platformPathPrefix,
 			String platformSrcBranch,
 			String platformSrcUri) {
 		return RESOURCES

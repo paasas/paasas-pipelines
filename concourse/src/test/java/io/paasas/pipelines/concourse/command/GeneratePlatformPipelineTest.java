@@ -75,10 +75,10 @@ public class GeneratePlatformPipelineTest {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	public void assertTargetScanner() {
 		var command = command();
-		
+
 		command.listYamlFiles(DIRECTORY.toAbsolutePath().toString());
 	}
 
@@ -97,13 +97,14 @@ public class GeneratePlatformPipelineTest {
 		var configuration = new PipelinesConcourseConfiguration(
 				"https://github.com/paasas/paasas-pipelines",
 				"paasas/platform-repository",
-				"https://github.com/paasas/deployment-repository",
+				"teams/",
 				"v2",
+				"https://github.com/paasas/platform-repository",
 				"https://github.com/paasas/platform-repository");
 
 		var platformPipeline = new PlatformPipeline(configuration);
 
-		return new GeneratePlatformPipeline(ERROR_OUTPUT, platformPipeline);
+		return new GeneratePlatformPipeline(ERROR_OUTPUT, configuration, platformPipeline);
 	}
 
 	private void assertInvalidCommandUsage(String errorMessage, String... args) {

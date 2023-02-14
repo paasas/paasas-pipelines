@@ -27,6 +27,9 @@ public class PaasasPipelinesConfig {
 
 		var platformPipeline = new PlatformPipeline(pipelinesConcourseConfiguration);
 
-		return new CommandProcessor(output, errorOutput, new GeneratePlatformPipeline(errorOutput, platformPipeline));
+		return new CommandProcessor(output, errorOutput, new GeneratePlatformPipeline(
+				errorOutput,
+				pipelinesConcourseConfiguration,
+				platformPipeline));
 	}
 }

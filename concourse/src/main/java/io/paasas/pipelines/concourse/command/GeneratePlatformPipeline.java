@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
+import io.paasas.pipelines.concourse.PipelinesConcourseConfiguration;
 import io.paasas.pipelines.concourse.PlatformPipeline;
 import io.paasas.pipelines.concourse.TargetConfig;
 import io.paasas.pipelines.concourse.command.exception.IllegalCommandArgumentsException;
@@ -20,6 +21,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class GeneratePlatformPipeline extends AbstractCommand {
 	Output errorOutput;
+	PipelinesConcourseConfiguration configuration;
 	PlatformPipeline platformPipeline;
 
 	public void process(String... args) {
@@ -68,7 +70,7 @@ public class GeneratePlatformPipeline extends AbstractCommand {
 	private TargetConfig toTargetConfig(String file) {
 		return TargetConfig.builder()
 				.name(file.replace("/", "-").replace(".yaml", "").replace(".yml", ""))
-				.platformManifestPath(file)
+				.platformManifestPath(configuration.getPlatformPathPrefix() + file)
 				.build();
 	}
 

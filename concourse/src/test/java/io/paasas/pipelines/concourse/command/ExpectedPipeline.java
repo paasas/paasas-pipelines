@@ -39,64 +39,64 @@ public abstract class ExpectedPipeline {
 			    access_token: ((github.accessToken))
 			    repository: paasas/platform-repository
 			    paths:
-			    - project1/backend/dev.yaml
+			    - teams/project1/backend/dev.yaml
 
 			- name: project1-backend-dev-platform-src
 			  type: git
 			  source:
-			    uri: v2
+			    uri: https://github.com/paasas/platform-repository
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/paasas/deployment-repository
+			    branch: v2
 			    paths:
-			    - project1/backend/dev.yaml
+			    - teams/project1/backend/dev.yaml
 			- name: project1-backend-prod-platform-pr
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
 			    repository: paasas/platform-repository
 			    paths:
-			    - project1/backend/prod.yaml
+			    - teams/project1/backend/prod.yaml
 
 			- name: project1-backend-prod-platform-src
 			  type: git
 			  source:
-			    uri: v2
+			    uri: https://github.com/paasas/platform-repository
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/paasas/deployment-repository
+			    branch: v2
 			    paths:
-			    - project1/backend/prod.yaml
+			    - teams/project1/backend/prod.yaml
 			- name: project1-frontend-dev-platform-pr
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
 			    repository: paasas/platform-repository
 			    paths:
-			    - project1/frontend/dev.yaml
+			    - teams/project1/frontend/dev.yaml
 
 			- name: project1-frontend-dev-platform-src
 			  type: git
 			  source:
-			    uri: v2
+			    uri: https://github.com/paasas/platform-repository
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/paasas/deployment-repository
+			    branch: v2
 			    paths:
-			    - project1/frontend/dev.yaml
+			    - teams/project1/frontend/dev.yaml
 			- name: project1-frontend-prod-platform-pr
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
 			    repository: paasas/platform-repository
 			    paths:
-			    - project1/frontend/prod.yaml
+			    - teams/project1/frontend/prod.yaml
 
 			- name: project1-frontend-prod-platform-src
 			  type: git
 			  source:
-			    uri: v2
+			    uri: https://github.com/paasas/platform-repository
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/paasas/deployment-repository
+			    branch: v2
 			    paths:
-			    - project1/frontend/prod.yaml
+			    - teams/project1/frontend/prod.yaml
 
 			jobs:
 			- name: project1-backend-dev-terraform-apply
@@ -112,7 +112,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: src-staging
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/backend/dev.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 
 			- name: project1-backend-dev-terraform-plan
 			  plan:
@@ -132,7 +132,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: project1-backend-dev-platform-pr
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/backend/dev.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			  - put: project1-backend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
@@ -157,7 +157,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: src-staging
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/backend/prod.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 
 			- name: project1-backend-prod-terraform-plan
 			  plan:
@@ -177,7 +177,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: project1-backend-prod-platform-pr
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/backend/prod.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			  - put: project1-backend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
@@ -202,7 +202,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: src-staging
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/frontend/dev.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 
 			- name: project1-frontend-dev-terraform-plan
 			  plan:
@@ -222,7 +222,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: project1-frontend-dev-platform-pr
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/frontend/dev.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			  - put: project1-frontend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
@@ -247,7 +247,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: src-staging
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/frontend/prod.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 
 			- name: project1-frontend-prod-terraform-plan
 			  plan:
@@ -267,7 +267,7 @@ public abstract class ExpectedPipeline {
 			    input_mapping:
 			      src: project1-frontend-prod-platform-pr
 			    params:
-			      PLATFORM_MANIFEST_PATH: project1/frontend/prod.yaml
+			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			  - put: project1-frontend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md

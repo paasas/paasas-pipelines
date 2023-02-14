@@ -3,6 +3,7 @@ package io.paasas.pipelines.concourse;
 import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,9 @@ public class PipelinesConcourseConfiguration {
 	@NotEmpty
 	String githubRepository;
 
+	@NotNull
+	String platformPathPrefix;
+	
 	@NotEmpty
 	String platformSrcBranch;
 
