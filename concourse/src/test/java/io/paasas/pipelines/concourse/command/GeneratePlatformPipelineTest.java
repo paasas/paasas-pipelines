@@ -96,11 +96,11 @@ public class GeneratePlatformPipelineTest {
 	private GeneratePlatformPipeline command() {
 		var configuration = new PipelinesConcourseConfiguration(
 				"https://github.com/paasas/paasas-pipelines",
-				"paasas/platform-repository",
+				"daniellavoie/infra-as-code-demo",
 				"teams/",
 				"v2",
-				"https://github.com/paasas/platform-repository",
-				"https://github.com/paasas/platform-repository");
+				"https://github.com/daniellavoie/infra-as-code-demo",
+				"https://github.com/daniellavoie/infra-as-code-demo");
 
 		var platformPipeline = new PlatformPipeline(configuration);
 

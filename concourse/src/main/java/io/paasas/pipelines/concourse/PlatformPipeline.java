@@ -40,7 +40,7 @@ public class PlatformPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
 			      src: src-staging
 			    params:
@@ -60,7 +60,7 @@ public class PlatformPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
-			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yaml
 			    input_mapping:
 			      src: {TARGET}-platform-pr
 			    params:

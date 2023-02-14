@@ -20,7 +20,7 @@ public abstract class ExpectedPipeline {
 			- name: terraform-lts-src
 			  type: git
 			  source:
-			    uri: https://github.com/paasas/platform-repository
+			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
 			    branch: v2
 			    paths:
@@ -28,7 +28,7 @@ public abstract class ExpectedPipeline {
 			- name: terraform-next-src
 			  type: git
 			  source:
-			    uri: https://github.com/paasas/platform-repository
+			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
 			    branch: v2
 			    paths:
@@ -37,14 +37,14 @@ public abstract class ExpectedPipeline {
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
-			    repository: paasas/platform-repository
+			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/backend/dev.yaml
 
 			- name: project1-backend-dev-platform-src
 			  type: git
 			  source:
-			    uri: https://github.com/paasas/platform-repository
+			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
 			    branch: v2
 			    paths:
@@ -53,14 +53,14 @@ public abstract class ExpectedPipeline {
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
-			    repository: paasas/platform-repository
+			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/backend/prod.yaml
 
 			- name: project1-backend-prod-platform-src
 			  type: git
 			  source:
-			    uri: https://github.com/paasas/platform-repository
+			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
 			    branch: v2
 			    paths:
@@ -69,14 +69,14 @@ public abstract class ExpectedPipeline {
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
-			    repository: paasas/platform-repository
+			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/frontend/dev.yaml
 
 			- name: project1-frontend-dev-platform-src
 			  type: git
 			  source:
-			    uri: https://github.com/paasas/platform-repository
+			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
 			    branch: v2
 			    paths:
@@ -85,14 +85,14 @@ public abstract class ExpectedPipeline {
 			  type: pull-request
 			  source:
 			    access_token: ((github.accessToken))
-			    repository: paasas/platform-repository
+			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/frontend/prod.yaml
 
 			- name: project1-frontend-prod-platform-src
 			  type: git
 			  source:
-			    uri: https://github.com/paasas/platform-repository
+			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
 			    branch: v2
 			    paths:
@@ -108,7 +108,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
 			      src: src-staging
 			    params:
@@ -128,7 +128,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
-			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yaml
 			    input_mapping:
 			      src: project1-backend-dev-platform-pr
 			    params:
@@ -153,7 +153,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
 			      src: src-staging
 			    params:
@@ -173,7 +173,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
-			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yaml
 			    input_mapping:
 			      src: project1-backend-prod-platform-pr
 			    params:
@@ -198,7 +198,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
 			      src: src-staging
 			    params:
@@ -218,7 +218,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
-			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yaml
 			    input_mapping:
 			      src: project1-frontend-dev-platform-pr
 			    params:
@@ -243,7 +243,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yml
+			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
 			      src: src-staging
 			    params:
@@ -263,7 +263,7 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
-			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yml
+			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yaml
 			    input_mapping:
 			      src: project1-frontend-prod-platform-pr
 			    params:
