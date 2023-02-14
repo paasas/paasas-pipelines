@@ -9,8 +9,15 @@ set -x
 
 WORKDIR=$(pwd)
 
-TERRAFORM_BASELINE=$(yq '.infraVersion' platform-manifest/$PLATFORM_MANIFEST_PATH) && \
-  mkdir tf && \
+TERRAFORM_BASELINE=$(yq '.infraBaseline' src/$PLATFORM_MANIFEST_PATH)
+
+if [ "${TERRAFORM_BASELINE}" == "null" ];
+  echo "failed to extra infra baseline from src/$ PLATFORM_MANIFEST_PATH}"
+  
+  exit 1
+fi 
+
+mkdir tf && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
   cd tf/ && \
   ln -fs ${WORKDIR}/.terraform .terraform && \
