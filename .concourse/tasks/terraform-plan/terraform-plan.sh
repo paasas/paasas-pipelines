@@ -12,7 +12,7 @@ fi
 
 WORKDIR=$(pwd)
 
-TERRAFORM_BASELINE=$(yq '.infraVersion' platform-manifest/$PLATFORM_MANIFEST_PATH) && \
+TERRAFORM_BASELINE=$(yq '.infraVersion' src/$PLATFORM_MANIFEST_PATH) && \
   mkdir tf && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
   cd tf/ && \

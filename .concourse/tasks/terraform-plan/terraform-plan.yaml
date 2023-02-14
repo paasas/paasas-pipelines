@@ -9,7 +9,6 @@ image_resource:
 
 inputs:
 - name: ci-src
-- name: platform-manifest
 - name: src
 - name: terraform-lts-src
 - name: terraform-next-src
