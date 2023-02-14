@@ -69,7 +69,7 @@ jobs:
       params: 
         build: src/.concourse/images/paasas-pipelines
         tag_as_latest: true
-        tag_file: paasas-pipelines-release/version
+        tag_file: version/version
         build_args_file: build-args/build-args.json
       get_params: 
         skip_download: true
