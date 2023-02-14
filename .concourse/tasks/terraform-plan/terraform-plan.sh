@@ -1,10 +1,5 @@
 #!/bin/sh
 
-if [ -z "${TERRAFORM_SOURCE}" ]; then
-  echo "Env variable TERRAFORM_SOURCE is undefined"
-  exit 1
-fi
-
 if [ -z "${PLATFORM_MANIFEST_PATH}" ]; then
   echo "Env variable PLATFORM_MANIFEST_PATH is undefined"
   exit 1
@@ -23,7 +18,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-yq -o=json -I=0 '.terraformfVars' ${WORKDIR}/platform-manifest/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}tfVars.json && \
+yq -o=json -I=0 '.terraformfVars' ${WORKDIR}/platform-manifest/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tfVars.json && \
   terraform plan \
     --input=false \
     -var-file=${WORKDIR}/tfvars.json \
