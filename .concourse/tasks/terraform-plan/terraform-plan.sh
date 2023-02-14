@@ -25,10 +25,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-yq -o=json -I=0 '.terraformfVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tfVars.json && \
+yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tf/tfvars.json && \
   terraform plan \
     --input=false \
-    -var-file=${WORKDIR}/tfvars.json \
+    -var-file=${WORKDIR}/tf/tfvars.json \
     -no-color | tee ${WORKDIR}/terraform-out/plan.log && \
   echo '```' > ${WORKDIR}/terraform-out/plan.md && \
   cat ${WORKDIR}/terraform-out/plan.log >> ${WORKDIR}/terraform-out/plan.md && \

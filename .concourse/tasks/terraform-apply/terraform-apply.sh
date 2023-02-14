@@ -27,10 +27,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-yq -o=json -I=0 '.terraformfVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tfVars.json && \
+yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tf/tfvars.json && \
   terraform apply \
     --input=false \
-    -var-file=${WORKDIR}/tfvars.json \
+    -var-file=${WORKDIR}/tf/tfvars.json \
     -auto-approve && \
   terraform show \
     -json > ${WORKDIR}/terraform-state/state.json
