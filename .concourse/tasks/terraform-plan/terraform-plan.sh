@@ -9,7 +9,7 @@ WORKDIR=$(pwd)
 
 TERRAFORM_BASELINE=$(yq '.infraBaseline' src/$PLATFORM_MANIFEST_PATH)
 
-if [ "${TERRAFORM_BASELINE}" == "null" ];
+if [ "${TERRAFORM_BASELINE}" == "null" ]; then
   echo "failed to extra infra baseline from src/$ PLATFORM_MANIFEST_PATH}"
   
   exit 1
