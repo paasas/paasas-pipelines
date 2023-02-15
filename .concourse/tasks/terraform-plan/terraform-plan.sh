@@ -20,6 +20,8 @@ if [ -z "${GCP_PROJECT_ID}" ]; then
   exit 1
 fi
 
+set -x
+
 WORKDIR=$(pwd)
 
 TERRAFORM_BASELINE=$(yq '.infraBaseline' src/$PLATFORM_MANIFEST_PATH)
