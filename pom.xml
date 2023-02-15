@@ -17,7 +17,6 @@
   </properties>
   
   <modules>
-  	<module>cloud-build</module>
   	<module>concourse</module>
   </modules>
   
