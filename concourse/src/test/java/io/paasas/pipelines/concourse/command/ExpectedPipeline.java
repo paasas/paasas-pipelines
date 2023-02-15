@@ -113,8 +113,8 @@ public abstract class ExpectedPipeline {
 			      src: src-staging
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
+			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-backend-dev
 
 			- name: project1-backend-dev-terraform-plan
 			  plan:
@@ -135,8 +135,8 @@ public abstract class ExpectedPipeline {
 			      src: project1-backend-dev-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
+			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-backend-dev
 			  - put: project1-backend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
@@ -162,8 +162,8 @@ public abstract class ExpectedPipeline {
 			      src: src-staging
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
+			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-backend-prod
 
 			- name: project1-backend-prod-terraform-plan
 			  plan:
@@ -184,8 +184,8 @@ public abstract class ExpectedPipeline {
 			      src: project1-backend-prod-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
+			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-backend-prod
 			  - put: project1-backend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
@@ -211,8 +211,8 @@ public abstract class ExpectedPipeline {
 			      src: src-staging
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
+			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-frontend-dev
 
 			- name: project1-frontend-dev-terraform-plan
 			  plan:
@@ -233,8 +233,8 @@ public abstract class ExpectedPipeline {
 			      src: project1-frontend-dev-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
+			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-frontend-dev
 			  - put: project1-frontend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
@@ -260,8 +260,8 @@ public abstract class ExpectedPipeline {
 			      src: src-staging
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
+			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-frontend-prod
 
 			- name: project1-frontend-prod-terraform-plan
 			  plan:
@@ -282,8 +282,8 @@ public abstract class ExpectedPipeline {
 			      src: project1-frontend-prod-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
+			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
-			      GCP_PROJECT_ID: project1-frontend-prod
 			  - put: project1-frontend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md

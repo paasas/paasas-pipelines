@@ -45,8 +45,8 @@ public class PlatformPipeline {
 			      src: src-staging
 			    params:
 			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
+			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
-			      GCP_PROJECT_ID: {TARGET}
 
 			- name: {TARGET}-terraform-plan
 			  plan:
@@ -67,8 +67,8 @@ public class PlatformPipeline {
 			      src: {TARGET}-platform-pr
 			    params:
 			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
+			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
-			      GCP_PROJECT_ID: {TARGET}
 			  - put: {TARGET}-platform-pr
 			    params:
 			      comment_file: terraform-out/plan.md
