@@ -42,7 +42,7 @@ public class PlatformPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
-			      src: src-staging
+			      src: {TARGET}-platform-src
 			    params:
 			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
 			      TARGET: {TARGET}
