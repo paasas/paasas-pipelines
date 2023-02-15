@@ -15,8 +15,8 @@ if [ -z "${GOOGLE_CREDENTIALS}" ]; then
   exit 1
 fi
 
-if [ -z "${GCP_PROJECT_ID}" ]; then
-  echo "Env variable GCP_PROJECT_ID is undefined"
+if [ -z "${TARGET}" ]; then
+  echo "Env variable TARGET is undefined"
   exit 1
 fi
 
