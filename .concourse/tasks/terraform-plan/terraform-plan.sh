@@ -42,8 +42,7 @@ mkdir tf && \
   echo "${PROVIDER_TF}" > gcp.tf && \
   ln -fs ${WORKDIR}/.terraform .terraform && \
   terraform init \
-    -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
-    -backend-config="bucket=${GCP_PROJECT_ID}"
+    -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}"
   
 if [ $? -ne 0 ]; then
   exit 1
