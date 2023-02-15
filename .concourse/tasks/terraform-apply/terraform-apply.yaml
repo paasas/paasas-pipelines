@@ -20,6 +20,7 @@ caches:
 - path: .terraform
 
 params:
-  SOURCE_PATH:  
+  SOURCE_PATH: 
+  TERRAFORM_BACKEND_GCS_BUCKET: 
 run:
   path: ci-src/.concourse/tasks/terraform-apply/terraform-apply.sh

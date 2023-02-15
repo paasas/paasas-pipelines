@@ -16,6 +16,7 @@ outputs:
 
 params:
   TARGETS_DIRECTORY: 
+  TERRAFORM_BACKEND_GCS_BUCKET: 
 
 run:
   path: ci-src/.concourse/tasks/generate-platform-pipelines/generate-platform-pipelines.sh

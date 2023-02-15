@@ -28,5 +28,6 @@ jobs:
     file: ci-src/.concourse/tasks/generate-platform-pipelines/generate-platform-pipelines.yaml
     params:
       TARGETS_DIRECTORY: teams
+      TERRAFORM_BACKEND_GCS_BUCKET: fx-demo-terraform-states
   - set_pipeline: platforms-demo
     file: pipelines/pipelines.yaml

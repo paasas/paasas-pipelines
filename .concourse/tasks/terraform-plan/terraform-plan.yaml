@@ -22,5 +22,6 @@ caches:
 params:
   SOURCE_PATH: 
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
+  TERRAFORM_BACKEND_GCS_BUCKET: 
 run:
   path: ci-src/.concourse/tasks/terraform-plan/terraform-plan.sh
