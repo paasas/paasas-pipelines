@@ -22,7 +22,7 @@ public abstract class ExpectedPipeline {
 			  source:
 			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
-			    branch: v2
+			    branch: main
 			    paths:
 			    - terraform/infra/lts
 			- name: terraform-next-src
@@ -30,7 +30,7 @@ public abstract class ExpectedPipeline {
 			  source:
 			    uri: https://github.com/daniellavoie/infra-as-code-demo
 			    private_key: ((git.ssh-private-key))
-			    branch: v2
+			    branch: main
 			    paths:
 			    - terraform/infra/next
 			- name: project1-backend-dev-platform-pr

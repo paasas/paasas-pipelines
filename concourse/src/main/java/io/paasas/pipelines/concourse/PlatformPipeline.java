@@ -94,7 +94,7 @@ public class PlatformPipeline {
 			  source:
 			    uri: {CI_SRC_URI}
 			    private_key: ((git.ssh-private-key))
-			    branch: main
+			    branch: {TERAFORM_SRC_BRANCH}
 			    paths:
 			    - .concourse
 			- name: terraform-lts-src
@@ -102,7 +102,7 @@ public class PlatformPipeline {
 			  source:
 			    uri: {TERAFORM_SRC_URI}
 			    private_key: ((git.ssh-private-key))
-			    branch: v2
+			    branch: main
 			    paths:
 			    - terraform/infra/lts
 			- name: terraform-next-src
@@ -110,7 +110,7 @@ public class PlatformPipeline {
 			  source:
 			    uri: {TERAFORM_SRC_URI}
 			    private_key: ((git.ssh-private-key))
-			    branch: v2
+			    branch: {TERAFORM_SRC_BRANCH}
 			    paths:
 			    - terraform/infra/next
 			{RESOURCES}
@@ -140,6 +140,7 @@ public class PlatformPipeline {
 		return TEMPLATE
 				.replace("{CI_SRC_URI}", configuration.getCiSrcUri())
 				.replace("{TERAFORM_SRC_URI}", configuration.getTerraformSrcUri())
+				.replace("{TERAFORM_SRC_BRANCH}", configuration.getTerraformSrcBranch())
 				.replace(
 						"{RESOURCES}",
 						targetConfigs.stream()

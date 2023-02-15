@@ -35,5 +35,8 @@ public class PipelinesConcourseConfiguration {
 	String terraformBackendGcsBucket;
 	
 	@NotEmpty
+	String terraformSrcBranch;
+	
+	@NotEmpty
 	String terraformSrcUri;
 }

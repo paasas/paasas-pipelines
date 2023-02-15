@@ -97,6 +97,7 @@ public class GeneratePlatformPipelineTest {
 				"v2",
 				"https://github.com/daniellavoie/infra-as-code-demo",
 				"terraform-states",
+				"main",
 				"https://github.com/daniellavoie/infra-as-code-demo");
 
 		var platformPipeline = new PlatformPipeline(configuration);
