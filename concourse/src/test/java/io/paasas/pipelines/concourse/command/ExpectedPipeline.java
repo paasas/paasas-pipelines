@@ -110,7 +110,7 @@ public abstract class ExpectedPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
-			      src: src-staging
+			      src: project1-backend-dev-platform-src
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
@@ -159,7 +159,7 @@ public abstract class ExpectedPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
-			      src: src-staging
+			      src: project1-backend-prod-platform-src
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
@@ -208,7 +208,7 @@ public abstract class ExpectedPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
-			      src: src-staging
+			      src: project1-frontend-dev-platform-src
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
@@ -257,7 +257,7 @@ public abstract class ExpectedPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
 			    input_mapping:
-			      src: src-staging
+			      src: project1-frontend-prod-platform-src
 			    params:
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
