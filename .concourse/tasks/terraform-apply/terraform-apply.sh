@@ -36,10 +36,6 @@ provider "google" {
 }
 EOM
 
-if [ $? -ne 0 ]; then
-  exit 1
-fi
-
 mkdir tf && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
   cd tf/ && \

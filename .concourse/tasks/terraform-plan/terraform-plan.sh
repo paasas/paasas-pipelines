@@ -20,8 +20,6 @@ if [ -z "${GCP_PROJECT_ID}" ]; then
   exit 1
 fi
 
-set -x
-
 WORKDIR=$(pwd)
 
 TERRAFORM_BASELINE=$(yq '.infraBaseline' src/$PLATFORM_MANIFEST_PATH)
@@ -37,10 +35,6 @@ provider "google" {
   project = "${GCP_PROJECT_ID}"
 }
 EOM
-
-if [ $? -ne 0 ]; then
-  exit 1
-fi
 
 mkdir tf && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
