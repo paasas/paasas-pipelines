@@ -30,6 +30,14 @@ if [ "${TERRAFORM_BASELINE}" == "null" ]; then
   exit 1
 fi
 
+GCP_PROJECT_ID=$(yq '.terraformVars.project_id' src/$PLATFORM_MANIFEST_PATH)
+
+if [ "${GCP_PROJECT_ID}" == "null" ]; then
+  echo "failed to extra gcp project id from src/$ PLATFORM_MANIFEST_PATH}"
+  
+  exit 1
+fi
+
 read -r -d '' PROVIDER_TF << EOM
 provider "google" {
   project = "${GCP_PROJECT_ID}"
@@ -42,7 +50,8 @@ mkdir tf && \
   echo "${PROVIDER_TF}" > gcp.tf && \
   ln -fs ${WORKDIR}/.terraform .terraform && \
   terraform init \
-    -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}"
+    -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
+    -backend-config="prefix=${TARGET}"
   
 if [ $? -ne 0 ]; then
   exit 1
