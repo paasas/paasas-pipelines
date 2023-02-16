@@ -54,7 +54,7 @@ provider "google" {
 }
 EOM
 
-mkdir -p tf/boostrap && \
+mkdir -p tf/bootstrap && \
 mkdir tf/main && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/bootstrap/* tf/bootstrap/
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/main/* tf/main/
