@@ -27,4 +27,4 @@ params:
   TERRAFORM_COMMAND: destroy
   TERRAFORM_ARGS: --input=false --no-color -auto-approve
 run:
-  path: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.sh
+  path: ci-src/.concourse/tasks/terraform/terraform.sh

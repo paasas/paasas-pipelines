@@ -27,4 +27,4 @@ params:
   TERRAFORM_COMMAND: plan
   TERRAFORM_ARGS: --input=false --no-color
 run:
-  path: ci-src/.concourse/tasks/terraform-plan/terraform-plan.sh
+  path: ci-src/.concourse/tasks/terraform/terraform.sh

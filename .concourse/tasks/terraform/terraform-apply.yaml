@@ -27,4 +27,4 @@ params:
   TERRAFORM_COMMAND: apply
   TERRAFORM_ARGS: --input=false --no-color -auto-approve
 run:
-  path: ci-src/.concourse/tasks/terraform-apply/terraform.sh
+  path: ci-src/.concourse/tasks/terraform/terraform.sh
