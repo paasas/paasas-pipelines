@@ -47,6 +47,22 @@ public class PlatformPipeline {
 			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
 			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
+			      
+			- name: {TARGET}-terraform-destroy
+			  plan:
+			  - in_parallel:
+			    - get: {TARGET}-platform-src
+			    - get: ci-src
+			    - get: terraform-lts-src
+			    - get: terraform-next-src
+			  - task: terraform-apply
+			    file: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.yaml
+			    input_mapping:
+			      src: {TARGET}-platform-src
+			    params:
+			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
+			      TARGET: {TARGET}
+			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
 
 			- name: {TARGET}-terraform-plan
 			  plan:

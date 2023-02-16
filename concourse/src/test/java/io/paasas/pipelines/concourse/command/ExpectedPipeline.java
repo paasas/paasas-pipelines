@@ -116,6 +116,22 @@ public abstract class ExpectedPipeline {
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 
+			- name: project1-backend-dev-terraform-destroy
+			  plan:
+			  - in_parallel:
+			    - get: project1-backend-dev-platform-src
+			    - get: ci-src
+			    - get: terraform-lts-src
+			    - get: terraform-next-src
+			  - task: terraform-apply
+			    file: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.yaml
+			    input_mapping:
+			      src: project1-backend-dev-platform-src
+			    params:
+			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
+			      TARGET: project1-backend-dev
+			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+
 			- name: project1-backend-dev-terraform-plan
 			  plan:
 			  - in_parallel:
@@ -158,6 +174,22 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-next-src
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
+			    input_mapping:
+			      src: project1-backend-prod-platform-src
+			    params:
+			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
+			      TARGET: project1-backend-prod
+			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+
+			- name: project1-backend-prod-terraform-destroy
+			  plan:
+			  - in_parallel:
+			    - get: project1-backend-prod-platform-src
+			    - get: ci-src
+			    - get: terraform-lts-src
+			    - get: terraform-next-src
+			  - task: terraform-apply
+			    file: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.yaml
 			    input_mapping:
 			      src: project1-backend-prod-platform-src
 			    params:
@@ -214,6 +246,22 @@ public abstract class ExpectedPipeline {
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 
+			- name: project1-frontend-dev-terraform-destroy
+			  plan:
+			  - in_parallel:
+			    - get: project1-frontend-dev-platform-src
+			    - get: ci-src
+			    - get: terraform-lts-src
+			    - get: terraform-next-src
+			  - task: terraform-apply
+			    file: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.yaml
+			    input_mapping:
+			      src: project1-frontend-dev-platform-src
+			    params:
+			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
+			      TARGET: project1-frontend-dev
+			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+
 			- name: project1-frontend-dev-terraform-plan
 			  plan:
 			  - in_parallel:
@@ -256,6 +304,22 @@ public abstract class ExpectedPipeline {
 			    - get: terraform-next-src
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
+			    input_mapping:
+			      src: project1-frontend-prod-platform-src
+			    params:
+			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
+			      TARGET: project1-frontend-prod
+			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+
+			- name: project1-frontend-prod-terraform-destroy
+			  plan:
+			  - in_parallel:
+			    - get: project1-frontend-prod-platform-src
+			    - get: ci-src
+			    - get: terraform-lts-src
+			    - get: terraform-next-src
+			  - task: terraform-apply
+			    file: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.yaml
 			    input_mapping:
 			      src: project1-frontend-prod-platform-src
 			    params:
