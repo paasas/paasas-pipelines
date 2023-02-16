@@ -17,7 +17,8 @@ outputs:
 - name: terraform-out
 
 caches:
-- path: .terraform
+- path: .terraform-bootstrap
+- path: .terraform-main
 
 params:
   SOURCE_PATH: 

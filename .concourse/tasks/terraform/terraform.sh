@@ -60,7 +60,7 @@ mkdir tf/main && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/main/* tf/main/
   cd tf/bootstrap && \
   echo "${PROVIDER_TF}" > gcp.tf && \
-  ln -fs ${WORKDIR}/.terraform .terraform && \
+  ln -fs ${WORKDIR}/.terraform-bootstrap .terraform && \
   terraform init \
     -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
     -backend-config="prefix=${TARGET}-bootstrap"
@@ -69,8 +69,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
-
 yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tf/tfvars.json && \
   terraform ${TERRAFORM_COMMAND} \
     ${TERRAFORM_ARGS} \
@@ -78,6 +76,7 @@ yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WO
   terraform show \
     -json > ${WORKDIR}/terraform-state/state.json && \
   cd ../main && \
+  ln -fs ${WORKDIR}/.terraform-main .terraform && \
   terraform init \
     -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
     -backend-config="prefix=${TARGET}-main"
