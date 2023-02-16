@@ -40,7 +40,7 @@ public class PlatformPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform-apply/terraform-apply.yaml
+			    file: ci-src/.concourse/tasks/terraform/terraform-apply.yaml
 			    input_mapping:
 			      src: {TARGET}-platform-src
 			    params:
@@ -56,7 +56,7 @@ public class PlatformPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.yaml
+			    file: ci-src/.concourse/tasks/terraform/terraform-destroy.yaml
 			    input_mapping:
 			      src: {TARGET}-platform-src
 			    params:
@@ -78,7 +78,7 @@ public class PlatformPipeline {
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
 			  - task: terraform-plan
-			    file: ci-src/.concourse/tasks/terraform-plan/terraform-plan.yaml
+			    file: ci-src/.concourse/tasks/terraform/terraform-plan.yaml
 			    input_mapping:
 			      src: {TARGET}-platform-pr
 			    params:
@@ -87,7 +87,7 @@ public class PlatformPipeline {
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
 			  - put: {TARGET}-platform-pr
 			    params:
-			      comment_file: terraform-out/plan.md
+			      comment_file: terraform-out/terraform.md
 			      path: {TARGET}-platform-pr
 			      status: success
 			  on_failure:

@@ -14,7 +14,7 @@ inputs:
 - name: terraform-next-src
 
 outputs:
-- name: terraform-state
+- name: terraform-out
 
 caches:
 - path: .terraform
@@ -24,5 +24,7 @@ params:
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
+  TERRAFORM_COMMAND: plan
+  TERRAFORM_ARGS: --input=false --no-color
 run:
-  path: ci-src/.concourse/tasks/terraform-destroy/terraform-destroy.sh
+  path: ci-src/.concourse/tasks/terraform-plan/terraform-plan.sh

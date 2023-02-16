@@ -24,5 +24,7 @@ params:
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
+  TERRAFORM_COMMAND: apply
+  TERRAFORM_ARGS: --input=false --no-color -auto-approve
 run:
-  path: ci-src/.concourse/tasks/terraform-apply/terraform-apply.sh
+  path: ci-src/.concourse/tasks/terraform-apply/terraform.sh
