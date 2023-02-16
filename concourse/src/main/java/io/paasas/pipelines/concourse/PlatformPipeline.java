@@ -141,8 +141,9 @@ public class PlatformPipeline {
 		return """
 				- name: {TARGET}
 				  jobs:
-				  - {TARGET}-terraform-plan
 				  - {TARGET}-terraform-apply
+				  - {TARGET}-terraform-destroy
+				  - {TARGET}-terraform-plan
 				"""
 				.replace("{TARGET}", targetConfig.getName());
 	}
