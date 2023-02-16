@@ -26,6 +26,6 @@ params:
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
   TERRAFORM_COMMAND: plan
-  TERRAFORM_ARGS: --input=false --no-color
+  TERRAFORM_FLAGS: -input=false -no-color
 run:
   path: ci-src/.concourse/tasks/terraform/terraform.sh

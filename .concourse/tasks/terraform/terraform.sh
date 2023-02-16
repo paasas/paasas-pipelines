@@ -10,8 +10,8 @@ if [ -z "${TERRAFORM_COMMAND}" ]; then
   exit 1
 fi
 
-if [ -z "${TERRAFORM_ARGS}" ]; then
-  echo "Env variable TERRAFORM_ARGS is undefined"
+if [ -z "${TERRAFORM_FLAGS}" ]; then
+  echo "Env variable TERRAFORM_FLAGS is undefined"
   exit 1
 fi
 
@@ -71,7 +71,7 @@ fi
 
 yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tf/tfvars.json && \
   terraform ${TERRAFORM_COMMAND} \
-    ${TERRAFORM_ARGS} \
+    ${TERRAFORM_FLAGS} \
     -var-file=${WORKDIR}/tf/tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log && \
   terraform show \
     -json > ${WORKDIR}/terraform-state/state.json && \
@@ -86,7 +86,7 @@ if [ $? -ne 0 ]; then
 fi
 
 terraform ${TERRAFORM_COMMAND} \
-    ${TERRAFORM_ARGS} \
+    ${TERRAFORM_FLAGS} \
     -var-file=${WORKDIR}/tf/tfvars.json | tee -a ${WORKDIR}/terraform-out/terraform.log && \
   terraform show \
     -json > ${WORKDIR}/terraform-state/state.json && \

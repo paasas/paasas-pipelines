@@ -26,6 +26,6 @@ params:
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
   TERRAFORM_COMMAND: apply
-  TERRAFORM_ARGS: --input=false --no-color -auto-approve
+  TERRAFORM_FLAGS: -input=false -no-color -auto-approve
 run:
   path: ci-src/.concourse/tasks/terraform/terraform.sh
