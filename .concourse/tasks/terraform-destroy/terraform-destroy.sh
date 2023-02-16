@@ -61,6 +61,12 @@ yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WO
   terraform destroy \
     --input=false \
     -var-file=${WORKDIR}/tf/tfvars.json \
-    -auto-approve && \
+    -auto-approve
+
+# Destroy requires a second try due to resource deletion concurrency
+terraform destroy \
+    --input=false \
+    -var-file=${WORKDIR}/tf/tfvars.json \
+    -auto-approve
   terraform show \
     -json > ${WORKDIR}/terraform-state/state.json
