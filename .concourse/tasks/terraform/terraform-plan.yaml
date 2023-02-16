@@ -14,6 +14,7 @@ inputs:
 - name: terraform-next-src
 
 outputs:
+- name: terraform-state
 - name: terraform-out
 
 caches:
