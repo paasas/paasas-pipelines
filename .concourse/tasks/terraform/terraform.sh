@@ -63,7 +63,7 @@ mkdir tf && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
 
 if [ -d "${WORKDIR}/src/${TERRAFORM_EXTENSIONS_DIRECTORY}" ]; then
-  cp ${TERRAFORM_EXTENSIONS_DIRECTORY}/* tf/
+  cp ${WORKDIR}/src/${TERRAFORM_EXTENSIONS_DIRECTORY}/* tf/
 
   if [ $? -ne 0 ]; then
     echo "failed to copy terraform extensions from '${TERRAFORM_EXTENSIONS_DIRECTORY}' to 'tf' directory"
