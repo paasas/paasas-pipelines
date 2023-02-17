@@ -8,4 +8,4 @@ pushd src && \
   ./mvnw -Pnative native:compile && \
   ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout > ../version/version && \
   popd && \
-  mv src/target/pipelines-concourse build/pipelines-concourse
+  mv src/target/paasas-pipelines build/paasas-pipelines
