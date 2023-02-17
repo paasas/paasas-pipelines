@@ -70,9 +70,20 @@ fi
 yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tf/tfvars.json && \
   terraform ${TERRAFORM_COMMAND} \
     ${TERRAFORM_FLAGS} \
-    -var-file=${WORKDIR}/tf/tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log && \
-  terraform show \
+    -var-file=${WORKDIR}/tf/tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log
+
+ERROR=$?
+
+if [ "${TERRAFORM_COMMAND}" == "destroy" ]; then
+  # Destroy requires to run twice
+  terraform ${TERRAFORM_COMMAND} \
+    ${TERRAFORM_FLAGS} \
+    -var-file=${WORKDIR}/tf/tfvars.json | tee -a ${WORKDIR}/terraform-out/terraform.log
+fi
+
+terraform show \
     -json > ${WORKDIR}/terraform-state/state.json && \
   echo '```' > ${WORKDIR}/terraform-out/terraform.md && \
   cat ${WORKDIR}/terraform-out/terraform.log >> ${WORKDIR}/terraform-out/terraform.md && \
-  echo '```' >> ${WORKDIR}/terraform-out/terraform.md
+  echo '```' >> ${WORKDIR}/terraform-out/terraform.md && \
+  exit $ERROR
