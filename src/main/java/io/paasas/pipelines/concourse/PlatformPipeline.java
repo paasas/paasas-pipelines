@@ -48,7 +48,8 @@ public class PlatformPipeline {
 			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
 			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
-			      
+			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
+
 			- name: {TARGET}-terraform-destroy
 			  plan:
 			  - in_parallel:
@@ -64,6 +65,7 @@ public class PlatformPipeline {
 			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
 			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
+			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
 
 			- name: {TARGET}-terraform-plan
 			  plan:
@@ -86,6 +88,7 @@ public class PlatformPipeline {
 			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
 			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
+			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
 			  - put: {TARGET}-platform-pr
 			    params:
 			      comment_file: terraform-out/terraform.md
@@ -200,6 +203,7 @@ public class PlatformPipeline {
 		return JOBS
 				.replace("{TARGET}", targetConfig.getName())
 				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
-				.replace("{TERRAFORM_BACKEND_GCS_BUCKET}", configuration.getTerraformBackendGcsBucket());
+				.replace("{TERRAFORM_BACKEND_GCS_BUCKET}", configuration.getTerraformBackendGcsBucket())
+				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory());
 	}
 }

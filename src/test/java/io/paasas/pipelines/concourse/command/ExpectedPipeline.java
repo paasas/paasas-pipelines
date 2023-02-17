@@ -119,6 +119,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/dev-tf
 
 			- name: project1-backend-dev-terraform-destroy
 			  plan:
@@ -135,6 +136,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/dev-tf
 
 			- name: project1-backend-dev-terraform-plan
 			  plan:
@@ -157,6 +159,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/dev-tf
 			  - put: project1-backend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/terraform.md
@@ -184,6 +187,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/prod-tf
 
 			- name: project1-backend-prod-terraform-destroy
 			  plan:
@@ -200,6 +204,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/prod-tf
 
 			- name: project1-backend-prod-terraform-plan
 			  plan:
@@ -222,6 +227,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/prod-tf
 			  - put: project1-backend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/terraform.md
@@ -249,6 +255,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/dev-tf
 
 			- name: project1-frontend-dev-terraform-destroy
 			  plan:
@@ -265,6 +272,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/dev-tf
 
 			- name: project1-frontend-dev-terraform-plan
 			  plan:
@@ -287,6 +295,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/dev-tf
 			  - put: project1-frontend-dev-platform-pr
 			    params:
 			      comment_file: terraform-out/terraform.md
@@ -314,6 +323,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/prod-tf
 
 			- name: project1-frontend-prod-terraform-destroy
 			  plan:
@@ -330,6 +340,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/prod-tf
 
 			- name: project1-frontend-prod-terraform-plan
 			  plan:
@@ -352,6 +363,7 @@ public abstract class ExpectedPipeline {
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/prod-tf
 			  - put: project1-frontend-prod-platform-pr
 			    params:
 			      comment_file: terraform-out/terraform.md

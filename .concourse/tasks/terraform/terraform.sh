@@ -30,6 +30,11 @@ if [ -z "${TARGET}" ]; then
   exit 1
 fi
 
+if [ -z "$TERRAFORM_EXTENSIONS_DIRECTORY" ]; then
+  echo "Env variable TERRAFORM_EXTENSIONS_DIRECTORY is undefined"
+  exit 1
+fi
+
 WORKDIR=$(pwd)
 
 TERRAFORM_BASELINE=$(yq '.infraBaseline' src/$PLATFORM_MANIFEST_PATH)
@@ -56,7 +61,17 @@ EOM
 
 mkdir tf && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
-  cd tf && \
+
+if [ -d "${TERRAFORM_EXTENSIONS_DIRECTORY}"]; then
+  cp ${TERRAFORM_EXTENSIONS_DIRECTORY}/* tf/
+
+  if [ $? -ne 0 ]; then
+    echo "failed to copy terraform extensions from '${TERRAFORM_EXTENSIONS_DIRECTORY}' to 'tf' directory"
+    exit 1
+  fi
+fi
+
+cd tf && \
   echo "${PROVIDER_TF}" > gcp.tf && \
   ln -fs ${WORKDIR}/.terraform .terraform && \
   terraform init \
