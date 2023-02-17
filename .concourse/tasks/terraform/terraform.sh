@@ -62,7 +62,7 @@ EOM
 mkdir tf && \
   cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
 
-if [ -d "${TERRAFORM_EXTENSIONS_DIRECTORY}" ]; then
+if [ -d "${WORKDIR}/src/${TERRAFORM_EXTENSIONS_DIRECTORY}" ]; then
   cp ${TERRAFORM_EXTENSIONS_DIRECTORY}/* tf/
 
   if [ $? -ne 0 ]; then
