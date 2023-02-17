@@ -55,7 +55,7 @@ public class PlatformPipeline {
 			    - get: ci-src
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
-			  - task: terraform-apply
+			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform/terraform-destroy.yaml
 			    input_mapping:
 			      src: {TARGET}-platform-src
