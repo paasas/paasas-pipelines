@@ -54,16 +54,14 @@ provider "google" {
 }
 EOM
 
-mkdir -p tf/bootstrap && \
-mkdir tf/main && \
-  cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/bootstrap/* tf/bootstrap/
-  cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/main/* tf/main/
-  cd tf/bootstrap && \
+mkdir tf && \
+  cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
+  cd tf && \
   echo "${PROVIDER_TF}" > gcp.tf && \
-  ln -fs ${WORKDIR}/.terraform-bootstrap .terraform && \
+  ln -fs ${WORKDIR}/.terraform .terraform && \
   terraform init \
     -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
-    -backend-config="prefix=${TARGET}-bootstrap"
+    -backend-config="prefix=${TARGET}"
   
 if [ $? -ne 0 ]; then
   exit 1
@@ -73,21 +71,6 @@ yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WO
   terraform ${TERRAFORM_COMMAND} \
     ${TERRAFORM_FLAGS} \
     -var-file=${WORKDIR}/tf/tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log && \
-  terraform show \
-    -json > ${WORKDIR}/terraform-state/state.json && \
-  cd ../main && \
-  ln -fs ${WORKDIR}/.terraform-main .terraform && \
-  terraform init \
-    -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
-    -backend-config="prefix=${TARGET}-main"
-  
-if [ $? -ne 0 ]; then
-  exit 1
-fi
-
-terraform ${TERRAFORM_COMMAND} \
-    ${TERRAFORM_FLAGS} \
-    -var-file=${WORKDIR}/tf/tfvars.json | tee -a ${WORKDIR}/terraform-out/terraform.log && \
   terraform show \
     -json > ${WORKDIR}/terraform-state/state.json && \
   echo '```' > ${WORKDIR}/terraform-out/terraform.md && \
