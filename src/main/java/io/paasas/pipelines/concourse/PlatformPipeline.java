@@ -28,7 +28,8 @@ public class PlatformPipeline {
 			    private_key: ((git.ssh-private-key))
 			    branch: {PLATFORM_SRC_BRANCH}
 			    paths:
-			    - {PLATFORM_MANIFEST_PATH}""";
+			    - {PLATFORM_MANIFEST_PATH}
+			    - {TERRAFORM_EXTENSIONS_DIRECTORY}""";
 
 	private static String JOBS = """
 			- name: {TARGET}-terraform-apply
@@ -191,7 +192,8 @@ public class PlatformPipeline {
 				.replace("{PLATFORM_SRC_BRANCH}", platformSrcBranch)
 				.replace("{PLATFORM_SRC_URI}", platformSrcUri)
 				.replace("{TARGET}", targetConfig.getName())
-				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath());
+				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
+				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory());
 	}
 
 	private String jobs(TargetConfig targetConfig) {

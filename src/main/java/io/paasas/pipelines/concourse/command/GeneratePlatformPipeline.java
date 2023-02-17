@@ -71,6 +71,9 @@ public class GeneratePlatformPipeline extends AbstractCommand {
 		return TargetConfig.builder()
 				.name(file.replace("/", "-").replace(".yaml", "").replace(".yml", ""))
 				.platformManifestPath(configuration.getPlatformPathPrefix() + file)
+				.terraformExtensionsDirectory(String.format(
+						"%s-tf",
+						configuration.getPlatformPathPrefix() + file.replace(".yaml", "").replace(".yml", "")))
 				.build();
 	}
 

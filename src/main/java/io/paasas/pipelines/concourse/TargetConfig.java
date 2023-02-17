@@ -10,4 +10,5 @@ import lombok.extern.jackson.Jacksonized;
 public class TargetConfig {
 	String name;
 	String platformManifestPath;
+	String terraformExtensionsDirectory;
 }

@@ -49,6 +49,7 @@ public abstract class ExpectedPipeline {
 			    branch: v2
 			    paths:
 			    - teams/project1/backend/dev.yaml
+			    - teams/project1/backend/dev-tf
 			- name: project1-backend-prod-platform-pr
 			  type: pull-request
 			  source:
@@ -65,6 +66,7 @@ public abstract class ExpectedPipeline {
 			    branch: v2
 			    paths:
 			    - teams/project1/backend/prod.yaml
+			    - teams/project1/backend/prod-tf
 			- name: project1-frontend-dev-platform-pr
 			  type: pull-request
 			  source:
@@ -81,6 +83,7 @@ public abstract class ExpectedPipeline {
 			    branch: v2
 			    paths:
 			    - teams/project1/frontend/dev.yaml
+			    - teams/project1/frontend/dev-tf
 			- name: project1-frontend-prod-platform-pr
 			  type: pull-request
 			  source:
@@ -97,6 +100,7 @@ public abstract class ExpectedPipeline {
 			    branch: v2
 			    paths:
 			    - teams/project1/frontend/prod.yaml
+			    - teams/project1/frontend/prod-tf
 
 			jobs:
 			- name: project1-backend-dev-terraform-apply
@@ -123,7 +127,7 @@ public abstract class ExpectedPipeline {
 			    - get: ci-src
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
-			  - task: terraform-apply
+			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform/terraform-destroy.yaml
 			    input_mapping:
 			      src: project1-backend-dev-platform-src
@@ -188,7 +192,7 @@ public abstract class ExpectedPipeline {
 			    - get: ci-src
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
-			  - task: terraform-apply
+			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform/terraform-destroy.yaml
 			    input_mapping:
 			      src: project1-backend-prod-platform-src
@@ -253,7 +257,7 @@ public abstract class ExpectedPipeline {
 			    - get: ci-src
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
-			  - task: terraform-apply
+			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform/terraform-destroy.yaml
 			    input_mapping:
 			      src: project1-frontend-dev-platform-src
@@ -318,7 +322,7 @@ public abstract class ExpectedPipeline {
 			    - get: ci-src
 			    - get: terraform-lts-src
 			    - get: terraform-next-src
-			  - task: terraform-apply
+			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform/terraform-destroy.yaml
 			    input_mapping:
 			      src: project1-frontend-prod-platform-src
