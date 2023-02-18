@@ -49,6 +49,8 @@ public class PlatformPipeline {
 			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
 			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
+			  {TEAMS_ON_SUCCESS}
+			  {TEAMS_ON_FAILURE}
 
 			- name: {TARGET}-terraform-destroy
 			  plan:
@@ -66,6 +68,8 @@ public class PlatformPipeline {
 			      TARGET: {TARGET}
 			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
 			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
+			  {TEAMS_ON_SUCCESS}
+			  {TEAMS_ON_FAILURE}
 
 			- name: {TARGET}-terraform-plan
 			  plan:
@@ -94,19 +98,52 @@ public class PlatformPipeline {
 			      comment_file: terraform-out/terraform.md
 			      path: {TARGET}-platform-pr
 			      status: success
+			  {TEAMS_ON_SUCCESS}
 			  on_failure:
 			    do:
 			    - put: {TARGET}-platform-pr
 			      params:
 			        path: {TARGET}-infra-pr
-			        status: failure""";
+			        status: failure
+			    {TEAMS_JOB_FAILED_ENTRY}""";
+
+	private static final String TEAMS_RESOURCE = """
+			- name: teams
+			  type: teams-notification
+			  source:
+			    url: ((teams.webhookUrl))""";
+
+	private static final String TEAMS_RESOURCE_TYPE = """
+			- name: teams-notification
+			  type: docker-image
+			  source:
+			    repository: navicore/teams-notification-resource
+			    tag: latest""";
+
+	private static final String TEAMS_VARIABLES = """
+			teams_job_failed: &teams_job_failed
+			   put: teams
+			   params:
+			     text: |
+			       Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
+			     actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+			teams_job_success: &teams_job_success
+			   put: teams
+			   params:
+			     text: |
+			       Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
+			     actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME""";
 
 	private static final String TEMPLATE = """
+			{VARIABLES}
+
 			resource_types:
 			- name: pull-request
 			  type: docker-image
 			  source:
 			    repository: teliaoss/github-pr-resource
+			{EXTRA_RESOURCE_TYPES}
 
 			resources:
 			- name: ci-src
@@ -141,14 +178,18 @@ public class PlatformPipeline {
 			groups:
 			{GROUPS}""";
 
+	private static final String YAML_VARIABLES = """
+			{TEAMS_VARIABLES}
+
+			{SLACK_VARIABLES}""";
+
 	private static String group(TargetConfig targetConfig) {
 		return """
 				- name: {TARGET}
 				  jobs:
 				  - {TARGET}-terraform-apply
 				  - {TARGET}-terraform-destroy
-				  - {TARGET}-terraform-plan
-				"""
+				  - {TARGET}-terraform-plan"""
 				.replace("{TARGET}", targetConfig.getName());
 	}
 
@@ -159,6 +200,12 @@ public class PlatformPipeline {
 		}
 
 		return TEMPLATE
+				.replace(
+						"{VARIABLES}",
+						YAML_VARIABLES
+								.replace("{TEAMS_VARIABLES}", isTeamsConfigured() ? TEAMS_VARIABLES : "")
+								.replace("{SLACK_VARIABLES}", ""))
+				.replace("{EXTRA_RESOURCE_TYPES}", isTeamsConfigured() ? TEAMS_RESOURCE_TYPE : "")
 				.replace("{CI_SRC_URI}", configuration.getCiSrcUri())
 				.replace("{TERAFORM_SRC_URI}", configuration.getTerraformSrcUri())
 				.replace("{TERAFORM_SRC_BRANCH}", configuration.getTerraformSrcBranch())
@@ -184,7 +231,7 @@ public class PlatformPipeline {
 								.collect(Collectors.joining("\n")));
 	}
 
-	private static String resources(
+	private String resources(
 			TargetConfig targetConfig,
 			String githubRepository,
 			String platformPathPrefix,
@@ -196,7 +243,8 @@ public class PlatformPipeline {
 				.replace("{PLATFORM_SRC_URI}", platformSrcUri)
 				.replace("{TARGET}", targetConfig.getName())
 				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
-				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory());
+				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory())
+				.replace("{TEAMS_RESOURCE}", isTeamsConfigured() ? TEAMS_RESOURCE : "null");
 	}
 
 	private String jobs(TargetConfig targetConfig) {
@@ -204,6 +252,13 @@ public class PlatformPipeline {
 				.replace("{TARGET}", targetConfig.getName())
 				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
 				.replace("{TERRAFORM_BACKEND_GCS_BUCKET}", configuration.getTerraformBackendGcsBucket())
-				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory());
+				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory())
+				.replace("{TEAMS_ON_SUCCESS}", isTeamsConfigured() ? "on_success: *teams_job_success" : "")
+				.replace("{TEAMS_ON_FAILURE}", isTeamsConfigured() ? "on_failure: *teams_job_failed" : "")
+				.replace("{TEAMS_JOB_FAILED_ENTRY}", isTeamsConfigured() ? "- <<: *slack_job_failed" : "");
+	}
+
+	private boolean isTeamsConfigured() {
+		return configuration.getTeamsWebhookUrl() != null && !configuration.getTeamsWebhookUrl().isBlank();
 	}
 }

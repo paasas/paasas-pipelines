@@ -96,6 +96,9 @@ public class GeneratePlatformPipelineTest {
 				"teams/",
 				"v2",
 				"https://github.com/daniellavoie/infra-as-code-demo",
+				null,
+				null,
+				"https://toto-sti",
 				"terraform-states",
 				"main",
 				"https://github.com/daniellavoie/infra-as-code-demo");

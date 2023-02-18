@@ -30,6 +30,13 @@ public class PipelinesConcourseConfiguration {
 
 	@NotEmpty
 	String platformSrcUri;
+	
+	String slackChannel;
+	
+	String slackWebhookUrl;
+	
+	
+	String teamsWebhookUrl;
 
 	@NotEmpty
 	String terraformBackendGcsBucket;
