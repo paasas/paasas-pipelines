@@ -122,18 +122,18 @@ public class PlatformPipeline {
 
 	private static final String TEAMS_VARIABLES = """
 			teams_job_failed: &teams_job_failed
-			   put: teams
-			   params:
-			     text: |
-			       Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			     actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			  put: teams
+			  params:
+			    text: |
+			      Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
+			    actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 			teams_job_success: &teams_job_success
-			   put: teams
-			   params:
-			     text: |
-			       Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
-			     actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME""";
+			  put: teams
+			  params:
+			    text: |
+			      Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
+			    actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME""";
 
 	private static final String TEMPLATE = """
 			{VARIABLES}
@@ -255,7 +255,7 @@ public class PlatformPipeline {
 				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory())
 				.replace("{TEAMS_ON_SUCCESS}", isTeamsConfigured() ? "on_success: *teams_job_success" : "")
 				.replace("{TEAMS_ON_FAILURE}", isTeamsConfigured() ? "on_failure: *teams_job_failed" : "")
-				.replace("{TEAMS_JOB_FAILED_ENTRY}", isTeamsConfigured() ? "- <<: *slack_job_failed" : "");
+				.replace("{TEAMS_JOB_FAILED_ENTRY}", isTeamsConfigured() ? "- <<: *teams_job_failed" : "");
 	}
 
 	private boolean isTeamsConfigured() {
