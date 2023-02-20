@@ -122,6 +122,11 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - teams/project1/frontend/prod.yaml
 			    - teams/project1/frontend/prod-tf
+			- name: teams
+			  type: teams-notification
+			  source:
+			    url: ((teams.webhookUrl))
+
 
 			jobs:
 			- name: project1-backend-dev-terraform-apply

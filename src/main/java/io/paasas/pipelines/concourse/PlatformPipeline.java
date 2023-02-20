@@ -170,7 +170,9 @@ public class PlatformPipeline {
 			    branch: {TERAFORM_SRC_BRANCH}
 			    paths:
 			    - terraform/infra/next
-			{RESOURCES}
+			{TARGET_RESOURCES}
+			{TEAMS_RESOURCE}
+			{SLACK_RESOURCE}
 
 			jobs:
 			{JOBS}
@@ -210,15 +212,17 @@ public class PlatformPipeline {
 				.replace("{TERAFORM_SRC_URI}", configuration.getTerraformSrcUri())
 				.replace("{TERAFORM_SRC_BRANCH}", configuration.getTerraformSrcBranch())
 				.replace(
-						"{RESOURCES}",
+						"{TARGET_RESOURCES}",
 						targetConfigs.stream()
-								.map(targetConfig -> resources(
+								.map(targetConfig -> targetResources(
 										targetConfig,
 										configuration.getGithubRepository(),
 										configuration.getPlatformPathPrefix(),
 										configuration.getPlatformSrcBranch(),
 										configuration.getPlatformSrcUri()))
 								.collect(Collectors.joining("\n")))
+				.replace("{TEAMS_RESOURCE}", isTeamsConfigured() ? TEAMS_RESOURCE : "")
+				.replace("{SLACK_RESOURCE}", "")
 				.replace(
 						"{JOBS}",
 						targetConfigs.stream()
@@ -231,7 +235,7 @@ public class PlatformPipeline {
 								.collect(Collectors.joining("\n")));
 	}
 
-	private String resources(
+	private String targetResources(
 			TargetConfig targetConfig,
 			String githubRepository,
 			String platformPathPrefix,
