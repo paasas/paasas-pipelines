@@ -3,18 +3,18 @@ package io.paasas.pipelines.concourse.command;
 public abstract class ExpectedPipeline {
 	public static final String PIPELINE = """
 			teams_job_failed: &teams_job_failed
-			   put: teams
-			   params:
-			     text: |
-			       Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			     actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			  put: teams
+			  params:
+			    text: |
+			      Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
+			    actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 			teams_job_success: &teams_job_success
-			   put: teams
-			   params:
-			     text: |
-			       Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
-			     actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			  put: teams
+			  params:
+			    text: |
+			      Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
+			    actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
 
 
@@ -197,7 +197,7 @@ public abstract class ExpectedPipeline {
 			      params:
 			        path: project1-backend-dev-infra-pr
 			        status: failure
-			    - <<: *slack_job_failed
+			    - <<: *teams_job_failed
 			- name: project1-backend-prod-terraform-apply
 			  plan:
 			  - in_parallel:
@@ -271,7 +271,7 @@ public abstract class ExpectedPipeline {
 			      params:
 			        path: project1-backend-prod-infra-pr
 			        status: failure
-			    - <<: *slack_job_failed
+			    - <<: *teams_job_failed
 			- name: project1-frontend-dev-terraform-apply
 			  plan:
 			  - in_parallel:
@@ -345,7 +345,7 @@ public abstract class ExpectedPipeline {
 			      params:
 			        path: project1-frontend-dev-infra-pr
 			        status: failure
-			    - <<: *slack_job_failed
+			    - <<: *teams_job_failed
 			- name: project1-frontend-prod-terraform-apply
 			  plan:
 			  - in_parallel:
@@ -419,7 +419,7 @@ public abstract class ExpectedPipeline {
 			      params:
 			        path: project1-frontend-prod-infra-pr
 			        status: failure
-			    - <<: *slack_job_failed
+			    - <<: *teams_job_failed
 
 			groups:
 			- name: project1-backend-dev
