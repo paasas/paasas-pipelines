@@ -94,9 +94,14 @@ set +o pipefail
 
 if [ "${TERRAFORM_COMMAND}" == "destroy" ]; then
   # Destroy requires to run twice
-  terraform ${TERRAFORM_COMMAND} \
-    ${TERRAFORM_FLAGS} \
-    -var-file=${WORKDIR}/tf/tfvars.json | tee -a ${WORKDIR}/terraform-out/terraform.log
+  set -o pipefail && \
+    terraform ${TERRAFORM_COMMAND} \
+      ${TERRAFORM_FLAGS} \
+      -var-file=${WORKDIR}/tf/tfvars.json | tee -a ${WORKDIR}/terraform-out/terraform.log
+  
+  ERROR=$?
+  
+  set +o pipefail
 fi
 
 terraform show \
