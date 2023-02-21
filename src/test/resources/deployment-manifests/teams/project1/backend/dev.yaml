@@ -1,0 +1,6 @@
+project: control-plane-377914
+region: northamerica-northeast1
+apps:
+- name: hello
+  image: us-docker.pkg.dev/cloudrun/container/hello
+  port: 8080
