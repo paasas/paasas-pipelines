@@ -13,7 +13,6 @@ fi
 set -x && \
 PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET="${TERRAFORM_BACKEND_GCS_BUCKET}" \
   PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH=main \
-  pipelines.concourse.platform-path-prefix=teams/$TARGETS_DIRECTORY \
   java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
     generate-pipeline \
     platforms-src/$TARGETS_DIRECTORY \
