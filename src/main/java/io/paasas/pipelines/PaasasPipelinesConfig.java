@@ -41,6 +41,7 @@ public class PaasasPipelinesConfig {
 
 	@Bean
 	public CommandProcessor commandProcessor(
+			CloudRunConfiguration cloudRunConfiguration,
 			ConcourseConfiguration concourseConfiguration,
 			Deployer deployer) {
 		var output = new ConsoleOutput();
@@ -55,6 +56,6 @@ public class PaasasPipelinesConfig {
 						errorOutput,
 						concourseConfiguration,
 						platformPipeline),
-				new UpdateGoogleDeployment(deployer, output));
+				new UpdateGoogleDeployment(cloudRunConfiguration, deployer, output));
 	}
 }
