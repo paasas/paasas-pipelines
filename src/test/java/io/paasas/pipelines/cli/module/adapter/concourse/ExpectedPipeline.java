@@ -532,19 +532,23 @@ public abstract class ExpectedPipeline {
 			  - project1-backend-dev-terraform-apply
 			  - project1-backend-dev-terraform-destroy
 			  - project1-backend-dev-terraform-plan
+			  - project1-backend-dev-deployment-update
 			- name: project1-backend-prod
 			  jobs:
 			  - project1-backend-prod-terraform-apply
 			  - project1-backend-prod-terraform-destroy
 			  - project1-backend-prod-terraform-plan
+			  - project1-backend-prod-deployment-update
 			- name: project1-frontend-dev
 			  jobs:
 			  - project1-frontend-dev-terraform-apply
 			  - project1-frontend-dev-terraform-destroy
 			  - project1-frontend-dev-terraform-plan
+			  - project1-frontend-dev-deployment-update
 			- name: project1-frontend-prod
 			  jobs:
 			  - project1-frontend-prod-terraform-apply
 			  - project1-frontend-prod-terraform-destroy
-			  - project1-frontend-prod-terraform-plan""";
+			  - project1-frontend-prod-terraform-plan
+			  - project1-frontend-prod-deployment-update""";
 }
