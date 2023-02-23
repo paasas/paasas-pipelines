@@ -9,7 +9,7 @@ image_resource:
 
 inputs:
 - name: ci-src
-- name: platform-manifest-src
+- name: src
 
 outputs:
 - name: terraform-state
@@ -20,7 +20,7 @@ caches:
 
 params:
   MANIFEST_PATH: 
-  GOOGLE_CREDENTIALS: ((gcp.credentials))
+  PIPELINES_CLOUDRUN_GOOGLECREDENTIALSJSON: ((gcp.credentials))
 
 run:
   path: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.sh

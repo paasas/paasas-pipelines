@@ -32,7 +32,16 @@ public class PlatformConcoursePipeline {
 			    branch: {PLATFORM_SRC_BRANCH}
 			    paths:
 			    - {PLATFORM_MANIFEST_PATH}
-			    - {TERRAFORM_EXTENSIONS_DIRECTORY}""";
+			    - {TERRAFORM_EXTENSIONS_DIRECTORY}
+
+			- name: {TARGET}-deployment-src
+			  type: git
+			  source:
+			    uri: {DEPLOYMENT_SRC_URI}
+			    private_key: ((git.ssh-private-key))
+			    branch: {DEPLOYMENT_SRC_BRANCH}
+			    paths:
+			    - {DEPLOYMENT_MANIFEST_PATH}""";
 
 	private static String JOBS = """
 			- name: {TARGET}-terraform-apply
@@ -108,7 +117,22 @@ public class PlatformConcoursePipeline {
 			      params:
 			        path: {TARGET}-infra-pr
 			        status: failure
-			    {TEAMS_JOB_FAILED_ENTRY}""";
+			    {TEAMS_JOB_FAILED_ENTRY}
+
+			- name: {TARGET}-deployment-update
+			  plan:
+			  - in_parallel:
+			    - get: {TARGET}-deployment-src
+			      trigger: true
+			    - get: ci-src
+			  - task: cloudrun-deploy
+			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
+			    input_mapping:
+			      src: {TARGET}-deployment-src
+			    params:
+			      MANIFEST_PATH: {DEPLOYMENT_MANIFEST_PATH}
+			  {TEAMS_ON_SUCCESS}
+			  {TEAMS_ON_FAILURE}""";
 
 	private static final String TEAMS_RESOURCE = """
 			- name: teams
@@ -219,6 +243,8 @@ public class PlatformConcoursePipeline {
 						targetConfigs.stream()
 								.map(targetConfig -> targetResources(
 										targetConfig,
+										configuration.getDeploymentSrcBranch(),
+										configuration.getDeploymentSrcUri(),
 										configuration.getGithubRepository(),
 										configuration.getPlatformPathPrefix(),
 										configuration.getPlatformSrcBranch(),
@@ -240,14 +266,19 @@ public class PlatformConcoursePipeline {
 
 	private String targetResources(
 			TargetConfig targetConfig,
+			String deploymentSrcBranch,
+			String deploymentSrcUri,
 			String githubRepository,
 			String platformPathPrefix,
 			String platformSrcBranch,
 			String platformSrcUri) {
 		return RESOURCES
+				.replace("{DEPLOYMENT_MANIFEST_PATH}", targetConfig.getDeploymentManifestPath())
 				.replace("{GITHUB_REPOSITORY}", githubRepository)
 				.replace("{PLATFORM_SRC_BRANCH}", platformSrcBranch)
 				.replace("{PLATFORM_SRC_URI}", platformSrcUri)
+				.replace("{DEPLOYMENT_SRC_BRANCH}", deploymentSrcBranch)
+				.replace("{DEPLOYMENT_SRC_URI}", deploymentSrcUri)
 				.replace("{TARGET}", targetConfig.getName())
 				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
 				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory())
@@ -256,6 +287,7 @@ public class PlatformConcoursePipeline {
 
 	private String jobs(TargetConfig targetConfig) {
 		return JOBS
+				.replace("{DEPLOYMENT_MANIFEST_PATH}", targetConfig.getDeploymentManifestPath())
 				.replace("{TARGET}", targetConfig.getName())
 				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
 				.replace("{TERRAFORM_BACKEND_GCS_BUCKET}", configuration.getTerraformBackendGcsBucket())

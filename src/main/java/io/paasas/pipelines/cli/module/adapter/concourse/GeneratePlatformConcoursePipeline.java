@@ -70,6 +70,7 @@ public class GeneratePlatformConcoursePipeline extends AbstractCommand {
 
 	private TargetConfig toTargetConfig(String file) {
 		return TargetConfig.builder()
+				.deploymentManifestPath(configuration.getDeploymentPathPrefix() + file)
 				.name(file.replace("/", "-").replace(".yaml", "").replace(".yml", ""))
 				.platformManifestPath(configuration.getPlatformPathPrefix() + file)
 				.terraformExtensionsDirectory(String.format(

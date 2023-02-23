@@ -8,6 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder(toBuilder = true)
 public class TargetConfig {
+	String deploymentManifestPath;
 	String name;
 	String platformManifestPath;
 	String terraformExtensionsDirectory;

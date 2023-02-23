@@ -23,6 +23,15 @@ public class ConcourseConfiguration {
 	String githubRepository;
 
 	@NotNull
+	String deploymentPathPrefix;
+	
+	@NotEmpty
+	String deploymentSrcBranch;
+
+	@NotEmpty
+	String deploymentSrcUri;
+
+	@NotNull
 	String platformPathPrefix;
 	
 	@NotEmpty
@@ -34,7 +43,6 @@ public class ConcourseConfiguration {
 	String slackChannel;
 	
 	String slackWebhookUrl;
-	
 	
 	String teamsWebhookUrl;
 

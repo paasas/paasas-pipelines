@@ -72,6 +72,15 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - teams/project1/backend/dev.yaml
 			    - teams/project1/backend/dev-tf
+
+			- name: project1-backend-dev-deployment-src
+			  type: git
+			  source:
+			    uri: main
+			    private_key: ((git.ssh-private-key))
+			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    paths:
+			    - teams/project1/backend/dev.yaml
 			- name: project1-backend-prod-platform-pr
 			  type: pull-request
 			  source:
@@ -90,6 +99,15 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - teams/project1/backend/prod.yaml
 			    - teams/project1/backend/prod-tf
+
+			- name: project1-backend-prod-deployment-src
+			  type: git
+			  source:
+			    uri: main
+			    private_key: ((git.ssh-private-key))
+			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    paths:
+			    - teams/project1/backend/prod.yaml
 			- name: project1-frontend-dev-platform-pr
 			  type: pull-request
 			  source:
@@ -108,6 +126,15 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - teams/project1/frontend/dev.yaml
 			    - teams/project1/frontend/dev-tf
+
+			- name: project1-frontend-dev-deployment-src
+			  type: git
+			  source:
+			    uri: main
+			    private_key: ((git.ssh-private-key))
+			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    paths:
+			    - teams/project1/frontend/dev.yaml
 			- name: project1-frontend-prod-platform-pr
 			  type: pull-request
 			  source:
@@ -126,6 +153,15 @@ public abstract class ExpectedPipeline {
 			    paths:
 			    - teams/project1/frontend/prod.yaml
 			    - teams/project1/frontend/prod-tf
+
+			- name: project1-frontend-prod-deployment-src
+			  type: git
+			  source:
+			    uri: main
+			    private_key: ((git.ssh-private-key))
+			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    paths:
+			    - teams/project1/frontend/prod.yaml
 			- name: teams
 			  type: teams-notification
 			  source:
@@ -207,6 +243,21 @@ public abstract class ExpectedPipeline {
 			        path: project1-backend-dev-infra-pr
 			        status: failure
 			    - <<: *teams_job_failed
+
+			- name: project1-backend-dev-deployment-update
+			  plan:
+			  - in_parallel:
+			    - get: project1-backend-dev-deployment-src
+			      trigger: true
+			    - get: ci-src
+			  - task: cloudrun-deploy
+			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
+			    input_mapping:
+			      src: project1-backend-dev-deployment-src
+			    params:
+			      MANIFEST_PATH: teams/project1/backend/dev.yaml
+			  on_success: *teams_job_success
+			  on_failure: *teams_job_failed
 			- name: project1-backend-prod-terraform-apply
 			  plan:
 			  - in_parallel:
@@ -281,6 +332,21 @@ public abstract class ExpectedPipeline {
 			        path: project1-backend-prod-infra-pr
 			        status: failure
 			    - <<: *teams_job_failed
+
+			- name: project1-backend-prod-deployment-update
+			  plan:
+			  - in_parallel:
+			    - get: project1-backend-prod-deployment-src
+			      trigger: true
+			    - get: ci-src
+			  - task: cloudrun-deploy
+			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
+			    input_mapping:
+			      src: project1-backend-prod-deployment-src
+			    params:
+			      MANIFEST_PATH: teams/project1/backend/prod.yaml
+			  on_success: *teams_job_success
+			  on_failure: *teams_job_failed
 			- name: project1-frontend-dev-terraform-apply
 			  plan:
 			  - in_parallel:
@@ -355,6 +421,21 @@ public abstract class ExpectedPipeline {
 			        path: project1-frontend-dev-infra-pr
 			        status: failure
 			    - <<: *teams_job_failed
+
+			- name: project1-frontend-dev-deployment-update
+			  plan:
+			  - in_parallel:
+			    - get: project1-frontend-dev-deployment-src
+			      trigger: true
+			    - get: ci-src
+			  - task: cloudrun-deploy
+			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
+			    input_mapping:
+			      src: project1-frontend-dev-deployment-src
+			    params:
+			      MANIFEST_PATH: teams/project1/frontend/dev.yaml
+			  on_success: *teams_job_success
+			  on_failure: *teams_job_failed
 			- name: project1-frontend-prod-terraform-apply
 			  plan:
 			  - in_parallel:
@@ -429,6 +510,21 @@ public abstract class ExpectedPipeline {
 			        path: project1-frontend-prod-infra-pr
 			        status: failure
 			    - <<: *teams_job_failed
+
+			- name: project1-frontend-prod-deployment-update
+			  plan:
+			  - in_parallel:
+			    - get: project1-frontend-prod-deployment-src
+			      trigger: true
+			    - get: ci-src
+			  - task: cloudrun-deploy
+			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
+			    input_mapping:
+			      src: project1-frontend-prod-deployment-src
+			    params:
+			      MANIFEST_PATH: teams/project1/frontend/prod.yaml
+			  on_success: *teams_job_success
+			  on_failure: *teams_job_failed
 
 			groups:
 			- name: project1-backend-dev
