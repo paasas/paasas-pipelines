@@ -1,9 +1,5 @@
-FROM ubuntu
+FROM harbor.paasas.io/public/java-ci:latest
 
-ARG VERSION
+ADD paasas-pipelines.jar /opt/paasas-pipelines/paasas-pipelines.jar
 
-ADD paasas-pipelines /usr/bin/paasas-pipelines
-
-RUN chmod +x /usr/bin/paasas-pipelines
-
-ENTRYPOINT paasas-pipelines
+ENTRYPOINT java -jar /opt/paasas-pipelines/paasas-pipelines.jar

@@ -8,6 +8,7 @@
   </parent>
   
   <artifactId>paasas-pipelines</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
   
   <properties>
     <google-cloud-run.version>0.9.0</google-cloud-run.version>
