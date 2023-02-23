@@ -8,4 +8,4 @@ pushd src && \
   ./mvnw install && \
   ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout > ../version/version && \
   popd && \
-  mv src/target/paasas-pipelines build/paasas-pipelines
+  mv src/target/paasas-pipelines-*.jar build/paasas-pipelines.jar
