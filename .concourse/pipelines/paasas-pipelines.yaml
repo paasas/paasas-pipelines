@@ -64,7 +64,7 @@ jobs:
         name: version/version
         tag: version/version
         globs:
-        - build/paasas-pipelines
+        - build/paasas-pipelines.jar
     - put: paasas-pipelines-image
       params: 
         build: src/.concourse/images/paasas-pipelines
