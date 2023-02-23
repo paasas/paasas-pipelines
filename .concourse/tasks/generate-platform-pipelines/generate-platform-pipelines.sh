@@ -12,7 +12,7 @@ fi
 
 PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET="${TERRAFORM_BACKEND_GCS_BUCKET}" \
   PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH=main \
-  paasas-pipelines \
+  java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
     generate-pipeline \
     platforms-src/$TARGETS_DIRECTORY \
     pipelines/pipelines.yaml && \

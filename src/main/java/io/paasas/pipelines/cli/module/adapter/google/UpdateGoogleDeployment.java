@@ -12,6 +12,7 @@ import io.paasas.pipelines.cli.domain.io.Output;
 import io.paasas.pipelines.cli.domain.ports.backend.Deployer;
 import io.paasas.pipelines.cli.module.AbstractCommand;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
+import io.paasas.pipelines.deployment.module.CloudRunConfiguration;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,6 +22,7 @@ import lombok.experimental.FieldDefaults;
 public class UpdateGoogleDeployment extends AbstractCommand {
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory()).findAndRegisterModules();
 
+	CloudRunConfiguration cloudRunConfiguration;
 	Deployer cloudRunDeployer;
 	Output errorOutput;
 
@@ -40,6 +42,12 @@ public class UpdateGoogleDeployment extends AbstractCommand {
 	protected void process(String... args) {
 		if (args.length != 1) {
 			throw new IllegalCommandArgumentsException("expected one argument for command");
+		}
+		
+		if (cloudRunConfiguration.getGoogleCredentialsJson() == null
+				&& cloudRunConfiguration.getGoogleCredentialsJson().isEmpty()) {
+			throw new IllegalCommandArgumentsException(
+					"environment variable PIPELINES_CLOUD_GOOGLE_CREDENTIALS is required");
 		}
 
 		var file = args[0];

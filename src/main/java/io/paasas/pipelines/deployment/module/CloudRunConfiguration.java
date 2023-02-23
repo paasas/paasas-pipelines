@@ -2,7 +2,6 @@ package io.paasas.pipelines.deployment.module;
 
 import org.springframework.validation.annotation.Validated;
 
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +14,5 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CloudRunConfiguration {
-	@NotEmpty
 	String googleCredentialsJson;
 }
