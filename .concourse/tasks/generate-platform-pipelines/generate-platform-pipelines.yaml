@@ -16,6 +16,7 @@ outputs:
 
 params:
   TARGETS_DIRECTORY: 
+  TARGETS_PATH_PREFIX: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
 
 run:
