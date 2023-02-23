@@ -218,7 +218,8 @@ public class PlatformConcoursePipeline {
 				  jobs:
 				  - {TARGET}-terraform-apply
 				  - {TARGET}-terraform-destroy
-				  - {TARGET}-terraform-plan"""
+				  - {TARGET}-terraform-plan
+				  - {TARGET}-deployment-update"""
 				.replace("{TARGET}", targetConfig.getName());
 	}
 
