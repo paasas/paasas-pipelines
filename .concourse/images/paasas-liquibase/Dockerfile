@@ -1,1 +1,1 @@
-FROM liquibase/liquibas:latest
+FROM liquibase/liquibase:latest
