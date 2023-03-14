@@ -13,7 +13,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: ci-src
 			  type: git
 			  source:
-			    uri: https://github.com/paasas/paasas-pipelines
+			    uri: git@github.com:paasas/paasas-pipelines.git
 			    private_key: ((git.ssh-private-key))
 			    branch: main
 			    paths:

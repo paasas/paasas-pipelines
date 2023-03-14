@@ -55,7 +55,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 						.name(CI_SRC_RESOURCE)
 						.type("git")
 						.source(GitSource.builder()
-								.uri("https://github.com/paasas/paasas-pipelines")
+								.uri("git@github.com:paasas/paasas-pipelines.git")
 								.privateKey("((git.ssh-private-key))")
 								.branch("main")
 								.paths(List.of(".concourse"))

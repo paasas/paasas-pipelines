@@ -56,7 +56,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.name(CI_SRC_RESOURCE)
 						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
 						.source(GitSource.builder()
-								.uri("https://github.com/paasas/paasas-pipelines")
+								.uri("git@github.com:paasas/paasas-pipelines.git")
 								.privateKey("((git.ssh-private-key))")
 								.branch("main")
 								.paths(List.of(".concourse"))

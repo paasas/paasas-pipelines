@@ -37,7 +37,7 @@ public abstract class ConcoursePipelineTest {
 
 	ConcourseConfiguration configuration() {
 		return new ConcourseConfiguration(
-				"https://github.com/paasas/paasas-pipelines",
+				"git@github.com:paasas/paasas-pipelines.git",
 				"daniellavoie/infra-as-code-demo",
 				"teams/",
 				"https://github.com/daniellavoie/deployment-as-code-demo",
