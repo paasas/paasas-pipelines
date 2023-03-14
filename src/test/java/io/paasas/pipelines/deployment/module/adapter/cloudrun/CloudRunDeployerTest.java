@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import io.paasas.pipelines.PaasasPipelinesApplication;
 import io.paasas.pipelines.deployment.domain.model.App;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
+import io.paasas.pipelines.deployment.module.adapter.gcp.cloudrun.CloudRunDeployer;
 
 @EnabledIfEnvironmentVariable(named = "RUN_IT", matches = "true")
 @SpringBootTest(classes = PaasasPipelinesApplication.class)

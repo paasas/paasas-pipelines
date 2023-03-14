@@ -13,4 +13,5 @@ public class DeploymentManifest {
 	List<App> apps;
 	String project;
 	String region;
+	List<BigQueryWatcher> bigQuery;
 }

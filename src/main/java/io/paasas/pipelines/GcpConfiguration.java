@@ -1,9 +1,10 @@
-package io.paasas.pipelines.deployment.module;
+package io.paasas.pipelines;
 
 import org.springframework.validation.annotation.Validated;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -12,7 +13,11 @@ import lombok.experimental.FieldDefaults;
 @Validated
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CloudRunConfiguration {
-	String googleCredentialsJson;
+public class GcpConfiguration {
+	String credentialsJson;
+	String impersonateServiceAccount;
+	String projectId;
+	String region;
 }

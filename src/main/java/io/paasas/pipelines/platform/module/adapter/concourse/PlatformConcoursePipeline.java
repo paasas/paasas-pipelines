@@ -1,226 +1,196 @@
 package io.paasas.pipelines.platform.module.adapter.concourse;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Stream;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+
+import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
-import io.paasas.pipelines.platform.module.ConcourseConfiguration;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.Group;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.Job;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.Pipeline;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.Resource;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.ResourceType;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.ResourceTypeSource;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.resource.GitSource;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.resource.PullRequestSource;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Do;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Get;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.step.InParallel;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Put;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Step;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Task;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class PlatformConcoursePipeline {
-	ConcourseConfiguration configuration;
+public class PlatformConcoursePipeline extends ConcoursePipeline {
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(
+			new YAMLFactory()
+					.configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
+					.configure(YAMLGenerator.Feature.SPLIT_LINES, false))
+			.findAndRegisterModules()
+			.setSerializationInclusion(Include.NON_NULL);
 
-	private static String RESOURCES = """
-			- name: {TARGET}-platform-pr
-			  type: pull-request
-			  source:
-			    access_token: ((github.accessToken))
-			    repository: {GITHUB_REPOSITORY}
-			    paths:
-			    - {PLATFORM_MANIFEST_PATH}
-			    - {TERRAFORM_EXTENSIONS_DIRECTORY}
+	private static final String CI_SRC_RESOURCE = "ci-src";
+	private static final String GIT_RESOURCE_TYPE = "git";
+	private static final String PULL_REQUEST_RESOURCE_TYPE = "pull-request";
+	private static final String TERRAFORM_LTS_SRC_RESOURCE = "terraform-lts-src";
+	private static final String TERRAFORM_NEXT_SRC_RESOURCE = "terraform-next-src";
 
-			- name: {TARGET}-platform-src
-			  type: git
-			  source:
-			    uri: {PLATFORM_SRC_URI}
-			    private_key: ((git.ssh-private-key))
-			    branch: {PLATFORM_SRC_BRANCH}
-			    paths:
-			    - {PLATFORM_MANIFEST_PATH}
-			    - {TERRAFORM_EXTENSIONS_DIRECTORY}
+	public PlatformConcoursePipeline(ConcourseConfiguration configuration) {
+		super(configuration);
+	}
 
-			- name: {TARGET}-deployment-src
-			  type: git
-			  source:
-			    uri: {DEPLOYMENT_SRC_URI}
-			    private_key: ((git.ssh-private-key))
-			    branch: {DEPLOYMENT_SRC_BRANCH}
-			    paths:
-			    - {DEPLOYMENT_MANIFEST_PATH}""";
+	List<Resource<?>> commonResources() {
+		return List.of(
+				Resource.builder()
+						.name(CI_SRC_RESOURCE)
+						.type("git")
+						.source(GitSource.builder()
+								.uri("https://github.com/paasas/paasas-pipelines")
+								.privateKey("((git.ssh-private-key))")
+								.branch("main")
+								.paths(List.of(".concourse"))
+								.build())
+						.build(),
+				Resource.builder()
+						.name(TERRAFORM_LTS_SRC_RESOURCE)
+						.type("git")
+						.source(GitSource.builder()
+								.uri(configuration.getTerraformSrcUri())
+								.privateKey("((git.ssh-private-key))")
+								.branch("main")
+								.paths(List.of("terraform/infra/lts"))
+								.build())
+						.build(),
+				Resource.builder()
+						.name(TERRAFORM_NEXT_SRC_RESOURCE)
+						.type("git")
+						.source(GitSource.builder()
+								.uri(configuration.getTerraformSrcUri())
+								.privateKey("((git.ssh-private-key))")
+								.branch("main")
+								.paths(List.of("terraform/infra/next"))
+								.build())
+						.build(),
+				Resource.builder()
+						.name("teams")
+						.type(CommonResourceTypes.TEAMS_NOTIFICATION_RESOURCE_TYPE)
+						.source(Map.of("url", "((teams.webhookUrl))"))
+						.build());
+	}
 
-	private static String JOBS = """
-			- name: {TARGET}-terraform-apply
-			  plan:
-			  - in_parallel:
-			    - get: {TARGET}-platform-src
-			      trigger: true
-			    - get: ci-src
-			    - get: terraform-lts-src
-			    - get: terraform-next-src
-			  - task: terraform-apply
-			    file: ci-src/.concourse/tasks/terraform/terraform-apply.yaml
-			    input_mapping:
-			      src: {TARGET}-platform-src
-			    params:
-			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
-			      TARGET: {TARGET}
-			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
-			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
-			  {TEAMS_ON_SUCCESS}
-			  {TEAMS_ON_FAILURE}
+	private Get get(String resource) {
+		return Get.builder()
+				.get(resource)
+				.build();
+	}
 
-			- name: {TARGET}-terraform-destroy
-			  plan:
-			  - in_parallel:
-			    - get: {TARGET}-platform-src
-			    - get: ci-src
-			    - get: terraform-lts-src
-			    - get: terraform-next-src
-			  - task: terraform-destroy
-			    file: ci-src/.concourse/tasks/terraform/terraform-destroy.yaml
-			    input_mapping:
-			      src: {TARGET}-platform-src
-			    params:
-			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
-			      TARGET: {TARGET}
-			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
-			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
-			  {TEAMS_ON_SUCCESS}
-			  {TEAMS_ON_FAILURE}
+	private Get getWithTrigger(String resource) {
+		return Get.builder()
+				.get(resource)
+				.trigger(true)
+				.build();
+	}
 
-			- name: {TARGET}-terraform-plan
-			  plan:
-			  - in_parallel:
-			    - get: {TARGET}-platform-pr
-			      trigger: true
-			    - get: ci-src
-			  - in_parallel:
-			    - put: {TARGET}-platform-pr
-			      params:
-			        path: {TARGET}-platform-pr
-			        status: pending
-			    - get: terraform-lts-src
-			    - get: terraform-next-src
-			  - task: terraform-plan
-			    file: ci-src/.concourse/tasks/terraform/terraform-plan.yaml
-			    input_mapping:
-			      src: {TARGET}-platform-pr
-			    params:
-			      PLATFORM_MANIFEST_PATH: {PLATFORM_MANIFEST_PATH}
-			      TARGET: {TARGET}
-			      TERRAFORM_BACKEND_GCS_BUCKET: {TERRAFORM_BACKEND_GCS_BUCKET}
-			      TERRAFORM_EXTENSIONS_DIRECTORY: {TERRAFORM_EXTENSIONS_DIRECTORY}
-			  - put: {TARGET}-platform-pr
-			    params:
-			      comment_file: terraform-out/terraform.md
-			      path: {TARGET}-platform-pr
-			      status: success
-			  {TEAMS_ON_SUCCESS}
-			  on_failure:
-			    do:
-			    - put: {TARGET}-platform-pr
-			      params:
-			        path: {TARGET}-infra-pr
-			        status: failure
-			    {TEAMS_JOB_FAILED_ENTRY}
+	Group group(TargetConfig targetConfig) {
+		return Group.builder()
+				.name(targetConfig.getName())
+				.jobs(List.of(
+						targetConfig.getName() + "-terraform-apply",
+						targetConfig.getName() + "-terraform-destroy",
+						targetConfig.getName() + "-terraform-plan",
+						targetConfig.getName() + "-deployment-update"))
+				.build();
+	}
 
-			- name: {TARGET}-deployment-update
-			  plan:
-			  - in_parallel:
-			    - get: {TARGET}-deployment-src
-			      trigger: true
-			    - get: ci-src
-			  - task: cloudrun-deploy
-			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
-			    input_mapping:
-			      src: {TARGET}-deployment-src
-			    params:
-			      MANIFEST_PATH: {DEPLOYMENT_MANIFEST_PATH}
-			  {TEAMS_ON_SUCCESS}
-			  {TEAMS_ON_FAILURE}""";
+	List<Group> groups(List<TargetConfig> targetConfigs) {
+		return targetConfigs.stream().map(this::group).toList();
+	}
 
-	private static final String TEAMS_RESOURCE = """
-			- name: teams
-			  type: teams-notification
-			  source:
-			    url: ((teams.webhookUrl))""";
+	private InParallel inParallel(List<Step> steps) {
+		return InParallel.builder()
+				.inParallel(steps)
+				.build();
+	}
 
-	private static final String TEAMS_RESOURCE_TYPE = """
-			- name: teams-notification
-			  type: docker-image
-			  source:
-			    repository: navicore/teams-notification-resource
-			    tag: latest""";
+	private List<Job> jobs(List<TargetConfig> targetConfigs) {
+		return targetConfigs.stream().flatMap(this::jobs).toList();
+	}
 
-	private static final String TEAMS_VARIABLES = """
-			teams_job_failed: &teams_job_failed
-			  put: teams
-			  params:
-			    text: |
-			      Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			    actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
-
-			teams_job_success: &teams_job_success
-			  put: teams
-			  params:
-			    text: |
-			      Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
-			    actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME""";
-
-	private static final String TEMPLATE = """
-			{VARIABLES}
-
-			resource_types:
-			- name: pull-request
-			  type: docker-image
-			  source:
-			    repository: teliaoss/github-pr-resource
-			{EXTRA_RESOURCE_TYPES}
-
-			resources:
-			- name: ci-src
-			  type: git
-			  source:
-			    uri: {CI_SRC_URI}
-			    private_key: ((git.ssh-private-key))
-			    branch: {TERAFORM_SRC_BRANCH}
-			    paths:
-			    - .concourse
-			- name: terraform-lts-src
-			  type: git
-			  source:
-			    uri: {TERAFORM_SRC_URI}
-			    private_key: ((git.ssh-private-key))
-			    branch: main
-			    paths:
-			    - terraform/infra/lts
-			- name: terraform-next-src
-			  type: git
-			  source:
-			    uri: {TERAFORM_SRC_URI}
-			    private_key: ((git.ssh-private-key))
-			    branch: {TERAFORM_SRC_BRANCH}
-			    paths:
-			    - terraform/infra/next
-			{TARGET_RESOURCES}
-			{TEAMS_RESOURCE}
-			{SLACK_RESOURCE}
-
-			jobs:
-			{JOBS}
-
-			groups:
-			{GROUPS}""";
-
-	private static final String YAML_VARIABLES = """
-			{TEAMS_VARIABLES}
-
-			{SLACK_VARIABLES}""";
-
-	private static String group(TargetConfig targetConfig) {
-		return """
-				- name: {TARGET}
-				  jobs:
-				  - {TARGET}-terraform-apply
-				  - {TARGET}-terraform-destroy
-				  - {TARGET}-terraform-plan
-				  - {TARGET}-deployment-update"""
-				.replace("{TARGET}", targetConfig.getName());
+	private Stream<Job> jobs(TargetConfig targetConfig) {
+		return Stream.of(
+				terraformJob("apply", targetConfig, true),
+				terraformJob("destroy", targetConfig, false),
+				Job.builder()
+						.name(targetConfig.getName() + "-terraform-plan")
+						.plan(List.of(
+								InParallel.builder()
+										.inParallel(List.of(
+												getWithTrigger(targetConfig.getName() + "-platform-pr"),
+												get("ci-src")))
+										.build(),
+								InParallel.builder()
+										.inParallel(List.of(
+												updatePr(targetConfig.getName() + "-platform-pr", "pending"),
+												Get.builder().get(TERRAFORM_LTS_SRC_RESOURCE).build(),
+												Get.builder().get(TERRAFORM_NEXT_SRC_RESOURCE).build()))
+										.build(),
+								Task.builder()
+										.task("terraform-plan")
+										.file("ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml")
+										.inputMapping(Map.of("src", targetConfig.getName() + "-platform-pr"))
+										.params(new TreeMap<>(Map.of(
+												"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
+												"TARGET", targetConfig.getName(),
+												"TERRAFORM_BACKEND_GCS_BUCKET",
+												configuration.getTerraformBackendGcsBucket(),
+												"TERRAFORM_EXTENSIONS_DIRECTORY",
+												targetConfig.getTerraformExtensionsDirectory())))
+										.build(),
+								updatePr(
+										targetConfig.getName() + "-platform-pr",
+										"success",
+										"terraform-out/terraform.md")))
+						.onSuccess(teamsSuccessNotification())
+						.onFailure(Do.builder()
+								.steps(List.of(
+										updatePr(targetConfig.getName() + "-platform-pr", "failure"),
+										teamsFailureNotification()))
+								.build())
+						.build(),
+				Job.builder()
+						.name(targetConfig.getName() + "-deployment-update")
+						.plan(List.of(
+								inParallel(List.of(
+										getWithTrigger(targetConfig.getName() + "-deployment-src"),
+										get(CI_SRC_RESOURCE))),
+								Task.builder()
+										.task("cloudrun-deploy")
+										.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
+										.inputMapping(Map.of("src", targetConfig.getName() + "-deployment-src"))
+										.params(new TreeMap<>(Map.of(
+												"MANIFEST_PATH", targetConfig.getDeploymentManifestPath())))
+										.build(),
+								Task.builder()
+										.task("update-deployment-pipeline")
+										.file("ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml")
+										.inputMapping(Map.of("src", targetConfig.getName() + "-deployment-src"))
+										.params(new TreeMap<>(Map.of(
+												"MANIFEST_PATH", targetConfig.getDeploymentManifestPath(),
+												"TARGET", targetConfig.getName())))
+										.build()))
+						.onSuccess(teamsSuccessNotification())
+						.onFailure(teamsFailureNotification())
+						.build());
 	}
 
 	public String pipeline(
@@ -229,76 +199,124 @@ public class PlatformConcoursePipeline {
 			throw new IllegalArgumentException("exepcted at least one target config");
 		}
 
-		return TEMPLATE
-				.replace(
-						"{VARIABLES}",
-						YAML_VARIABLES
-								.replace("{TEAMS_VARIABLES}", isTeamsConfigured() ? TEAMS_VARIABLES : "")
-								.replace("{SLACK_VARIABLES}", ""))
-				.replace("{EXTRA_RESOURCE_TYPES}", isTeamsConfigured() ? TEAMS_RESOURCE_TYPE : "")
-				.replace("{CI_SRC_URI}", configuration.getCiSrcUri())
-				.replace("{TERAFORM_SRC_URI}", configuration.getTerraformSrcUri())
-				.replace("{TERAFORM_SRC_BRANCH}", configuration.getTerraformSrcBranch())
-				.replace(
-						"{TARGET_RESOURCES}",
-						targetConfigs.stream()
-								.map(targetConfig -> targetResources(
-										targetConfig,
-										configuration.getDeploymentSrcBranch(),
-										configuration.getDeploymentSrcUri(),
-										configuration.getGithubRepository(),
-										configuration.getPlatformPathPrefix(),
-										configuration.getPlatformSrcBranch(),
-										configuration.getPlatformSrcUri()))
-								.collect(Collectors.joining("\n")))
-				.replace("{TEAMS_RESOURCE}", isTeamsConfigured() ? TEAMS_RESOURCE : "")
-				.replace("{SLACK_RESOURCE}", "")
-				.replace(
-						"{JOBS}",
-						targetConfigs.stream()
-								.map(this::jobs)
-								.collect(Collectors.joining("\n")))
-				.replace(
-						"{GROUPS}",
-						targetConfigs.stream()
-								.map(PlatformConcoursePipeline::group)
-								.collect(Collectors.joining("\n")));
+		return writePipeline(
+				Pipeline.builder()
+						.resourceTypes(resourceTypes())
+						.resources(Stream
+								.concat(
+										commonResources().stream(),
+										targetResources(targetConfigs).stream())
+								.toList())
+						.jobs(jobs(targetConfigs))
+						.groups(groups(targetConfigs))
+						.build());
 	}
 
-	private String targetResources(
-			TargetConfig targetConfig,
-			String deploymentSrcBranch,
-			String deploymentSrcUri,
-			String githubRepository,
-			String platformPathPrefix,
-			String platformSrcBranch,
-			String platformSrcUri) {
-		return RESOURCES
-				.replace("{DEPLOYMENT_MANIFEST_PATH}", targetConfig.getDeploymentManifestPath())
-				.replace("{GITHUB_REPOSITORY}", githubRepository)
-				.replace("{PLATFORM_SRC_BRANCH}", platformSrcBranch)
-				.replace("{PLATFORM_SRC_URI}", platformSrcUri)
-				.replace("{DEPLOYMENT_SRC_BRANCH}", deploymentSrcBranch)
-				.replace("{DEPLOYMENT_SRC_URI}", deploymentSrcUri)
-				.replace("{TARGET}", targetConfig.getName())
-				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
-				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory())
-				.replace("{TEAMS_RESOURCE}", isTeamsConfigured() ? TEAMS_RESOURCE : "null");
+	private List<ResourceType> resourceTypes() {
+		return List.of(ResourceType.builder()
+				.name(PULL_REQUEST_RESOURCE_TYPE)
+				.type("docker-image")
+				.source(ResourceTypeSource.builder()
+						.repository("teliaoss/github-pr-resource")
+						.build())
+				.build(),
+				CommonResourceTypes.TEAMS_NOTIFICATION);
 	}
 
-	private String jobs(TargetConfig targetConfig) {
-		return JOBS
-				.replace("{DEPLOYMENT_MANIFEST_PATH}", targetConfig.getDeploymentManifestPath())
-				.replace("{TARGET}", targetConfig.getName())
-				.replace("{PLATFORM_MANIFEST_PATH}", targetConfig.getPlatformManifestPath())
-				.replace("{TERRAFORM_BACKEND_GCS_BUCKET}", configuration.getTerraformBackendGcsBucket())
-				.replace("{TERRAFORM_EXTENSIONS_DIRECTORY}", targetConfig.getTerraformExtensionsDirectory())
-				.replace("{TEAMS_ON_SUCCESS}", isTeamsConfigured() ? "on_success: *teams_job_success" : "")
-				.replace("{TEAMS_ON_FAILURE}", isTeamsConfigured() ? "on_failure: *teams_job_failed" : "")
-				.replace("{TEAMS_JOB_FAILED_ENTRY}", isTeamsConfigured() ? "- <<: *teams_job_failed" : "");
+	private List<Resource<?>> targetResources(List<TargetConfig> targetConfigs) {
+		return targetConfigs.stream().flatMap(this::targetResources).toList();
 	}
 
-	private boolean isTeamsConfigured() {
-		return configuration.getTeamsWebhookUrl() != null && !configuration.getTeamsWebhookUrl().isBlank();
+	private Stream<Resource<?>> targetResources(TargetConfig targetConfig) {
+		return Stream.of(
+				Resource.builder()
+						.name(targetConfig.getName() + "-platform-pr")
+						.type(PULL_REQUEST_RESOURCE_TYPE)
+						.source(PullRequestSource.builder()
+								.accessToken("((github.accessToken))")
+								.repository(configuration.getGithubRepository())
+								.paths(List.of(
+										targetConfig.getPlatformManifestPath(),
+										targetConfig.getTerraformExtensionsDirectory()))
+								.build())
+						.build(),
+				Resource.builder()
+						.name(targetConfig.getName() + "-platform-src")
+						.type(GIT_RESOURCE_TYPE)
+						.source(GitSource.builder()
+								.uri(configuration.getPlatformSrcUri())
+								.privateKey("((git.ssh-private-key))")
+								.branch(configuration.getPlatformSrcBranch())
+								.paths(List.of(
+										targetConfig.getPlatformManifestPath(),
+										targetConfig.getTerraformExtensionsDirectory()))
+								.build())
+						.build(),
+				Resource.builder()
+						.name(targetConfig.getName() + "-deployment-src")
+						.type(GIT_RESOURCE_TYPE)
+						.source(GitSource.builder()
+								.uri(configuration.getDeploymentSrcUri())
+								.privateKey("((git.ssh-private-key))")
+								.branch(configuration.getDeploymentSrcBranch())
+								.paths(List.of(targetConfig.getDeploymentManifestPath()))
+								.build())
+						.build());
+	}
+
+	private Job terraformJob(String type, TargetConfig targetConfig, Boolean trigger) {
+		return Job.builder()
+				.name(targetConfig.getName() + "-terraform-" + type)
+				.plan(List.of(
+						inParallel(List.of(
+								trigger
+										? getWithTrigger(targetConfig.getName() + "-platform-src")
+										: get(targetConfig.getName() + "-platform-src"),
+								get(CI_SRC_RESOURCE),
+								get(TERRAFORM_LTS_SRC_RESOURCE),
+								get(TERRAFORM_NEXT_SRC_RESOURCE))),
+						Task.builder()
+								.task("terraform-" + type)
+								.file("ci-src/.concourse/tasks/terraform-platform/terraform-platform-" + type + ".yaml")
+								.inputMapping(Map.of(
+										"src", targetConfig.getName() + "-platform-src"))
+								.params(new TreeMap<>(Map.of(
+										"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
+										"TARGET", targetConfig.getName(),
+										"TERRAFORM_BACKEND_GCS_BUCKET",
+										configuration.getTerraformBackendGcsBucket(),
+										"TERRAFORM_EXTENSIONS_DIRECTORY",
+										targetConfig.getTerraformExtensionsDirectory())))
+								.build()))
+				.onSuccess(teamsSuccessNotification())
+				.onFailure(teamsFailureNotification())
+				.build();
+	}
+
+	private Put updatePr(String resource, String status) {
+		return Put.builder()
+				.put(resource)
+				.params(new TreeMap<>(Map.of(
+						"path", resource,
+						"status", status)))
+				.build();
+	}
+
+	private Put updatePr(String resource, String status, String commentFile) {
+		return Put.builder()
+				.put(resource)
+				.params(new TreeMap<>(Map.of(
+						"comment_file", commentFile,
+						"path", resource,
+						"status", status)))
+				.build();
+	}
+
+	private String writePipeline(Pipeline pipeline) {
+		try {
+			return OBJECT_MAPPER.writeValueAsString(pipeline);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

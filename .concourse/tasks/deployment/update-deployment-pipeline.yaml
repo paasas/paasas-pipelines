@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: harbor.paasas.io/public/paasas-pipelines
+    tag: latest
+
+inputs:
+- name: platforms-src
+- name: ci-src
+
+outputs:
+- name: platforms-src
+
+params:
+  PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: 
+  PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH: main
+  PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET: 
+  TARGET: 
+
+run:
+  path: ci-src/.concourse/tasks/generate-platform-pipelines/generate-platform-pipelines.sh

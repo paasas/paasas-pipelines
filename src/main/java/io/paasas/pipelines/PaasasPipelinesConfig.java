@@ -7,13 +7,15 @@ import org.springframework.context.annotation.Configuration;
 
 import io.paasas.pipelines.cli.domain.ports.backend.Deployer;
 import io.paasas.pipelines.cli.module.CommandProcessor;
+import io.paasas.pipelines.cli.module.adapter.concourse.GenerateDeploymentConcoursePipeline;
 import io.paasas.pipelines.cli.module.adapter.concourse.GeneratePlatformConcoursePipeline;
 import io.paasas.pipelines.cli.module.adapter.google.UpdateGoogleDeployment;
 import io.paasas.pipelines.cli.module.adapter.stdout.ConsoleErrorOutput;
 import io.paasas.pipelines.cli.module.adapter.stdout.ConsoleOutput;
-import io.paasas.pipelines.deployment.module.CloudRunConfiguration;
-import io.paasas.pipelines.deployment.module.adapter.cloudrun.CloudRunDeployer;
-import io.paasas.pipelines.platform.module.ConcourseConfiguration;
+import io.paasas.pipelines.deployment.module.adapter.gcp.cloudbuild.BigQueryLiquibaseBuildTrigger;
+import io.paasas.pipelines.deployment.module.adapter.gcp.cloudbuild.CloudBuildDeployer;
+import io.paasas.pipelines.deployment.module.adapter.gcp.cloudrun.CloudRunDeployer;
+import io.paasas.pipelines.platform.module.adapter.concourse.DeploymentConcoursePipeline;
 import io.paasas.pipelines.platform.module.adapter.concourse.PlatformConcoursePipeline;
 
 @Configuration
@@ -21,19 +23,36 @@ import io.paasas.pipelines.platform.module.adapter.concourse.PlatformConcoursePi
 public class PaasasPipelinesConfig {
 
 	@Bean
+	public ConsoleOutput output() {
+		return new ConsoleOutput();
+	}
+
+	@Bean
+	public ConsoleErrorOutput errorOutput() {
+		return new ConsoleErrorOutput();
+	}
+
+	@Bean
+	public CloudBuildDeployer cloudBuildDeployer(GcpConfiguration gcpConfiguration, ConsoleOutput consoleOutput) {
+		var bigQueryLiquibaseBuildTrigger = new BigQueryLiquibaseBuildTrigger();
+
+		return new CloudBuildDeployer(bigQueryLiquibaseBuildTrigger, gcpConfiguration, consoleOutput::println);
+	}
+
+	@Bean
 	@ConfigurationProperties(prefix = "pipelines.concourse")
-	public ConcourseConfiguration pipelinesConcourseConfiguration() {
+	public ConcourseConfiguration concourseConfiguration() {
 		return new ConcourseConfiguration();
 	}
 
 	@Bean
-	@ConfigurationProperties(prefix = "pipelines.cloudrun")
-	public CloudRunConfiguration cloudRunConfiguration() {
-		return new CloudRunConfiguration();
+	@ConfigurationProperties(prefix = "pipelines.gcp")
+	public GcpConfiguration gcpeConfiguration() {
+		return new GcpConfiguration();
 	}
 
 	@Bean
-	public Deployer deployer(CloudRunConfiguration configuration) {
+	public Deployer deployer(GcpConfiguration configuration) {
 		var consoleOutput = new ConsoleOutput();
 
 		return new CloudRunDeployer(configuration, consoleOutput::println);
@@ -41,21 +60,20 @@ public class PaasasPipelinesConfig {
 
 	@Bean
 	public CommandProcessor commandProcessor(
-			CloudRunConfiguration cloudRunConfiguration,
+			ConsoleErrorOutput errorOutput,
+			ConsoleOutput output,
+			CloudBuildDeployer cloudBuildDeployer,
 			ConcourseConfiguration concourseConfiguration,
-			Deployer deployer) {
-		var output = new ConsoleOutput();
-		var errorOutput = new ConsoleErrorOutput();
-
+			Deployer deployer,
+			GcpConfiguration gcpConfiguration) {
+		var deploymentPipeline = new DeploymentConcoursePipeline(concourseConfiguration, gcpConfiguration);
 		var platformPipeline = new PlatformConcoursePipeline(concourseConfiguration);
 
 		return new CommandProcessor(
 				output,
 				errorOutput,
-				new GeneratePlatformConcoursePipeline(
-						errorOutput,
-						concourseConfiguration,
-						platformPipeline),
-				new UpdateGoogleDeployment(cloudRunConfiguration, deployer, output));
+				new GenerateDeploymentConcoursePipeline(errorOutput, concourseConfiguration, deploymentPipeline),
+				new GeneratePlatformConcoursePipeline(errorOutput, concourseConfiguration, platformPipeline),
+				new UpdateGoogleDeployment(cloudBuildDeployer, deployer, output));
 	}
 }

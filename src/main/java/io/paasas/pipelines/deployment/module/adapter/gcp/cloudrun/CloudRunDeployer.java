@@ -1,4 +1,4 @@
-package io.paasas.pipelines.deployment.module.adapter.cloudrun;
+package io.paasas.pipelines.deployment.module.adapter.gcp.cloudrun;
 
 import java.io.IOException;
 import java.util.List;
@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.longrunning.OperationFuture;
 import com.google.cloud.run.v2.Container;
 import com.google.cloud.run.v2.ContainerPort;
@@ -27,10 +26,11 @@ import com.google.cloud.run.v2.ServicesSettings;
 import com.google.cloud.run.v2.UpdateServiceRequest;
 import com.google.cloud.secretmanager.v1.SecretName;
 
+import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.cli.domain.ports.backend.Deployer;
 import io.paasas.pipelines.deployment.domain.model.App;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
-import io.paasas.pipelines.deployment.module.CloudRunConfiguration;
+import io.paasas.pipelines.deployment.module.adapter.gcp.GcpCredentials;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,7 +38,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CloudRunDeployer implements Deployer {
-	CloudRunConfiguration configuration;
+	GcpConfiguration configuration;
 	Consumer<String> logger;
 
 	Container container(App app, DeploymentManifest deploymentManifest) {
@@ -78,9 +78,7 @@ public class CloudRunDeployer implements Deployer {
 	public void deploy(DeploymentManifest deploymentManifest) {
 		try {
 			var client = ServicesClient.create(ServicesSettings.newBuilder()
-					.setCredentialsProvider(
-							FixedCredentialsProvider
-									.create(Credentials.credentials(configuration.getGoogleCredentialsJson())))
+					.setCredentialsProvider(GcpCredentials.credentialProviders(configuration))
 					.build());
 
 			var listServicesResponse = client.listServices(
@@ -118,7 +116,7 @@ public class CloudRunDeployer implements Deployer {
 					deleteOperations,
 					Stream.concat(createOperations, updateOperations))
 					.forEach(this::get);
-			
+
 			logger.accept("Deployment update succeeded");
 		} catch (IOException e) {
 			throw new RuntimeException(e);

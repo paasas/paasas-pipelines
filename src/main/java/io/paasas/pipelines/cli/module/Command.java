@@ -3,8 +3,13 @@ package io.paasas.pipelines.cli.module;
 import java.util.Arrays;
 
 public enum Command {
-	GENERATE_PIPELINE(
-			"generate-pipeline",
+	GENERATE_DEPLOYMENT_PIPELINE(
+			"generate-deployment-pipeline",
+			"""
+
+					"""),
+	GENERATE_PLATFORM_PIPELINE(
+			"generate-platform-pipeline",
 			"""
 
 					"""),

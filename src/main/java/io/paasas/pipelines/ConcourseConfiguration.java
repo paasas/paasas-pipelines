@@ -1,4 +1,4 @@
-package io.paasas.pipelines.platform.module;
+package io.paasas.pipelines;
 
 import org.springframework.validation.annotation.Validated;
 
@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,6 +15,7 @@ import lombok.experimental.FieldDefaults;
 @Validated
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConcourseConfiguration {
 	@NotEmpty
@@ -24,7 +26,7 @@ public class ConcourseConfiguration {
 
 	@NotNull
 	String deploymentPathPrefix;
-	
+
 	@NotEmpty
 	String deploymentSrcBranch;
 
@@ -33,25 +35,25 @@ public class ConcourseConfiguration {
 
 	@NotNull
 	String platformPathPrefix;
-	
+
 	@NotEmpty
 	String platformSrcBranch;
 
 	@NotEmpty
 	String platformSrcUri;
-	
+
 	String slackChannel;
-	
+
 	String slackWebhookUrl;
-	
+
 	String teamsWebhookUrl;
 
 	@NotEmpty
 	String terraformBackendGcsBucket;
-	
+
 	@NotEmpty
 	String terraformSrcBranch;
-	
+
 	@NotEmpty
 	String terraformSrcUri;
 }

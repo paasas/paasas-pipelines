@@ -5,6 +5,11 @@ if [ -z "${PIPELINES_CONCOURSE_PLATFORMPATHPREFIX}" ]; then
   exit 1
 fi
 
+if [ -z "${PIPELINES_CONCOURSE_PLATFORMPATHPREFIX}" ]; then
+  echo "env variable PIPELINES_CONCOURSE_PLATFORMPATHPREFIX is undefined"
+  exit 1
+fi
+
 if [ -z "${PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH}" ]; then
   echo "env variable PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH is undefined"
   exit 1

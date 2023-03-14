@@ -8,7 +8,7 @@ image_resource:
     tag: latest
 
 inputs:
-- name: platforms-src
+- name: src
 - name: ci-src
 
 outputs:
@@ -17,7 +17,7 @@ outputs:
 params:
   PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: 
   PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH: main
-  PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET:  
+  PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET: 
 
 run:
   path: ci-src/.concourse/tasks/generate-platform-pipelines/generate-platform-pipelines.sh

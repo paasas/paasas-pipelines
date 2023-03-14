@@ -2,28 +2,31 @@ package io.paasas.pipelines.cli.module.adapter.concourse;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
+import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.cli.domain.exception.IllegalCommandArgumentsException;
 import io.paasas.pipelines.cli.domain.io.Output;
-import io.paasas.pipelines.cli.module.AbstractCommand;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
-import io.paasas.pipelines.platform.module.ConcourseConfiguration;
 import io.paasas.pipelines.platform.module.adapter.concourse.PlatformConcoursePipeline;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class GeneratePlatformConcoursePipeline extends AbstractCommand {
-	Output errorOutput;
-	ConcourseConfiguration configuration;
+public class GeneratePlatformConcoursePipeline extends PipelineSupplierCommand {
 	PlatformConcoursePipeline platformConcoursePipeline;
+
+	public GeneratePlatformConcoursePipeline(
+			Output errorOutput,
+			ConcourseConfiguration configuration,
+			PlatformConcoursePipeline platformConcoursePipeline) {
+		super(errorOutput, configuration);
+
+		this.platformConcoursePipeline = platformConcoursePipeline;
+	}
 
 	public void process(String... args) {
 		if (args.length != 2) {
@@ -38,11 +41,7 @@ public class GeneratePlatformConcoursePipeline extends AbstractCommand {
 
 		var targets = scanTargets(directory);
 
-		try {
-			Files.writeString(Path.of(pipelineFile), platformConcoursePipeline.pipeline(targets));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		writeFile(pipelineFile, platformConcoursePipeline.pipeline(targets));
 	}
 
 	private List<TargetConfig> scanTargets(String directory) {
@@ -77,29 +76,6 @@ public class GeneratePlatformConcoursePipeline extends AbstractCommand {
 						"%s-tf",
 						configuration.getPlatformPathPrefix() + file.replace(".yaml", "").replace(".yml", "")))
 				.build();
-	}
-
-	private void assertIsDirectory(String directory) {
-		if (!Files.isDirectory(Path.of(directory))) {
-			throw new IllegalCommandArgumentsException(directory + " is not a directory");
-		}
-	}
-
-	private void assertIsWritableFile(String file) {
-		var path = Path.of(file);
-		try {
-			if (!Files.exists(path)) {
-				Files.createFile(path);
-			}
-
-			if (!Files.isWritable(Path.of(file))) {
-				throw new IllegalCommandArgumentsException("cannot write to " + file);
-			}
-		} catch (NoSuchFileException noSuchFileEx) {
-			throw new IllegalCommandArgumentsException("cannot write to " + file);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	@Override

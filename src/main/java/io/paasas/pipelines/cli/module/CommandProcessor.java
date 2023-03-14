@@ -1,9 +1,12 @@
 package io.paasas.pipelines.cli.module;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 
 import io.paasas.pipelines.cli.domain.exception.IllegalCommandException;
 import io.paasas.pipelines.cli.domain.io.Output;
+import io.paasas.pipelines.cli.module.adapter.concourse.GenerateDeploymentConcoursePipeline;
 import io.paasas.pipelines.cli.module.adapter.concourse.GeneratePlatformConcoursePipeline;
 import io.paasas.pipelines.cli.module.adapter.google.UpdateGoogleDeployment;
 import lombok.AccessLevel;
@@ -16,6 +19,7 @@ public class CommandProcessor {
 	Output output;
 	Output errorOutput;
 
+	GenerateDeploymentConcoursePipeline generateDeploymentConcoursePipeline;
 	GeneratePlatformConcoursePipeline generatePlatformConcoursePipeline;
 	UpdateGoogleDeployment updateGoogleDeployment;
 
@@ -38,7 +42,11 @@ public class CommandProcessor {
 
 			return 1;
 		} catch (Exception e) {
-			errorOutput.println(e.getMessage());
+			var stringWriter = new StringWriter();
+			var printWriter = new PrintWriter(stringWriter);
+			e.printStackTrace(printWriter);
+
+			errorOutput.println(stringWriter.toString());
 
 			return 1;
 		}
@@ -51,7 +59,8 @@ public class CommandProcessor {
 
 	private AbstractCommand command(String command) {
 		return switch (Command.fromCommand(command)) {
-		case GENERATE_PIPELINE -> generatePlatformConcoursePipeline;
+		case GENERATE_DEPLOYMENT_PIPELINE -> generateDeploymentConcoursePipeline;
+		case GENERATE_PLATFORM_PIPELINE -> generatePlatformConcoursePipeline;
 		case UPDATE_GOOGLE_DEPLOYMENT -> updateGoogleDeployment;
 		};
 	}
@@ -62,7 +71,8 @@ public class CommandProcessor {
 				  paasas-pipelines <command>
 
 				Available commands:
-				  generate-pipeline
+				  generate-deployment-pipeline
+				  generate-platform-pipeline
 				  update-google-deployment
 
 				""";

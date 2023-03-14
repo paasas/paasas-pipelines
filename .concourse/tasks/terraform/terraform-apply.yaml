@@ -10,8 +10,6 @@ image_resource:
 inputs:
 - name: ci-src
 - name: src
-- name: terraform-lts-src
-- name: terraform-next-src
 
 outputs:
 - name: terraform-state
@@ -21,12 +19,14 @@ caches:
 - path: .terraform
 
 params:
-  SOURCE_PATH: 
+  GCP_PROJECT_ID: 
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
+  GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
   TERRAFORM_COMMAND: apply
-  TERRAFORM_EXTENSIONS_DIRECTORY: 
+  TERRAFORM_DIRECTORY: 
   TERRAFORM_FLAGS: -input=false -no-color -auto-approve
+  
 run:
   path: ci-src/.concourse/tasks/terraform/terraform.sh

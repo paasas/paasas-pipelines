@@ -1,4 +1,4 @@
-package io.paasas.pipelines.deployment.module.adapter.cloudrun;
+package io.paasas.pipelines.deployment.module.adapter.gcp.cloudrun;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

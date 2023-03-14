@@ -11,6 +11,7 @@
   <version>0.1.0-SNAPSHOT</version>
   
   <properties>
+    <google-cloud-build.version>3.14.0</google-cloud-build.version>
     <google-cloud-run.version>0.9.0</google-cloud-run.version>
     <google-cloud-secretmanager.version>2.5.0</google-cloud-secretmanager.version>
   </properties>
@@ -26,6 +27,11 @@
   
   <dependencyManagement>
 	<dependencies>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-build</artifactId>
+        <version>${google-cloud-build.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-run</artifactId>
@@ -54,6 +60,10 @@
       <artifactId>jackson-dataformat-yaml</artifactId>
     </dependency>
     
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-build</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-run</artifactId>
