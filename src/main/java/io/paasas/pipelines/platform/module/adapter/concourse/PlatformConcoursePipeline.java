@@ -142,9 +142,17 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 				"TERRAFORM_EXTENSIONS_DIRECTORY",
 				targetConfig.getTerraformExtensionsDirectory()));
 
+		var deploymentUpdateParams = new TreeMap<>(new TreeMap<>(Map.of(
+				"MANIFEST_PATH", targetConfig.getDeploymentManifestPath(),
+				"TARGET", targetConfig.getName())));
+
 		if (gcpConfiguration.getImpersonateServiceAccount() != null
 				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
 			terraformPlanParams.put(
+					"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
+					gcpConfiguration.getImpersonateServiceAccount());
+
+			deploymentUpdateParams.put(
 					"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
 					gcpConfiguration.getImpersonateServiceAccount());
 		}
@@ -193,11 +201,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										.task("update-deployment-pipeline")
 										.file("ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml")
 										.inputMapping(Map.of("src", targetConfig.getName() + "-deployment-src"))
-										.params(new TreeMap<>(Map.of(
-												"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
-												gcpConfiguration.getImpersonateServiceAccount(),
-												"MANIFEST_PATH", targetConfig.getDeploymentManifestPath(),
-												"TARGET", targetConfig.getName())))
+										.params(deploymentUpdateParams)
 										.build()))
 						.onSuccess(teamsSuccessNotification())
 						.onFailure(teamsFailureNotification())
