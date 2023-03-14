@@ -22,7 +22,7 @@ fi
 
 java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
     generate-pipeline \
-    platforms-src/$PIPELINES_CONCOURSE_PLATFORMPATHPREFIX \
+    src/$PIPELINES_CONCOURSE_PLATFORMPATHPREFIX \
     pipelines/pipelines.yaml && \
   echo "Generated pipeline:"
   echo ""
