@@ -154,6 +154,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-apply.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -180,6 +181,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-destroy.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -212,6 +214,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -244,15 +247,10 @@ public abstract class ExpectedPlatformsPipeline {
 			    - get: project1-backend-dev-deployment-src
 			      trigger: true
 			    - get: ci-src
-			  - task: cloudrun-deploy
-			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
-			    params:
-			      MANIFEST_PATH: teams/project1/backend/dev.yaml
-			    input_mapping:
-			      src: project1-backend-dev-deployment-src
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
 			    input_mapping:
@@ -278,6 +276,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-apply.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -304,6 +303,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-destroy.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -336,6 +336,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -368,15 +369,10 @@ public abstract class ExpectedPlatformsPipeline {
 			    - get: project1-backend-prod-deployment-src
 			      trigger: true
 			    - get: ci-src
-			  - task: cloudrun-deploy
-			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
-			    params:
-			      MANIFEST_PATH: teams/project1/backend/prod.yaml
-			    input_mapping:
-			      src: project1-backend-prod-deployment-src
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
 			    input_mapping:
@@ -402,6 +398,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-apply.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -428,6 +425,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-destroy.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -460,6 +458,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -492,15 +491,10 @@ public abstract class ExpectedPlatformsPipeline {
 			    - get: project1-frontend-dev-deployment-src
 			      trigger: true
 			    - get: ci-src
-			  - task: cloudrun-deploy
-			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
-			    params:
-			      MANIFEST_PATH: teams/project1/frontend/dev.yaml
-			    input_mapping:
-			      src: project1-frontend-dev-deployment-src
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
 			    input_mapping:
@@ -526,6 +520,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-apply.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -552,6 +547,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-destroy
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-destroy.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -584,6 +580,7 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: terraform-plan
 			    file: ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
@@ -616,15 +613,10 @@ public abstract class ExpectedPlatformsPipeline {
 			    - get: project1-frontend-prod-deployment-src
 			      trigger: true
 			    - get: ci-src
-			  - task: cloudrun-deploy
-			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
-			    params:
-			      MANIFEST_PATH: teams/project1/frontend/prod.yaml
-			    input_mapping:
-			      src: project1-frontend-prod-deployment-src
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
 			    input_mapping:

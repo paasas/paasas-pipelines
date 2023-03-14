@@ -67,7 +67,7 @@ public class PaasasPipelinesConfig {
 			Deployer deployer,
 			GcpConfiguration gcpConfiguration) {
 		var deploymentPipeline = new DeploymentConcoursePipeline(concourseConfiguration, gcpConfiguration);
-		var platformPipeline = new PlatformConcoursePipeline(concourseConfiguration);
+		var platformPipeline = new PlatformConcoursePipeline(concourseConfiguration, gcpConfiguration);
 
 		return new CommandProcessor(
 				output,

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import io.paasas.pipelines.ConcourseConfiguration;
+import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.Group;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.Job;
@@ -45,8 +46,14 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 	private static final String TERRAFORM_LTS_SRC_RESOURCE = "terraform-lts-src";
 	private static final String TERRAFORM_NEXT_SRC_RESOURCE = "terraform-next-src";
 
-	public PlatformConcoursePipeline(ConcourseConfiguration configuration) {
+	GcpConfiguration gcpConfiguration;
+
+	public PlatformConcoursePipeline(
+			ConcourseConfiguration configuration,
+			GcpConfiguration gcpConfiguration) {
 		super(configuration);
+
+		this.gcpConfiguration = gcpConfiguration;
 	}
 
 	List<Resource<?>> commonResources() {
@@ -149,6 +156,9 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										.file("ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml")
 										.inputMapping(Map.of("src", targetConfig.getName() + "-platform-pr"))
 										.params(new TreeMap<>(Map.of(
+												"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
+												gcpConfiguration.getImpersonateServiceAccount(),
+
 												"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
 												"TARGET", targetConfig.getName(),
 												"TERRAFORM_BACKEND_GCS_BUCKET",
@@ -174,17 +184,12 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										getWithTrigger(targetConfig.getName() + "-deployment-src"),
 										get(CI_SRC_RESOURCE))),
 								Task.builder()
-										.task("cloudrun-deploy")
-										.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
-										.inputMapping(Map.of("src", targetConfig.getName() + "-deployment-src"))
-										.params(new TreeMap<>(Map.of(
-												"MANIFEST_PATH", targetConfig.getDeploymentManifestPath())))
-										.build(),
-								Task.builder()
 										.task("update-deployment-pipeline")
 										.file("ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml")
 										.inputMapping(Map.of("src", targetConfig.getName() + "-deployment-src"))
 										.params(new TreeMap<>(Map.of(
+												"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
+												gcpConfiguration.getImpersonateServiceAccount(),
 												"MANIFEST_PATH", targetConfig.getDeploymentManifestPath(),
 												"TARGET", targetConfig.getName())))
 										.build()))
@@ -281,6 +286,9 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 								.inputMapping(Map.of(
 										"src", targetConfig.getName() + "-platform-src"))
 								.params(new TreeMap<>(Map.of(
+										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
+										gcpConfiguration.getImpersonateServiceAccount(),
+
 										"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
 										"TARGET", targetConfig.getName(),
 										"TERRAFORM_BACKEND_GCS_BUCKET",

@@ -86,7 +86,7 @@ public class GeneratePlatformConcoursePipelineTest extends ConcoursePipelineTest
 	private GeneratePlatformConcoursePipeline command() {
 		var configuration = configuration();
 
-		var platformPipeline = new PlatformConcoursePipeline(configuration);
+		var platformPipeline = new PlatformConcoursePipeline(configuration, gcpConfiguration());
 
 		return new GeneratePlatformConcoursePipeline(ERROR_OUTPUT, configuration, platformPipeline);
 	}
