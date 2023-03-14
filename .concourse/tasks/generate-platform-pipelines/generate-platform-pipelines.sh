@@ -21,7 +21,7 @@ if [ -z "${PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET}" ]; then
 fi
 
 java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
-    generate-pipeline \
+    generate-platform-pipeline \
     src/$PIPELINES_CONCOURSE_PLATFORMPATHPREFIX \
     pipelines/pipelines.yaml && \
   echo "Generated pipeline:"
