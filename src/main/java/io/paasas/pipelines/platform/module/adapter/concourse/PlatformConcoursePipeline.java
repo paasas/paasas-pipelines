@@ -134,6 +134,21 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 	}
 
 	private Stream<Job> jobs(TargetConfig targetConfig) {
+		var terraformPlanParams = new TreeMap<>(Map.of(
+				"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
+				"TARGET", targetConfig.getName(),
+				"TERRAFORM_BACKEND_GCS_BUCKET",
+				configuration.getTerraformBackendGcsBucket(),
+				"TERRAFORM_EXTENSIONS_DIRECTORY",
+				targetConfig.getTerraformExtensionsDirectory()));
+
+		if (gcpConfiguration.getImpersonateServiceAccount() != null
+				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
+			terraformPlanParams.put(
+					"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
+					gcpConfiguration.getImpersonateServiceAccount());
+		}
+
 		return Stream.of(
 				terraformJob("apply", targetConfig, true),
 				terraformJob("destroy", targetConfig, false),
@@ -155,16 +170,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										.task("terraform-plan")
 										.file("ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml")
 										.inputMapping(Map.of("src", targetConfig.getName() + "-platform-pr"))
-										.params(new TreeMap<>(Map.of(
-												"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
-												gcpConfiguration.getImpersonateServiceAccount(),
-
-												"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
-												"TARGET", targetConfig.getName(),
-												"TERRAFORM_BACKEND_GCS_BUCKET",
-												configuration.getTerraformBackendGcsBucket(),
-												"TERRAFORM_EXTENSIONS_DIRECTORY",
-												targetConfig.getTerraformExtensionsDirectory())))
+										.params(terraformPlanParams)
 										.build(),
 								updatePr(
 										targetConfig.getName() + "-platform-pr",
@@ -270,6 +276,20 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 	}
 
 	private Job terraformJob(String type, TargetConfig targetConfig, Boolean trigger) {
+		var terraformParams = new TreeMap<>(Map.of(
+				"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
+				"TARGET", targetConfig.getName(),
+				"TERRAFORM_BACKEND_GCS_BUCKET",
+				configuration.getTerraformBackendGcsBucket(),
+				"TERRAFORM_EXTENSIONS_DIRECTORY",
+				targetConfig.getTerraformExtensionsDirectory()));
+
+		if (gcpConfiguration.getImpersonateServiceAccount() != null
+				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
+			terraformParams.put("GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
+					gcpConfiguration.getImpersonateServiceAccount());
+		}
+
 		return Job.builder()
 				.name(targetConfig.getName() + "-terraform-" + type)
 				.plan(List.of(
@@ -285,16 +305,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 								.file("ci-src/.concourse/tasks/terraform-platform/terraform-platform-" + type + ".yaml")
 								.inputMapping(Map.of(
 										"src", targetConfig.getName() + "-platform-src"))
-								.params(new TreeMap<>(Map.of(
-										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
-										gcpConfiguration.getImpersonateServiceAccount(),
-
-										"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
-										"TARGET", targetConfig.getName(),
-										"TERRAFORM_BACKEND_GCS_BUCKET",
-										configuration.getTerraformBackendGcsBucket(),
-										"TERRAFORM_EXTENSIONS_DIRECTORY",
-										targetConfig.getTerraformExtensionsDirectory())))
+								.params(terraformParams)
 								.build()))
 				.onSuccess(teamsSuccessNotification())
 				.onFailure(teamsFailureNotification())
