@@ -8,11 +8,11 @@ image_resource:
     tag: latest
 
 inputs:
-- name: platforms-src
+- name: src
 - name: ci-src
 
 outputs:
-- name: platforms-src
+- name: src
 
 params:
   PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: 

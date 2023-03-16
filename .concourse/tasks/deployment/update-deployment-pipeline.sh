@@ -43,7 +43,7 @@ fi
 java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
     generate-deployment-pipeline \
     $TARGET \
-    platforms-src/$PIPELINES_CONCOURSE_DEPLOYMENT_MANIFEST_FILE \
+    src/$PIPELINES_CONCOURSE_DEPLOYMENT_MANIFEST_FILE \
     pipelines/pipelines.yaml && \
   echo "Generated pipeline:"
   echo ""
