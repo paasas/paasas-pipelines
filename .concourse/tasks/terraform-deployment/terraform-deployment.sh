@@ -82,11 +82,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-yq -o=json -I=0 '.terraformVars' ${WORKDIR}/src/${PLATFORM_MANIFEST_PATH} > ${WORKDIR}/tf/tfvars.json && \
-  set -o pipefail && \
-  terraform ${TERRAFORM_COMMAND} \
-    ${TERRAFORM_FLAGS} \
-    -var-file=${WORKDIR}/tf/tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log
+terraform ${TERRAFORM_COMMAND} \
+  ${TERRAFORM_FLAGS} \
+  -var-file=${WORKDIR}/tf/tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log
 
 ERROR=$?
 
