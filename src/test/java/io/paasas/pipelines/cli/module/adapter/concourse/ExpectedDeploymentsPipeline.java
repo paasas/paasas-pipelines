@@ -48,7 +48,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    - get: bigquery-dataset-1-src
 			      trigger: true
 			  - task: terraform-apply
-			    file: ci-src/tasks/terraform-deployment/terraform-deployment-apply.yaml
+			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
 			      IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
@@ -74,7 +74,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    - get: bigquery-dataset-2-src
 			      trigger: true
 			  - task: terraform-apply
-			    file: ci-src/tasks/terraform-deployment/terraform-deployment-apply.yaml
+			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
 			      IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
