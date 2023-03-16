@@ -10,8 +10,6 @@ image_resource:
 inputs:
 - name: ci-src
 - name: src
-- name: terraform-lts-src
-- name: terraform-next-src
 
 outputs:
 - name: terraform-state
