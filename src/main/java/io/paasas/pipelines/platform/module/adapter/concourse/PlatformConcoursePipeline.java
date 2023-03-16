@@ -27,6 +27,7 @@ import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Do;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Get;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.step.InParallel;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Put;
+import io.paasas.pipelines.platform.module.adapter.concourse.model.step.SetPipeline;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Step;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.step.Task;
 import lombok.AccessLevel;
@@ -219,6 +220,12 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										.file("ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml")
 										.inputMapping(Map.of("src", targetConfig.getName() + "-deployment-src"))
 										.params(deploymentUpdateParams)
+										.build(),
+								SetPipeline.builder()
+										.setPipeline(String.format("%s-deployment", targetConfig.getName()))
+										.file("pipelines/pipelines.yaml")
+										.vars(new TreeMap<>(Map.of(
+												"concourse-url", "((concourse-url))")))
 										.build()))
 						.onSuccess(teamsSuccessNotification())
 						.onFailure(teamsFailureNotification())

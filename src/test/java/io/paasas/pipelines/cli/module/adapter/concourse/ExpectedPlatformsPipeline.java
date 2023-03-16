@@ -269,6 +269,10 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-backend-dev
 			    input_mapping:
 			      src: project1-backend-dev-deployment-src
+			  - set_pipeline: project1-backend-dev-deployment
+			    file: pipelines/pipelines.yaml
+			    vars:
+			      concourse-url: ((concourse-url))
 			  on_success:
 			    put: teams
 			    params:
@@ -405,6 +409,10 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-backend-prod
 			    input_mapping:
 			      src: project1-backend-prod-deployment-src
+			  - set_pipeline: project1-backend-prod-deployment
+			    file: pipelines/pipelines.yaml
+			    vars:
+			      concourse-url: ((concourse-url))
 			  on_success:
 			    put: teams
 			    params:
@@ -541,6 +549,10 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-frontend-dev
 			    input_mapping:
 			      src: project1-frontend-dev-deployment-src
+			  - set_pipeline: project1-frontend-dev-deployment
+			    file: pipelines/pipelines.yaml
+			    vars:
+			      concourse-url: ((concourse-url))
 			  on_success:
 			    put: teams
 			    params:
@@ -677,6 +689,10 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-frontend-prod
 			    input_mapping:
 			      src: project1-frontend-prod-deployment-src
+			  - set_pipeline: project1-frontend-prod-deployment
+			    file: pipelines/pipelines.yaml
+			    vars:
+			      concourse-url: ((concourse-url))
 			  on_success:
 			    put: teams
 			    params:
