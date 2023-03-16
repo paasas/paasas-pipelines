@@ -59,9 +59,7 @@ public abstract class ConcoursePipelineTest {
 	GcpConfiguration gcpConfiguration() {
 		return new GcpConfiguration(
 				null,
-				"service-account@yo.com",
-				"super-project",
-				"super-region");
+				"service-account@yo.com");
 	}
 
 	abstract String filesToCopyAntPattern();

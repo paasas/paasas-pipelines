@@ -144,11 +144,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				"gcp impersonate service account is not configured");
 
 		assertNotBlank(
-				gcpConfiguration.getProjectId(),
+				manifest.getProject(),
 				"gcp project is not configured");
 
 		assertNotBlank(
-				gcpConfiguration.getRegion(),
+				manifest.getRegion(),
 				"gcp region is not configured");
 
 		return writePipeline(

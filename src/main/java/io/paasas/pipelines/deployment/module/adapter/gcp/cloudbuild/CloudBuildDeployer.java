@@ -28,12 +28,12 @@ public class CloudBuildDeployer {
 	Consumer<String> logger;
 
 	public void synchronizeProjectBuilds(DeploymentManifest manifest) {
-		if (configuration.getProjectId() == null || configuration.getProjectId().isBlank()) {
+		if (manifest.getProject() == null || manifest.getProject().isBlank()) {
 			throw new IllegalStateException("google project id is undefined");
 		}
 
 		try (CloudBuildClient client = client()) {
-			var existingBuildTriggers = listBuildTriggers(client);
+			var existingBuildTriggers = listBuildTriggers(client, manifest.getProject());
 
 			if (manifest.getBigQuery() != null && !manifest.getBigQuery().isEmpty()) {
 				synchronizeBigQueryBuildTriggers(
@@ -68,7 +68,7 @@ public class CloudBuildDeployer {
 						.noneMatch(buildTrigger -> buildTrigger.getName().equals(existingBuildTrigger.getName())))
 				.toList();
 
-		deleteBigQueryBuildTriggers(buildTriggersToDelete, client);
+		deleteBigQueryBuildTriggers(buildTriggersToDelete, client, manifest.getProject());
 
 		var buildTriggersToUpdate = buildTriggers.stream()
 				.filter(buildTrigger -> existingBigQueryBuildTriggers.stream().anyMatch(
@@ -78,7 +78,7 @@ public class CloudBuildDeployer {
 						.build())
 				.toList();
 
-		updateBuildTriggers(buildTriggersToUpdate, client);
+		updateBuildTriggers(buildTriggersToUpdate, client, manifest.getProject());
 
 		var buildTriggersToCreate = buildTriggers.stream()
 				.filter(buildTrigger -> existingBuildTriggers.stream()
@@ -86,15 +86,18 @@ public class CloudBuildDeployer {
 								existingBuildTrigger -> existingBuildTrigger.getName().equals(buildTrigger.getName())))
 				.toList();
 
-		createBuildTriggers(buildTriggersToCreate, client);
+		createBuildTriggers(buildTriggersToCreate, client, manifest.getProject());
 	}
 
-	void createBuildTriggers(List<BuildTrigger> buildTriggers, CloudBuildClient client) {
+	void createBuildTriggers(
+			List<BuildTrigger> buildTriggers,
+			CloudBuildClient client,
+			String projectId) {
 		buildTriggers.stream()
 				.peek(buildTrigger -> logger.accept(String.format(
 						"Creating cloud build trigger %s",
 						buildTrigger.getName())))
-				.forEach(buildTrigger -> client.createBuildTrigger(configuration.getProjectId(), buildTrigger));
+				.forEach(buildTrigger -> client.createBuildTrigger(projectId, buildTrigger));
 	}
 
 	CloudBuildClient client() throws IOException {
@@ -103,33 +106,33 @@ public class CloudBuildDeployer {
 				.build());
 	}
 
-	void updateBuildTriggers(List<BuildTrigger> buildTriggers, CloudBuildClient client) {
+	void updateBuildTriggers(List<BuildTrigger> buildTriggers, CloudBuildClient client, String projectId) {
 		buildTriggers.stream()
 				.peek(buildTrigger -> logger.accept(String.format(
 						"Updating cloud build trigger %s",
 						buildTrigger.getName())))
 				.forEach(buildTrigger -> client.updateBuildTrigger(
-						configuration.getProjectId(),
+						projectId,
 						buildTrigger.getId(),
 						buildTrigger));
 	}
 
-	void deleteBigQueryBuildTriggers(List<BuildTrigger> buildTriggers, CloudBuildClient client) {
+	void deleteBigQueryBuildTriggers(List<BuildTrigger> buildTriggers, CloudBuildClient client, String projectId) {
 		buildTriggers.stream()
 				.peek(buildTrigger -> logger.accept(String.format(
 						"Deleting cloud build trigger %s (id=%s)",
 						buildTrigger.getName(),
 						buildTrigger.getId())))
-				.forEach(buildTrigger -> client.deleteBuildTrigger(configuration.getProjectId(), buildTrigger.getId()));
+				.forEach(buildTrigger -> client.deleteBuildTrigger(projectId, buildTrigger.getId()));
 	}
 
-	List<BuildTrigger> listBuildTriggers(CloudBuildClient client) {
+	List<BuildTrigger> listBuildTriggers(CloudBuildClient client, String projectId) {
 		ListBuildTriggersPagedResponse response = null;
 		ArrayList<BuildTrigger> buildTriggers = new ArrayList<>();
 
 		do {
 			var requestBuilder = ListBuildTriggersRequest.newBuilder()
-					.setProjectId(configuration.getProjectId());
+					.setProjectId(projectId);
 
 			if (response != null) {
 				requestBuilder.setPageToken(response.getNextPageToken());

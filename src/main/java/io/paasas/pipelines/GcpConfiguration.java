@@ -18,6 +18,4 @@ import lombok.experimental.FieldDefaults;
 public class GcpConfiguration {
 	String credentialsJson;
 	String impersonateServiceAccount;
-	String projectId;
-	String region;
 }
