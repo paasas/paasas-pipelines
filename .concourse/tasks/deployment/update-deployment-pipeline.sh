@@ -1,7 +1,7 @@
 #!/bin/sh
 
-if [ -z "${PIPELINES_CONCOURSE_DEPLOYMENT_MANIFEST_FILE}" ]; then
-  echo "env variable PIPELINES_CONCOURSE_DEPLOYMENT_MANIFEST_FILE is undefined"
+if [ -z "${MANIFEST_FILE}" ]; then
+  echo "env variable MANIFEST_PATH is undefined"
   exit 1
 fi
 
@@ -43,7 +43,7 @@ fi
 java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
     generate-deployment-pipeline \
     $TARGET \
-    src/$PIPELINES_CONCOURSE_DEPLOYMENT_MANIFEST_FILE \
+    src/${MANIFEST_PATH} \
     pipelines/pipelines.yaml && \
   echo "Generated pipeline:"
   echo ""

@@ -2,6 +2,7 @@ package io.paasas.pipelines.platform.module.adapter.concourse;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
@@ -137,12 +138,28 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 		var terraformPlanParams = new TreeMap<>(Map.of(
 				"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
 				"TARGET", targetConfig.getName(),
-				"TERRAFORM_BACKEND_DIRECTORY", configuration.getTerraformBackendPrefix(),
+				"TERRAFORM_BACKEND_DIRECTORY", configuration.getPlatformTerraformBackendPrefix(),
 				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
+				"TERRAFORM_BACKEND_PREFIX", configuration.getPlatformTerraformBackendPrefix(),
 				"TERRAFORM_EXTENSIONS_DIRECTORY", targetConfig.getTerraformExtensionsDirectory()));
 
 		var deploymentUpdateParams = new TreeMap<>(new TreeMap<>(Map.of(
 				"MANIFEST_PATH", targetConfig.getDeploymentManifestPath(),
+				"PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX", configuration.getDeploymentPathPrefix(),
+				"PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH", configuration.getDeploymentSrcBranch(),
+				"PIPELINES_CONCOURSE_DEPLOYMENTSRCURI", configuration.getDeploymentSrcUri(),
+				"PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX",
+				configuration.getDeploymentTerraformBackendPrefix(),
+				"PIPELINES_CONCOURSE_GITHUBREPOSITORY", configuration.getGithubRepository(),
+				"PIPELINES_CONCOURSE_PLATFORMPATHPREFIX", configuration.getPlatformPathPrefix(),
+				"PIPELINES_CONCOURSE_PLATFORMSRCBRANCH", configuration.getPlatformSrcBranch())));
+
+		deploymentUpdateParams.putAll(new TreeMap<>(Map.of(
+				"PIPELINES_CONCOURSE_PLATFORMSRCURI", configuration.getPlatformSrcUri(),
+				"PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX", configuration.getPlatformTerraformBackendPrefix(),
+				"PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET", configuration.getTerraformBackendGcsBucket(),
+				"PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH", configuration.getTerraformSrcBranch(),
+				"PIPELINES_CONCOURSE_TERRAFORMSRCURI", configuration.getTerraformSrcUri(),
 				"TARGET", targetConfig.getName())));
 
 		if (gcpConfiguration.getImpersonateServiceAccount() != null
@@ -151,8 +168,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 					"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
 					gcpConfiguration.getImpersonateServiceAccount());
 
-			deploymentUpdateParams.put(
-					"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT",
+			deploymentUpdateParams.put("PIPELINES_GCP_IMPERSONATESERVICEACCOUNT",
 					gcpConfiguration.getImpersonateServiceAccount());
 		}
 
@@ -185,9 +201,11 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										"terraform-out/terraform.md")))
 						.onSuccess(teamsSuccessNotification())
 						.onFailure(Do.builder()
-								.steps(List.of(
-										updatePr(targetConfig.getName() + "-platform-pr", "failure"),
-										teamsFailureNotification()))
+								.steps(Stream
+										.concat(
+												Stream.of(updatePr(targetConfig.getName() + "-platform-pr", "failure")),
+												Optional.ofNullable(teamsFailureNotification()).stream())
+										.toList())
 								.build())
 						.build(),
 				Job.builder()

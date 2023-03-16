@@ -32,6 +32,9 @@ public class ConcourseConfiguration {
 
 	@NotEmpty
 	String deploymentSrcUri;
+	
+	@NotNull
+	String deploymentTerraformBackendPrefix;
 
 	@NotNull
 	String platformPathPrefix;
@@ -41,6 +44,9 @@ public class ConcourseConfiguration {
 
 	@NotEmpty
 	String platformSrcUri;
+	
+	@NotNull
+	String platformTerraformBackendPrefix;
 
 	String slackChannel;
 
@@ -50,9 +56,6 @@ public class ConcourseConfiguration {
 
 	@NotEmpty
 	String terraformBackendGcsBucket;
-
-	@NotNull
-	String terraformBackendPrefix;
 
 	@NotEmpty
 	String terraformSrcBranch;

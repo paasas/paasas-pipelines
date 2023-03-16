@@ -36,22 +36,24 @@ public abstract class ConcoursePipelineTest {
 	static StringBufferOutput ERROR_OUTPUT;
 
 	ConcourseConfiguration configuration() {
-		return new ConcourseConfiguration(
-				"git@github.com:paasas/paasas-pipelines.git",
-				"daniellavoie/infra-as-code-demo",
-				"teams/",
-				"https://github.com/daniellavoie/deployment-as-code-demo",
-				"main",
-				"teams/",
-				"v2",
-				"https://github.com/daniellavoie/infra-as-code-demo",
-				null,
-				null,
-				"https://toto-sti",
-				"terraform-states",
-				"terraform/platforms/",
-				"main",
-				"https://github.com/daniellavoie/infra-as-code-demo");
+		return ConcourseConfiguration.builder()
+				.ciSrcUri("git@github.com:paasas/paasas-pipelines.git")
+				.deploymentPathPrefix("teams/")
+				.deploymentSrcBranch("main")
+				.deploymentSrcUri("https://github.com/daniellavoie/deployment-as-code-demo")
+				.deploymentTerraformBackendPrefix("terraform/deployments/")
+				.githubRepository("daniellavoie/infra-as-code-demo")
+				.platformPathPrefix("teams/")
+				.platformSrcBranch("v2")
+				.platformSrcUri("https://github.com/daniellavoie/infra-as-code-demo")
+				.platformTerraformBackendPrefix("terraform/platforms/")
+				.slackChannel(null)
+				.slackWebhookUrl(null)
+				.teamsWebhookUrl("https://toto-sti")
+				.terraformBackendGcsBucket("terraform-states")
+				.terraformSrcBranch("main")
+				.terraformSrcUri("https://github.com/daniellavoie/infra-as-code-demo")
+				.build();
 	}
 
 	GcpConfiguration gcpConfiguration() {

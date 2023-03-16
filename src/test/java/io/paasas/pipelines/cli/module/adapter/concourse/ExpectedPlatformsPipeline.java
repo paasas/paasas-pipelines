@@ -62,9 +62,9 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-backend-dev-deployment-src
 			  type: git
 			  source:
-			    uri: main
+			    uri: https://github.com/daniellavoie/deployment-as-code-demo
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    branch: main
 			    paths:
 			    - teams/project1/backend/dev.yaml
 			- name: project1-backend-prod-platform-pr
@@ -87,9 +87,9 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-backend-prod-deployment-src
 			  type: git
 			  source:
-			    uri: main
+			    uri: https://github.com/daniellavoie/deployment-as-code-demo
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    branch: main
 			    paths:
 			    - teams/project1/backend/prod.yaml
 			- name: project1-frontend-dev-platform-pr
@@ -112,9 +112,9 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-frontend-dev-deployment-src
 			  type: git
 			  source:
-			    uri: main
+			    uri: https://github.com/daniellavoie/deployment-as-code-demo
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    branch: main
 			    paths:
 			    - teams/project1/frontend/dev.yaml
 			- name: project1-frontend-prod-platform-pr
@@ -137,9 +137,9 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-frontend-prod-deployment-src
 			  type: git
 			  source:
-			    uri: main
+			    uri: https://github.com/daniellavoie/deployment-as-code-demo
 			    private_key: ((git.ssh-private-key))
-			    branch: https://github.com/daniellavoie/deployment-as-code-demo
+			    branch: main
 			    paths:
 			    - teams/project1/frontend/prod.yaml
 			jobs:
@@ -219,6 +219,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_BACKEND_PREFIX: terraform/platforms/
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/dev-tf
 			    input_mapping:
 			      src: project1-backend-dev-platform-pr
@@ -251,8 +252,20 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/backend/dev.yaml
+			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: https://github.com/daniellavoie/deployment-as-code-demo
+			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
+			      PIPELINES_CONCOURSE_PLATFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX: terraform/platforms/
+			      PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET: terraform-states
+			      PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH: main
+			      PIPELINES_CONCOURSE_TERRAFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: service-account@yo.com
 			      TARGET: project1-backend-dev
 			    input_mapping:
 			      src: project1-backend-dev-deployment-src
@@ -342,6 +355,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-backend-prod
 			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_BACKEND_PREFIX: terraform/platforms/
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/prod-tf
 			    input_mapping:
 			      src: project1-backend-prod-platform-pr
@@ -374,8 +388,20 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/backend/prod.yaml
+			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: https://github.com/daniellavoie/deployment-as-code-demo
+			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
+			      PIPELINES_CONCOURSE_PLATFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX: terraform/platforms/
+			      PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET: terraform-states
+			      PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH: main
+			      PIPELINES_CONCOURSE_TERRAFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: service-account@yo.com
 			      TARGET: project1-backend-prod
 			    input_mapping:
 			      src: project1-backend-prod-deployment-src
@@ -465,6 +491,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-frontend-dev
 			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_BACKEND_PREFIX: terraform/platforms/
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/dev-tf
 			    input_mapping:
 			      src: project1-frontend-dev-platform-pr
@@ -497,8 +524,20 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/frontend/dev.yaml
+			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: https://github.com/daniellavoie/deployment-as-code-demo
+			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
+			      PIPELINES_CONCOURSE_PLATFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX: terraform/platforms/
+			      PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET: terraform-states
+			      PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH: main
+			      PIPELINES_CONCOURSE_TERRAFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: service-account@yo.com
 			      TARGET: project1-frontend-dev
 			    input_mapping:
 			      src: project1-frontend-dev-deployment-src
@@ -588,6 +627,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      TARGET: project1-frontend-prod
 			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_BACKEND_PREFIX: terraform/platforms/
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/prod-tf
 			    input_mapping:
 			      src: project1-frontend-prod-platform-pr
@@ -620,8 +660,20 @@ public abstract class ExpectedPlatformsPipeline {
 			  - task: update-deployment-pipeline
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      MANIFEST_PATH: teams/project1/frontend/prod.yaml
+			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
+			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: https://github.com/daniellavoie/deployment-as-code-demo
+			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
+			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
+			      PIPELINES_CONCOURSE_PLATFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX: terraform/platforms/
+			      PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET: terraform-states
+			      PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH: main
+			      PIPELINES_CONCOURSE_TERRAFORMSRCURI: https://github.com/daniellavoie/infra-as-code-demo
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: service-account@yo.com
 			      TARGET: project1-frontend-prod
 			    input_mapping:
 			      src: project1-frontend-prod-deployment-src
