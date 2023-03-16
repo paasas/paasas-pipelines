@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ -z "${MANIFEST_FILE}" ]; then
+if [ -z "${MANIFEST_PATH}" ]; then
   echo "env variable MANIFEST_PATH is undefined"
   exit 1
 fi
