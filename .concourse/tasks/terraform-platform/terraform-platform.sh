@@ -76,7 +76,7 @@ cd tf && \
   ln -fs ${WORKDIR}/.terraform .terraform && \
   terraform init \
     -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
-    -backend-config="prefix=${TARGET}"
+    -backend-config="prefix=${TERRAFORM_BACKEND_PREFIX}${TARGET}"
   
 if [ $? -ne 0 ]; then
   exit 1

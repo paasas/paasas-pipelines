@@ -51,6 +51,9 @@ public class ConcourseConfiguration {
 	@NotEmpty
 	String terraformBackendGcsBucket;
 
+	@NotNull
+	String terraformBackendPrefix;
+
 	@NotEmpty
 	String terraformSrcBranch;
 

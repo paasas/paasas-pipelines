@@ -25,6 +25,7 @@ params:
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
+  TERRAFORM_BACKEND_PREFIX: 
   TERRAFORM_COMMAND: apply
   TERRAFORM_EXTENSIONS_DIRECTORY: 
   TERRAFORM_FLAGS: -input=false -no-color -auto-approve

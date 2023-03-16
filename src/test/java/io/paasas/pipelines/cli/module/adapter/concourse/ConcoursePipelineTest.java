@@ -49,6 +49,7 @@ public abstract class ConcoursePipelineTest {
 				null,
 				"https://toto-sti",
 				"terraform-states",
+				"terraform/platforms/",
 				"main",
 				"https://github.com/daniellavoie/infra-as-code-demo");
 	}

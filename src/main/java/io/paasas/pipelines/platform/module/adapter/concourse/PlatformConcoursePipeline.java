@@ -137,10 +137,9 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 		var terraformPlanParams = new TreeMap<>(Map.of(
 				"PLATFORM_MANIFEST_PATH", targetConfig.getPlatformManifestPath(),
 				"TARGET", targetConfig.getName(),
-				"TERRAFORM_BACKEND_GCS_BUCKET",
-				configuration.getTerraformBackendGcsBucket(),
-				"TERRAFORM_EXTENSIONS_DIRECTORY",
-				targetConfig.getTerraformExtensionsDirectory()));
+				"TERRAFORM_BACKEND_DIRECTORY", configuration.getTerraformBackendPrefix(),
+				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
+				"TERRAFORM_EXTENSIONS_DIRECTORY", targetConfig.getTerraformExtensionsDirectory()));
 
 		var deploymentUpdateParams = new TreeMap<>(new TreeMap<>(Map.of(
 				"MANIFEST_PATH", targetConfig.getDeploymentManifestPath(),

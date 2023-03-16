@@ -217,6 +217,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/dev.yaml
 			      TARGET: project1-backend-dev
+			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/dev-tf
 			    input_mapping:
@@ -339,6 +340,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/backend/prod.yaml
 			      TARGET: project1-backend-prod
+			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/backend/prod-tf
 			    input_mapping:
@@ -461,6 +463,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/dev.yaml
 			      TARGET: project1-frontend-dev
+			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/dev-tf
 			    input_mapping:
@@ -583,6 +586,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      PLATFORM_MANIFEST_PATH: teams/project1/frontend/prod.yaml
 			      TARGET: project1-frontend-prod
+			      TERRAFORM_BACKEND_DIRECTORY: terraform/platforms/
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_EXTENSIONS_DIRECTORY: teams/project1/frontend/prod-tf
 			    input_mapping:
