@@ -128,7 +128,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								getWithTrigger(src))),
 						Task.builder()
 								.task("terraform-apply")
-								.file("ci-src/tasks/terraform-deployment/terraform-deployment-apply.yaml")
+								.file("ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml")
 								.inputMapping(Map.of(
 										"src", src))
 								.params(terraformParams)
