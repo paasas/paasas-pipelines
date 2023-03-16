@@ -22,7 +22,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  type: teams-notification
 			  source:
 			    url: ((teams.webhookUrl))
-			- name: dataset-1-src
+			- name: bigquery-dataset-1-src
 			  type: git
 			  source:
 			    uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit
@@ -31,7 +31,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    paths:
 			    - dataset-1
 			    tag_filter: v0.10.0
-			- name: dataset-2-src
+			- name: bigquery-dataset-2-src
 			  type: git
 			  source:
 			    uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit

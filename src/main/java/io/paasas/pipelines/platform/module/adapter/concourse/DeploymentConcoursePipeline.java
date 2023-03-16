@@ -194,7 +194,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 
 		return Resource.builder()
-				.name(watcher.getDataset() + "-src")
+				.name(String.format("bigquery-%s-src", watcher.getDataset()))
 				.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
 				.source(GitSource.builder()
 						.branch(watcher.getGit().getBranch())
