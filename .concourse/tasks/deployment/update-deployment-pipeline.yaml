@@ -29,4 +29,4 @@ params:
   TARGET: 
 
 run:
-  path: ci-src/.concourse/tasks/generate-platform-pipelines/generate-platform-pipelines.sh
+  path: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.sh
