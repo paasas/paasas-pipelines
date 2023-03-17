@@ -105,16 +105,25 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	private List<Job> jobs(DeploymentManifest manifest, String target) {
+	private List<Job> jobs(
+			DeploymentManifest manifest,
+			String target,
+			String deploymentManifestPath) {
 		return manifest.getTerraform() != null
 				? manifest.getTerraform().stream()
-						.map(watcher -> terraformApplyJob(watcher, manifest, target)).toList()
+						.map(watcher -> terraformApplyJob(watcher, manifest, target, deploymentManifestPath))
+						.toList()
 				: List.of();
 	}
 
-	Job terraformApplyJob(TerraformWatcher watcher, DeploymentManifest manifest, String target) {
+	Job terraformApplyJob(
+			TerraformWatcher watcher,
+			DeploymentManifest manifest,
+			String target,
+			String deploymentManifestPath) {
 		var terraformParams = new TreeMap<>(Map.of(
 				"GCP_PROJECT_ID", manifest.getProject(),
+				"MANIFEST_PATH", deploymentManifestPath,
 				"TARGET", target,
 				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
 				"TERRAFORM_DIRECTORY", watcher.getGit().getPath()));
@@ -166,7 +175,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										commonResources(),
 										deploymentResources(manifest, deploymentManifestPath))
 								.toList())
-						.jobs(jobs(manifest, target))
+						.jobs(jobs(manifest, target, deploymentManifestPath))
 						.build());
 	}
 

@@ -21,6 +21,7 @@ caches:
 params:
   GCP_PROJECT_ID: 
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
+  MANIFEST_PATH: 
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
   TERRAFORM_COMMAND: destroy 
