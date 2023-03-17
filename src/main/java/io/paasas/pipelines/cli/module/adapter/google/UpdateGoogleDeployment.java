@@ -12,7 +12,6 @@ import io.paasas.pipelines.cli.domain.io.Output;
 import io.paasas.pipelines.cli.domain.ports.backend.Deployer;
 import io.paasas.pipelines.cli.module.AbstractCommand;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
-import io.paasas.pipelines.deployment.module.adapter.gcp.cloudbuild.CloudBuildDeployer;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +21,6 @@ import lombok.experimental.FieldDefaults;
 public class UpdateGoogleDeployment extends AbstractCommand {
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory()).findAndRegisterModules();
 
-	CloudBuildDeployer cloudBuildDeployer;
 	Deployer cloudRunDeployer;
 	Output errorOutput;
 
@@ -50,7 +48,6 @@ public class UpdateGoogleDeployment extends AbstractCommand {
 
 		var deploymentManifest = loadDeploymentManifest(file);
 
-		cloudBuildDeployer.synchronizeProjectBuilds(deploymentManifest);
 		cloudRunDeployer.deploy(deploymentManifest);
 	}
 

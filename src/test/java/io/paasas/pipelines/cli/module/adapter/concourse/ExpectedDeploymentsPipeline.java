@@ -22,7 +22,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  type: teams-notification
 			  source:
 			    url: ((teams.webhookUrl))
-			- name: bigquery-dataset-1-src
+			- name: terraform-dataset-1-src
 			  type: git
 			  source:
 			    uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit
@@ -31,7 +31,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    paths:
 			    - dataset-1
 			    tag_filter: v0.10.0
-			- name: bigquery-dataset-2-src
+			- name: terraform-dataset-2-src
 			  type: git
 			  source:
 			    uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit
@@ -41,22 +41,22 @@ public abstract class ExpectedDeploymentsPipeline {
 			    - dataset-2
 			    tag_filter: v0.10.0
 			jobs:
-			- name: update-bigquery-dataset-1
+			- name: update-terraform-dataset-1
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
-			    - get: bigquery-dataset-1-src
+			    - get: terraform-dataset-1-src
 			      trigger: true
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
-			      IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_DIRECTORY: dataset-1
 			    input_mapping:
-			      src: bigquery-dataset-1-src
+			      src: terraform-dataset-1-src
 			  on_success:
 			    put: teams
 			    params:
@@ -67,22 +67,22 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			      text: Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: update-bigquery-dataset-2
+			- name: update-terraform-dataset-2
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
-			    - get: bigquery-dataset-2-src
+			    - get: terraform-dataset-2-src
 			      trigger: true
 			  - task: terraform-apply
 			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
-			      IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			      TARGET: project1-backend-dev
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_DIRECTORY: dataset-2
 			    input_mapping:
-			      src: bigquery-dataset-2-src
+			      src: terraform-dataset-2-src
 			  on_success:
 			    put: teams
 			    params:

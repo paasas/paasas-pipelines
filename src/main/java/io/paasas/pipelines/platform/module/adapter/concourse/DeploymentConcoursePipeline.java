@@ -14,8 +14,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.GcpConfiguration;
-import io.paasas.pipelines.deployment.domain.model.BigQueryWatcher;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
+import io.paasas.pipelines.deployment.domain.model.TerraformWatcher;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.Group;
 import io.paasas.pipelines.platform.module.adapter.concourse.model.Job;
@@ -104,13 +104,13 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	private List<Job> jobs(DeploymentManifest manifest, String target) {
-		return manifest.getBigQuery() != null
-				? manifest.getBigQuery().stream()
+		return manifest.getTerraform() != null
+				? manifest.getTerraform().stream()
 						.map(watcher -> updateBigQueryDatasetJob(watcher, manifest, target)).toList()
-				: null;
+				: List.of();
 	}
 
-	Job updateBigQueryDatasetJob(BigQueryWatcher watcher, DeploymentManifest manifest, String target) {
+	Job updateBigQueryDatasetJob(TerraformWatcher watcher, DeploymentManifest manifest, String target) {
 		var terraformParams = new TreeMap<>(Map.of(
 				"GCP_PROJECT_ID", manifest.getProject(),
 				"TARGET", target,
@@ -122,10 +122,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			terraformParams.put("GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", gcpConfiguration.getImpersonateServiceAccount());
 		}
 
-		var src = String.format("bigquery-%s-src", watcher.getDataset());
+		var src = String.format("terraform-%s-src", watcher.getName());
 
 		return Job.builder()
-				.name(String.format("update-bigquery-%s", watcher.getDataset()))
+				.name(String.format("update-terraform-%s", watcher.getName()))
 				.plan(List.of(
 						inParallel(List.of(
 								get("ci-src"),
@@ -172,11 +172,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest) {
-		return bigQueryResources(manifest);
+		return terraformResources(manifest);
 	}
 
-	Resource<?> bigQueryResource(BigQueryWatcher watcher, int index) {
-		if (watcher.getDataset() == null || watcher.getDataset().isBlank()) {
+	Resource<?> terraformResource(TerraformWatcher watcher, int index) {
+		if (watcher.getName() == null || watcher.getName().isBlank()) {
 			throw new IllegalArgumentException(String.format(
 					"dataset is defined for big query watcher at index %i",
 					index));
@@ -184,8 +184,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		if (watcher.getGit() == null) {
 			throw new IllegalArgumentException(String.format(
-					"git configuration for big query dataset %s is undefined",
-					watcher.getDataset()));
+					"git configuration for terraform group %s is undefined",
+					watcher.getName()));
 		}
 
 		assertArgument(watcher.getGit().getUri(), "git.uri", watcher);
@@ -194,11 +194,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				(watcher.getGit().getTag() == null || watcher.getGit().getTag().isBlank())) {
 			throw new IllegalArgumentException(String.format(
 					"branch or tag filter needs to be defined for big query dataset %s",
-					watcher.getDataset()));
+					watcher.getName()));
 		}
 
 		return Resource.builder()
-				.name(String.format("bigquery-%s-src", watcher.getDataset()))
+				.name(String.format("terraform-%s-src", watcher.getName()))
 				.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
 				.source(GitSource.builder()
 						.branch(watcher.getGit().getBranch())
@@ -212,11 +212,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Stream<Resource<?>> bigQueryResources(DeploymentManifest manifest) {
-		return manifest.getBigQuery() != null
-				? IntStream.range(0, manifest.getBigQuery().size())
+	Stream<Resource<?>> terraformResources(DeploymentManifest manifest) {
+		return manifest.getTerraform() != null
+				? IntStream.range(0, manifest.getTerraform().size())
 						.boxed()
-						.map(index -> bigQueryResource(manifest.getBigQuery().get(index), index))
+						.map(index -> terraformResource(manifest.getTerraform().get(index), index))
 				: Stream.of();
 	}
 
@@ -228,12 +228,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 	}
 
-	private void assertArgument(String value, String property, BigQueryWatcher bigQuery) {
+	private void assertArgument(String value, String property, TerraformWatcher bigQuery) {
 		if (value == null || value.isBlank()) {
 			throw new IllegalArgumentException(String.format(
-					"value of property %s of big query watcher `%s` is undefined",
+					"value of property %s of terraform group `%s` is undefined",
 					property,
-					bigQuery.getDataset()));
+					bigQuery.getName()));
 		}
 	}
 

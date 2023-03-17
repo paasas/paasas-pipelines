@@ -7,7 +7,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder(toBuilder = true)
-public class BigQueryWatcher {
-	String dataset;
+public class TerraformWatcher {
+	String name;
 	GitWatcher git;
 }

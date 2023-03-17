@@ -12,8 +12,6 @@ import io.paasas.pipelines.cli.module.adapter.concourse.GeneratePlatformConcours
 import io.paasas.pipelines.cli.module.adapter.google.UpdateGoogleDeployment;
 import io.paasas.pipelines.cli.module.adapter.stdout.ConsoleErrorOutput;
 import io.paasas.pipelines.cli.module.adapter.stdout.ConsoleOutput;
-import io.paasas.pipelines.deployment.module.adapter.gcp.cloudbuild.BigQueryLiquibaseBuildTrigger;
-import io.paasas.pipelines.deployment.module.adapter.gcp.cloudbuild.CloudBuildDeployer;
 import io.paasas.pipelines.deployment.module.adapter.gcp.cloudrun.CloudRunDeployer;
 import io.paasas.pipelines.platform.module.adapter.concourse.DeploymentConcoursePipeline;
 import io.paasas.pipelines.platform.module.adapter.concourse.PlatformConcoursePipeline;
@@ -30,13 +28,6 @@ public class PaasasPipelinesConfig {
 	@Bean
 	public ConsoleErrorOutput errorOutput() {
 		return new ConsoleErrorOutput();
-	}
-
-	@Bean
-	public CloudBuildDeployer cloudBuildDeployer(GcpConfiguration gcpConfiguration, ConsoleOutput consoleOutput) {
-		var bigQueryLiquibaseBuildTrigger = new BigQueryLiquibaseBuildTrigger();
-
-		return new CloudBuildDeployer(bigQueryLiquibaseBuildTrigger, gcpConfiguration, consoleOutput::println);
 	}
 
 	@Bean
@@ -62,7 +53,6 @@ public class PaasasPipelinesConfig {
 	public CommandProcessor commandProcessor(
 			ConsoleErrorOutput errorOutput,
 			ConsoleOutput output,
-			CloudBuildDeployer cloudBuildDeployer,
 			ConcourseConfiguration concourseConfiguration,
 			Deployer deployer,
 			GcpConfiguration gcpConfiguration) {
@@ -74,6 +64,6 @@ public class PaasasPipelinesConfig {
 				errorOutput,
 				new GenerateDeploymentConcoursePipeline(errorOutput, concourseConfiguration, deploymentPipeline),
 				new GeneratePlatformConcoursePipeline(errorOutput, concourseConfiguration, platformPipeline),
-				new UpdateGoogleDeployment(cloudBuildDeployer, deployer, output));
+				new UpdateGoogleDeployment(deployer, output));
 	}
 }

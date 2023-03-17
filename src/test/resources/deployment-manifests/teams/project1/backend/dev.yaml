@@ -4,14 +4,14 @@ apps:
 - name: hello
   image: us-docker.pkg.dev/cloudrun/container/hello
   port: 8080
-bigQuery:
-- dataset: dataset-1
+terraform:
+- name: dataset-1
   git:
     uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit
     branch: paas-moe-le-cloud
     tag: v0.10.0
     path: dataset-1
-- dataset: dataset-2
+- name: dataset-2
   git:
     uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit
     branch: paas-moe-le-cloud
