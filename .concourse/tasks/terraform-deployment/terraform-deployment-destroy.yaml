@@ -19,7 +19,7 @@ caches:
 - path: .terraform
 
 params:
-  SOURCE_PATH: 
+  GCP_PROJECT_ID: 
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 

@@ -1,7 +1,7 @@
 #!/bin/sh
 
-if [ -z "${PLATFORM_MANIFEST_PATH}" ]; then
-  echo "Env variable PLATFORM_MANIFEST_PATH is undefined"
+if [ -z "${GCP_PROJECT_ID}" ]; then
+  echo "Env variable GCP_PROJECT_ID is undefined"
   exit 1
 fi
 
@@ -16,7 +16,7 @@ if [ -z "${TERRAFORM_FLAGS}" ]; then
 fi
 
 if [ -z "${TERRAFORM_BACKEND_GCS_BUCKET}" ]; then
-  echo "Env variable PLATFORM_MANIFEST_PATH is undefined"
+  echo "Env variable TERRAFORM_BACKEND_GCS_BUCKET is undefined"
   exit 1
 fi
 
@@ -36,22 +36,6 @@ if [ -z "$TERRAFORM_EXTENSIONS_DIRECTORY" ]; then
 fi
 
 WORKDIR=$(pwd)
-
-TERRAFORM_BASELINE=$(yq '.infraBaseline' src/$PLATFORM_MANIFEST_PATH)
-
-if [ "${TERRAFORM_BASELINE}" == "null" ]; then
-  echo "failed to extra infra baseline from src/$ PLATFORM_MANIFEST_PATH}"
-  
-  exit 1
-fi
-
-GCP_PROJECT_ID=$(yq '.terraformVars.project_id' src/$PLATFORM_MANIFEST_PATH)
-
-if [ "${GCP_PROJECT_ID}" == "null" ]; then
-  echo "failed to extra gcp project id from src/$ PLATFORM_MANIFEST_PATH}"
-  
-  exit 1
-fi
 
 read -r -d '' PROVIDER_TF << EOM
 provider "google" {
