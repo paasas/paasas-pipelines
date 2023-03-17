@@ -50,8 +50,7 @@ if [ $? -ne 0 ]; then
 fi
 
 terraform ${TERRAFORM_COMMAND} \
-  ${TERRAFORM_FLAGS} \
-  -var-file=${WORKDIR}/tf/tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log
+  ${TERRAFORM_FLAGS} | tee ${WORKDIR}/terraform-out/terraform.log
 
 ERROR=$?
 
