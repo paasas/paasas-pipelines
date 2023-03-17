@@ -226,8 +226,6 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 								SetPipeline.builder()
 										.setPipeline(String.format("%s-deployment", targetConfig.getName()))
 										.file("pipelines/pipelines.yaml")
-										.vars(new TreeMap<>(Map.of(
-												"concourse-url", "((concourse-url))")))
 										.build()))
 						.onSuccess(teamsSuccessNotification())
 						.onFailure(teamsFailureNotification())
