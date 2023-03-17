@@ -24,8 +24,8 @@ params:
   GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
-  TERRAFORM_COMMAND: apply
-  TERRAFORM_EXTENSIONS_DIRECTORY: 
+  TERRAFORM_COMMAND: apply 
+  TERRAFORM_DIRECTORY: 
   TERRAFORM_FLAGS: -input=false -no-color -auto-approve
 run:
   path: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment.sh

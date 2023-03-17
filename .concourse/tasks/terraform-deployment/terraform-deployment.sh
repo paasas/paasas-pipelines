@@ -38,7 +38,7 @@ provider "google" {
 }
 EOM
 
-cd tf && \
+cd src/${TERRAFORM_DIRECTORY} && \
   echo "${PROVIDER_TF}" > gcp.tf && \
   ln -fs ${WORKDIR}/.terraform .terraform && \
   terraform init \
