@@ -30,11 +30,12 @@ if [ -z "${PIPELINES_GCP_IMPERSONATESERVICEACCOUNT}" ]; then
   exit 1
 fi
 
-java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
+cd src && \
+  java -jar /opt/paasas-pipelines/paasas-pipelines.jar \
     generate-deployment-pipeline \
     $TARGET \
-    src/${MANIFEST_PATH} \
-    pipelines/pipelines.yaml && \
+    ${MANIFEST_PATH} \
+    ../pipelines/pipelines.yaml && \
   echo "Generated pipeline:"
   echo ""
-  echo "$(cat pipelines/pipelines.yaml)"
+  echo "$(cat ../pipelines/pipelines.yaml)"

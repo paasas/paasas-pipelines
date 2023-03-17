@@ -40,19 +40,19 @@ public abstract class ConcoursePipelineTest {
 				.ciSrcUri("git@github.com:paasas/paasas-pipelines.git")
 				.deploymentPathPrefix("teams/")
 				.deploymentSrcBranch("main")
-				.deploymentSrcUri("https://github.com/daniellavoie/deployment-as-code-demo")
+				.deploymentSrcUri("git@github.com:daniellavoie/deployment-as-code-demo.git")
 				.deploymentTerraformBackendPrefix("terraform/deployments/")
 				.githubRepository("daniellavoie/infra-as-code-demo")
 				.platformPathPrefix("teams/")
 				.platformSrcBranch("v2")
-				.platformSrcUri("https://github.com/daniellavoie/infra-as-code-demo")
+				.platformSrcUri("git@github.com:daniellavoie/infra-as-code-demo.git")
 				.platformTerraformBackendPrefix("terraform/platforms/")
 				.slackChannel(null)
 				.slackWebhookUrl(null)
 				.teamsWebhookUrl("https://toto-sti")
 				.terraformBackendGcsBucket("terraform-states")
 				.terraformSrcBranch("main")
-				.terraformSrcUri("https://github.com/daniellavoie/infra-as-code-demo")
+				.terraformSrcUri("git@github.com:daniellavoie/infra-as-code-demo")
 				.build();
 	}
 

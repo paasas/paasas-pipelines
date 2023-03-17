@@ -12,8 +12,8 @@ import io.paasas.pipelines.cli.module.adapter.concourse.GeneratePlatformConcours
 import io.paasas.pipelines.cli.module.adapter.google.UpdateGoogleDeployment;
 import io.paasas.pipelines.cli.module.adapter.stdout.ConsoleErrorOutput;
 import io.paasas.pipelines.cli.module.adapter.stdout.ConsoleOutput;
+import io.paasas.pipelines.deployment.module.adapter.concourse.DeploymentConcoursePipeline;
 import io.paasas.pipelines.deployment.module.adapter.gcp.cloudrun.CloudRunDeployer;
-import io.paasas.pipelines.platform.module.adapter.concourse.DeploymentConcoursePipeline;
 import io.paasas.pipelines.platform.module.adapter.concourse.PlatformConcoursePipeline;
 
 @Configuration

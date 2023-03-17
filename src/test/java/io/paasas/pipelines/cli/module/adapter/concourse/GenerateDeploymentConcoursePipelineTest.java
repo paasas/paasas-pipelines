@@ -10,7 +10,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import io.paasas.pipelines.cli.domain.exception.IllegalCommandArgumentsException;
-import io.paasas.pipelines.platform.module.adapter.concourse.DeploymentConcoursePipeline;
+import io.paasas.pipelines.deployment.module.adapter.concourse.DeploymentConcoursePipeline;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class GenerateDeploymentConcoursePipelineTest extends ConcoursePipelineTest {
@@ -57,15 +57,17 @@ public class GenerateDeploymentConcoursePipelineTest extends ConcoursePipelineTe
 
 	@Test
 	public void assertValidOutputArguments() throws IOException {
+		var manifestPath = Path.of(DIRECTORY.toString(), "/project1/backend/dev.yaml").toString();
 		command().execute(
 				"project1-backend-dev",
-				Path.of(DIRECTORY.toString(), "/project1/backend/dev.yaml").toString(),
+				manifestPath,
 				OUTPUT_FILE);
 
 		Assertions.assertEquals("", ERROR_OUTPUT.getOutput());
 
 		Assertions.assertEquals(
-				ExpectedDeploymentsPipeline.PIPELINE,
+				ExpectedDeploymentsPipeline.PIPELINE
+				.replace("{{manifest-path}}", manifestPath),
 				new String(Files.readAllBytes(Path.of(OUTPUT_FILE))));
 	}
 

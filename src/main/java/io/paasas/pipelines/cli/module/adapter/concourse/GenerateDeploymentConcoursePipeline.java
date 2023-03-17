@@ -11,7 +11,7 @@ import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.cli.domain.exception.IllegalCommandArgumentsException;
 import io.paasas.pipelines.cli.domain.io.Output;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
-import io.paasas.pipelines.platform.module.adapter.concourse.DeploymentConcoursePipeline;
+import io.paasas.pipelines.deployment.module.adapter.concourse.DeploymentConcoursePipeline;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +60,8 @@ public class GenerateDeploymentConcoursePipeline extends PipelineSupplierCommand
 
 		writeFile(pipelineFile, deploymentConcoursePipeline.pipeline(
 				readDeploymentManifest(deploymentManifestFile),
-				target));
+				target,
+				deploymentManifestFile));
 	}
 
 	private DeploymentManifest readDeploymentManifest(String deploymentManifestFile) {

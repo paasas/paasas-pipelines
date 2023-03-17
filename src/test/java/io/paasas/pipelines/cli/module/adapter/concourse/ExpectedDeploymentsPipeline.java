@@ -22,29 +22,37 @@ public abstract class ExpectedDeploymentsPipeline {
 			  type: teams-notification
 			  source:
 			    url: ((teams.webhookUrl))
+			- name: manifest-src
+			  type: git
+			  source:
+			    uri: git@github.com:daniellavoie/deployment-as-code-demo.git
+			    private_key: ((git.ssh-private-key))
+			    branch: main
+			    paths:
+			    - {{manifest-path}}
 			- name: terraform-dataset-1-src
 			  type: git
 			  source:
-			    uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit
+			    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
 			    private_key: ((git.ssh-private-key))
-			    branch: paas-moe-le-cloud
 			    paths:
 			    - dataset-1
 			    tag_filter: v0.10.0
 			- name: terraform-dataset-2-src
 			  type: git
 			  source:
-			    uri: git@github.com/teleport-java-client/paas-moe-le-cloud.hit
+			    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
 			    private_key: ((git.ssh-private-key))
-			    branch: paas-moe-le-cloud
+			    branch: my-branch
 			    paths:
 			    - dataset-2
-			    tag_filter: v0.10.0
 			jobs:
-			- name: update-terraform-dataset-1
+			- name: terraform-apply-dataset-1
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
+			    - get: manifest-src
+			      trigger: true
 			    - get: terraform-dataset-1-src
 			      trigger: true
 			  - task: terraform-apply
@@ -67,10 +75,12 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			      text: Job ((concourse-url))/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: update-terraform-dataset-2
+			- name: terraform-apply-dataset-2
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
+			    - get: manifest-src
+			      trigger: true
 			    - get: terraform-dataset-2-src
 			      trigger: true
 			  - task: terraform-apply
