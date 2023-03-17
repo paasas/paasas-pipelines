@@ -112,11 +112,15 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 	Job updateBigQueryDatasetJob(BigQueryWatcher watcher, DeploymentManifest manifest, String target) {
 		var terraformParams = new TreeMap<>(Map.of(
-				"IMPERSONATE_SERVICE_ACCOUNT", gcpConfiguration.getImpersonateServiceAccount(),
 				"GCP_PROJECT_ID", manifest.getProject(),
 				"TARGET", target,
 				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
 				"TERRAFORM_DIRECTORY", watcher.getGit().getPath()));
+
+		if (gcpConfiguration.getImpersonateServiceAccount() != null
+				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
+			terraformParams.put("GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", gcpConfiguration.getImpersonateServiceAccount());
+		}
 
 		var src = String.format("bigquery-%s-src", watcher.getDataset());
 
