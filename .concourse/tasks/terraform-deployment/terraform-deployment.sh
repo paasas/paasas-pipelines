@@ -20,6 +20,11 @@ if [ -z "${TERRAFORM_FLAGS}" ]; then
   exit 1
 fi
 
+if [ -z "${TERRAFORM_GROUP_NAME}" ]; then
+  echo "Env variable TERRAFORM_GROUP_NAME is undefined"
+  exit 1
+fi
+
 if [ -z "${TERRAFORM_BACKEND_GCS_BUCKET}" ]; then
   echo "Env variable TERRAFORM_BACKEND_GCS_BUCKET is undefined"
   exit 1

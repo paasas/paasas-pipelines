@@ -28,5 +28,6 @@ params:
   TERRAFORM_COMMAND: destroy 
   TERRAFORM_DIRECTORY: 
   TERRAFORM_FLAGS: -input=false -no-color -auto-approve
+  TERRAFORM_GROUP_NAME: 
 run:
   path: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment.sh

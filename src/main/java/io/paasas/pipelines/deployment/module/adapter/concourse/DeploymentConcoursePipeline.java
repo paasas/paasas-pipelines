@@ -126,7 +126,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				"MANIFEST_PATH", deploymentManifestPath,
 				"TARGET", target,
 				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
-				"TERRAFORM_DIRECTORY", watcher.getGit().getPath()));
+				"TERRAFORM_DIRECTORY", watcher.getGit().getPath(),
+				"TERRAFORM_GROUP_NAME", watcher.getName()));
 
 		if (gcpConfiguration.getImpersonateServiceAccount() != null
 				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {

@@ -25,8 +25,9 @@ params:
   MANIFEST_PATH: 
   TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
-  TERRAFORM_COMMAND: plan 
+  TERRAFORM_COMMAND: plan
   TERRAFORM_DIRECTORY: 
   TERRAFORM_FLAGS: -input=false -no-color
+  TERRAFORM_GROUP_NAME: 
 run:
   path: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment.sh
