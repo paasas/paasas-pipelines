@@ -54,7 +54,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-yq -o=json -I=0 '.terraform[]|select(.name|select(.=="${TERRAFORM_GROUP_NAME}")).vars' ${WORKDIR}/src/${MANIFEST_PATH} > tfvars.json && \
+yq -o=json -I=0 '.terraform[]|select(.name|select(.=="${TERRAFORM_GROUP_NAME}")).vars' ${WORKDIR}/manifest-src/${MANIFEST_PATH} > tfvars.json && \
   terraform ${TERRAFORM_COMMAND} \
     ${TERRAFORM_FLAGS} \
     -var-file=tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log

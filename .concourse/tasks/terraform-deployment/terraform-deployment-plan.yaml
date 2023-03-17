@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
 - name: ci-src
+- name: manifest-src
 - name: src
 
 outputs:
