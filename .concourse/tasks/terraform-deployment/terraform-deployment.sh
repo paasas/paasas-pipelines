@@ -30,11 +30,6 @@ if [ -z "${TARGET}" ]; then
   exit 1
 fi
 
-if [ -z "$TERRAFORM_EXTENSIONS_DIRECTORY" ]; then
-  echo "Env variable TERRAFORM_EXTENSIONS_DIRECTORY is undefined"
-  exit 1
-fi
-
 WORKDIR=$(pwd)
 
 read -r -d '' PROVIDER_TF << EOM
@@ -42,18 +37,6 @@ provider "google" {
   project = "${GCP_PROJECT_ID}"
 }
 EOM
-
-mkdir tf && \
-  cp terraform-${TERRAFORM_BASELINE}-src/terraform/infra/${TERRAFORM_BASELINE}/* tf/
-
-if [ -d "${WORKDIR}/src/${TERRAFORM_EXTENSIONS_DIRECTORY}" ]; then
-  cp ${WORKDIR}/src/${TERRAFORM_EXTENSIONS_DIRECTORY}/* tf/
-
-  if [ $? -ne 0 ]; then
-    echo "failed to copy terraform extensions from '${TERRAFORM_EXTENSIONS_DIRECTORY}' to 'tf' directory"
-    exit 1
-  fi
-fi
 
 cd tf && \
   echo "${PROVIDER_TF}" > gcp.tf && \
