@@ -5,9 +5,8 @@ if [ -z "${MANIFEST_PATH}" ]; then
   exit 1
 fi
 
-
-if [ -z "${PIPELINES_CLOUDRUN_GOOGLECREDENTIALSJSON}" ]; then
-  echo "env variable PIPELINES_CLOUDRUN_GOOGLECREDENTIALSJSON is required"
+if [ -z "${PIPELINES_GCP_CREDENTIALSJSON}" ]; then
+  echo "env variable PIPELINES_GCP_CREDENTIALSJSON is required"
   exit 1
 fi
 

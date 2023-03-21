@@ -13,7 +13,7 @@ inputs:
 
 params:
   MANIFEST_PATH: 
-  PIPELINES_CLOUDRUN_GOOGLECREDENTIALSJSON: ((gcp.credentials))
+  PIPELINES_GCP_CREDENTIALSJSON: ((gcp.credentials))
 
 run:
   path: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.sh
