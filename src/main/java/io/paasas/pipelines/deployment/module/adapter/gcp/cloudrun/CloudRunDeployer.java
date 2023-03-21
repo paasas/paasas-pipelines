@@ -77,6 +77,8 @@ public class CloudRunDeployer implements Deployer {
 	@Override
 	public void deploy(DeploymentManifest deploymentManifest) {
 		try {
+			var apps = Optional.ofNullable(deploymentManifest.getApps()).orElseGet(()->List.of());
+			
 			var client = ServicesClient.create(ServicesSettings.newBuilder()
 					.setCredentialsProvider(GcpCredentials.credentialProviders(configuration))
 					.build());
@@ -95,19 +97,19 @@ public class CloudRunDeployer implements Deployer {
 
 			// Compute existing services
 			var deleteOperations = existingServicesByName.keySet().stream()
-					.filter(existingServiceName -> deploymentManifest.getApps()
+					.filter(existingServiceName -> apps
 							.stream()
 							.noneMatch(app -> app.getName().equals(existingServiceName)))
 					.map(serviceToDelete -> deleteService(serviceToDelete, client, deploymentManifest));
 
 			// Service to create
-			var createOperations = deploymentManifest.getApps().stream()
+			var createOperations = apps.stream()
 					.filter(app -> existingServicesByName.keySet().stream()
 							.noneMatch(existingServiceName -> app.getName().equals(existingServiceName)))
 					.map(app -> createApp(app, client, deploymentManifest));
 
 			// Service to update
-			var updateOperations = deploymentManifest.getApps().stream()
+			var updateOperations = apps.stream()
 					.filter(app -> existingServicesByName.keySet().stream()
 							.anyMatch(existingServiceName -> app.getName().endsWith(existingServiceName)))
 					.map(app -> updateApp(app, client, deploymentManifest));
