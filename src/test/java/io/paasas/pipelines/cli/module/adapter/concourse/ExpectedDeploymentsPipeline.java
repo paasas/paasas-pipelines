@@ -57,6 +57,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
 			    params:
 			      MANIFEST_PATH: {{manifest-path}}
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: service-account@yo.com
 			    input_mapping:
 			      src: manifest-src
 			- name: terraform-apply-dataset-1
