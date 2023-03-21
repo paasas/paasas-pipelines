@@ -278,6 +278,14 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	Job updateCloudRunJob(String deploymentManifestPath) {
+		var taskParams = new TreeMap<>(Map.of(
+				"MANIFEST_PATH", deploymentManifestPath));
+
+		if (gcpConfiguration.getImpersonateServiceAccount() != null
+				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
+			taskParams.put("PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", gcpConfiguration.getImpersonateServiceAccount());
+		}
+
 		return Job.builder()
 				.name("update-cloud-run")
 				.plan(List.of(
@@ -292,8 +300,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
 								.inputMapping(new TreeMap<>(Map.of(
 										"src", "manifest-src")))
-								.params(new TreeMap<>(Map.of(
-										"MANIFEST_PATH", deploymentManifestPath)))
+								.params(taskParams)
 								.build()))
 				.build();
 	}
