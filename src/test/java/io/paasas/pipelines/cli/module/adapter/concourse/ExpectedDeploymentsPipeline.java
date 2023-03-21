@@ -47,6 +47,18 @@ public abstract class ExpectedDeploymentsPipeline {
 			    paths:
 			    - dataset-2
 			jobs:
+			- name: update-cloud-run
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: manifest-src
+			      trigger: true
+			  - task: update-cloud-run
+			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
+			    params:
+			      MANIFEST_PATH: {{manifest-path}}
+			    input_mapping:
+			      src: manifest-src
 			- name: terraform-apply-dataset-1
 			  plan:
 			  - in_parallel:

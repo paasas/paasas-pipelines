@@ -52,6 +52,21 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		this.gcpConfiguration = gcpConfiguration;
 	}
 
+	private void assertArgument(String value, String property, TerraformWatcher bigQuery) {
+		if (value == null || value.isBlank()) {
+			throw new IllegalArgumentException(String.format(
+					"value of property %s of terraform group `%s` is undefined",
+					property,
+					bigQuery.getName()));
+		}
+	}
+
+	private void assertNotBlank(String value, String message) {
+		if (value == null || value.isBlank()) {
+			throw new IllegalArgumentException(message);
+		}
+	}
+
 	Stream<Resource<?>> commonResources() {
 		return Stream.of(
 				Resource.builder()
@@ -69,6 +84,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.type(CommonResourceTypes.TEAMS_NOTIFICATION_RESOURCE_TYPE)
 						.source(Map.of("url", "((teams.webhookUrl))"))
 						.build());
+	}
+
+	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest, String deploymentManifestPath) {
+		return Stream.concat(
+				Stream.of(manifestResource(deploymentManifestPath)),
+				terraformResources(manifest));
 	}
 
 	private Get get(String resource) {
@@ -109,11 +130,60 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			DeploymentManifest manifest,
 			String target,
 			String deploymentManifestPath) {
-		return manifest.getTerraform() != null
-				? manifest.getTerraform().stream()
-						.map(watcher -> terraformApplyJob(watcher, manifest, target, deploymentManifestPath))
-						.toList()
-				: List.of();
+		return Stream
+				.concat(
+						Stream.of(updateCloudRunJob(deploymentManifestPath)),
+						manifest.getTerraform() != null
+								? manifest.getTerraform().stream()
+										.map(watcher -> terraformApplyJob(watcher, manifest, target,
+												deploymentManifestPath))
+								: Stream.of())
+				.toList();
+	}
+
+	Resource<?> manifestResource(String deploymentManifestPath) {
+		return Resource.builder()
+				.name("manifest-src")
+				.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
+				.source(GitSource.builder()
+						.branch(configuration.getDeploymentSrcBranch() != null
+								&& !configuration.getDeploymentSrcBranch().isBlank()
+										? configuration.getDeploymentSrcBranch()
+										: null)
+						.paths(List.of(deploymentManifestPath))
+						.privateKey("((git.ssh-private-key))")
+						.uri(configuration.getDeploymentSrcUri())
+						.build())
+				.build();
+	}
+
+	public String pipeline(DeploymentManifest manifest, String target, String deploymentManifestPath) {
+		assertNotBlank(
+				gcpConfiguration.getImpersonateServiceAccount(),
+				"gcp impersonate service account is not configured");
+
+		assertNotBlank(
+				manifest.getProject(),
+				"gcp project is not configured");
+
+		assertNotBlank(
+				manifest.getRegion(),
+				"gcp region is not configured");
+
+		return writePipeline(
+				Pipeline.builder()
+						.resourceTypes(resourceTypes())
+						.resources(Stream
+								.concat(
+										commonResources(),
+										deploymentResources(manifest, deploymentManifestPath))
+								.toList())
+						.jobs(jobs(manifest, target, deploymentManifestPath))
+						.build());
+	}
+
+	List<ResourceType> resourceTypes() {
+		return List.of(CommonResourceTypes.TEAMS_NOTIFICATION);
 	}
 
 	Job terraformApplyJob(
@@ -152,57 +222,6 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.build()))
 				.onSuccess(teamsSuccessNotification())
 				.onFailure(teamsFailureNotification())
-				.build();
-	}
-
-	public String pipeline(DeploymentManifest manifest, String target, String deploymentManifestPath) {
-		assertNotBlank(
-				gcpConfiguration.getImpersonateServiceAccount(),
-				"gcp impersonate service account is not configured");
-
-		assertNotBlank(
-				manifest.getProject(),
-				"gcp project is not configured");
-
-		assertNotBlank(
-				manifest.getRegion(),
-				"gcp region is not configured");
-
-		return writePipeline(
-				Pipeline.builder()
-						.resourceTypes(resourceTypes())
-						.resources(Stream
-								.concat(
-										commonResources(),
-										deploymentResources(manifest, deploymentManifestPath))
-								.toList())
-						.jobs(jobs(manifest, target, deploymentManifestPath))
-						.build());
-	}
-
-	List<ResourceType> resourceTypes() {
-		return List.of(CommonResourceTypes.TEAMS_NOTIFICATION);
-	}
-
-	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest, String deploymentManifestPath) {
-		return Stream.concat(
-				Stream.of(manifestResource(deploymentManifestPath)),
-				terraformResources(manifest));
-	}
-
-	Resource<?> manifestResource(String deploymentManifestPath) {
-		return Resource.builder()
-				.name("manifest-src")
-				.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
-				.source(GitSource.builder()
-						.branch(configuration.getDeploymentSrcBranch() != null
-								&& !configuration.getDeploymentSrcBranch().isBlank()
-										? configuration.getDeploymentSrcBranch()
-										: null)
-						.paths(List.of(deploymentManifestPath))
-						.privateKey("((git.ssh-private-key))")
-						.uri(configuration.getDeploymentSrcUri())
-						.build())
 				.build();
 	}
 
@@ -254,26 +273,32 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				: Stream.of();
 	}
 
+	Job updateCloudRunJob(String deploymentManifestPath) {
+		return Job.builder()
+				.name("update-cloud-run")
+				.plan(List.of(
+						InParallel
+								.builder()
+								.inParallel(List.of(
+										get("ci-src"),
+										getWithTrigger("manifest-src")))
+								.build(),
+						Task.builder()
+								.task("update-cloud-run")
+								.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
+								.inputMapping(new TreeMap<>(Map.of(
+										"src", "manifest-src")))
+								.params(new TreeMap<>(Map.of(
+										"MANIFEST_PATH", deploymentManifestPath)))
+								.build()))
+				.build();
+	}
+
 	private String writePipeline(Pipeline pipeline) {
 		try {
 			return OBJECT_MAPPER.writeValueAsString(pipeline);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
-		}
-	}
-
-	private void assertArgument(String value, String property, TerraformWatcher bigQuery) {
-		if (value == null || value.isBlank()) {
-			throw new IllegalArgumentException(String.format(
-					"value of property %s of terraform group `%s` is undefined",
-					property,
-					bigQuery.getName()));
-		}
-	}
-
-	private void assertNotBlank(String value, String message) {
-		if (value == null || value.isBlank()) {
-			throw new IllegalArgumentException(message);
 		}
 	}
 }
