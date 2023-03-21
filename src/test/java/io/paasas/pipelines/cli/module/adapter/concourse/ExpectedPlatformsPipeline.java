@@ -243,7 +243,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      params:
 			        actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			        text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: project1-backend-dev-deployment-update
+			- name: project1-backend-dev-update-deployment-pipeline
 			  plan:
 			  - in_parallel:
 			    - get: project1-backend-dev-deployment-src
@@ -381,7 +381,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      params:
 			        actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			        text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: project1-backend-prod-deployment-update
+			- name: project1-backend-prod-update-deployment-pipeline
 			  plan:
 			  - in_parallel:
 			    - get: project1-backend-prod-deployment-src
@@ -519,7 +519,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      params:
 			        actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			        text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: project1-frontend-dev-deployment-update
+			- name: project1-frontend-dev-update-deployment-pipeline
 			  plan:
 			  - in_parallel:
 			    - get: project1-frontend-dev-deployment-src
@@ -657,7 +657,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      params:
 			        actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			        text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: project1-frontend-prod-deployment-update
+			- name: project1-frontend-prod-update-deployment-pipeline
 			  plan:
 			  - in_parallel:
 			    - get: project1-frontend-prod-deployment-src
@@ -701,24 +701,24 @@ public abstract class ExpectedPlatformsPipeline {
 			  - project1-backend-dev-terraform-apply
 			  - project1-backend-dev-terraform-destroy
 			  - project1-backend-dev-terraform-plan
-			  - project1-backend-dev-deployment-update
+			  - project1-backend-dev-update-deployment-pipeline
 			- name: project1-backend-prod
 			  jobs:
 			  - project1-backend-prod-terraform-apply
 			  - project1-backend-prod-terraform-destroy
 			  - project1-backend-prod-terraform-plan
-			  - project1-backend-prod-deployment-update
+			  - project1-backend-prod-update-deployment-pipeline
 			- name: project1-frontend-dev
 			  jobs:
 			  - project1-frontend-dev-terraform-apply
 			  - project1-frontend-dev-terraform-destroy
 			  - project1-frontend-dev-terraform-plan
-			  - project1-frontend-dev-deployment-update
+			  - project1-frontend-dev-update-deployment-pipeline
 			- name: project1-frontend-prod
 			  jobs:
 			  - project1-frontend-prod-terraform-apply
 			  - project1-frontend-prod-terraform-destroy
 			  - project1-frontend-prod-terraform-plan
-			  - project1-frontend-prod-deployment-update
+			  - project1-frontend-prod-update-deployment-pipeline
 			""";
 }

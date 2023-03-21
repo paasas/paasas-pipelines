@@ -119,7 +119,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 						targetConfig.getName() + "-terraform-apply",
 						targetConfig.getName() + "-terraform-destroy",
 						targetConfig.getName() + "-terraform-plan",
-						targetConfig.getName() + "-deployment-update"))
+						targetConfig.getName() + "-update-deployment-pipeline"))
 				.build();
 	}
 
@@ -212,7 +212,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 								.build())
 						.build(),
 				Job.builder()
-						.name(targetConfig.getName() + "-deployment-update")
+						.name(targetConfig.getName() + "-update-deployment-pipeline")
 						.plan(List.of(
 								inParallel(List.of(
 										getWithTrigger(targetConfig.getName() + "-deployment-src"),
