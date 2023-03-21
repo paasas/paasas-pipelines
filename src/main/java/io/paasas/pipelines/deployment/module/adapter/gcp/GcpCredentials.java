@@ -20,12 +20,12 @@ public class GcpCredentials {
 
 			return FixedCredentialsProvider.create(gcpConfiguration.getImpersonateServiceAccount() != null
 					&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()
-							? ImpersonatedCredentials.create(
+					? ImpersonatedCredentials.create(
 									cloudCredentials,
 									gcpConfiguration.getImpersonateServiceAccount(),
 									List.of(),
 									List.of("https://www.googleapis.com/auth/cloud-platform"),
-									Integer.MAX_VALUE)
+									360)
 							: cloudCredentials);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
