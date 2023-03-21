@@ -159,6 +159,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 	public String pipeline(DeploymentManifest manifest, String target, String deploymentManifestPath) {
 		assertNotBlank(
+				configuration.getDeploymentTerraformBackendPrefix(),
+				"deployment terraform backend prefix is not configured");
+
+		assertNotBlank(
 				gcpConfiguration.getImpersonateServiceAccount(),
 				"gcp impersonate service account is not configured");
 

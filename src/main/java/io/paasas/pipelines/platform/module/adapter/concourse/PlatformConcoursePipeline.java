@@ -238,6 +238,11 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 			throw new IllegalArgumentException("exepcted at least one target config");
 		}
 
+		if (configuration.getPlatformTerraformBackendPrefix() == null
+				|| configuration.getPlatformTerraformBackendPrefix().isBlank()) {
+			throw new IllegalStateException("platform terraform backend prefix is not configured");
+		}
+
 		return writePipeline(
 				Pipeline.builder()
 						.resourceTypes(resourceTypes())

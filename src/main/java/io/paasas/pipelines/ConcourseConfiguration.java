@@ -33,7 +33,6 @@ public class ConcourseConfiguration {
 	@NotEmpty
 	String deploymentSrcUri;
 	
-	@NotNull
 	String deploymentTerraformBackendPrefix;
 
 	@NotNull
@@ -45,7 +44,6 @@ public class ConcourseConfiguration {
 	@NotEmpty
 	String platformSrcUri;
 	
-	@NotNull
 	String platformTerraformBackendPrefix;
 
 	String slackChannel;
