@@ -6,4 +6,9 @@ RUN apk update
 
 RUN apk add yq python3 py-pip
 
-RUN pip3 install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+RUN pip3 install \
+  google-api-python-client \
+  google-auth-httplib2 \
+  google-auth-oauthlib \
+  absl-py
+ 
