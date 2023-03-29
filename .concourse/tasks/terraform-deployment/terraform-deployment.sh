@@ -35,8 +35,8 @@ if [ -z "${GOOGLE_CREDENTIALS}" ]; then
   exit 1
 fi
 
-if [ -z "${TARGET}" ]; then
-  echo "Env variable TARGET is undefined"
+if [ -z "${TERRAFORM_PREFIX}" ]; then
+  echo "Env variable TERRAFORM_PREFIX is undefined"
   exit 1
 fi
 
@@ -57,7 +57,7 @@ cd src/${TERRAFORM_DIRECTORY} && \
   ln -fs ${WORKDIR}/.terraform .terraform && \
   terraform init \
     -backend-config="bucket=${TERRAFORM_BACKEND_GCS_BUCKET}" \
-    -backend-config="prefix=${TARGET}"
+    -backend-config="prefix=${TERRAFORM_PREFIX}"
   
 if [ $? -ne 0 ]; then
   exit 1

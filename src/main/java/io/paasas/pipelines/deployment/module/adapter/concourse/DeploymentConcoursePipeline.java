@@ -198,7 +198,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		var terraformParams = new TreeMap<>(Map.of(
 				"GCP_PROJECT_ID", manifest.getProject(),
 				"MANIFEST_PATH", deploymentManifestPath,
-				"TARGET", target,
+				"TERRAFORM_PREFIX", target + "-" + watcher.getName(),
 				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
 				"TERRAFORM_DIRECTORY", watcher.getGit().getPath(),
 				"TERRAFORM_GROUP_NAME", watcher.getName()));

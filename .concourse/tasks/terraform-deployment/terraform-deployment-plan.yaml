@@ -29,5 +29,6 @@ params:
   TERRAFORM_DIRECTORY: 
   TERRAFORM_FLAGS: -input=false -no-color
   TERRAFORM_GROUP_NAME: 
+  TERRAFORM_PREFIX: 
 run:
   path: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment.sh

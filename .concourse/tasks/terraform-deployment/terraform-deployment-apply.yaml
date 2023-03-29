@@ -24,11 +24,11 @@ params:
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
   GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
   MANIFEST_PATH: 
-  TARGET: 
   TERRAFORM_BACKEND_GCS_BUCKET: 
   TERRAFORM_COMMAND: apply 
   TERRAFORM_DIRECTORY: 
   TERRAFORM_FLAGS: -input=false -no-color -auto-approve
   TERRAFORM_GROUP_NAME: 
+  TERRAFORM_PREFIX: 
 run:
   path: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment.sh
