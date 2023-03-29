@@ -46,6 +46,10 @@ read -r -d '' PROVIDER_TF << EOM
 provider "google" {
   project = "${GCP_PROJECT_ID}"
 }
+
+terraform {
+  backend "gcs" {}
+}
 EOM
 
 cd src/${TERRAFORM_DIRECTORY} && \
