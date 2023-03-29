@@ -68,25 +68,20 @@ yq -o=json -I=0 ".terraform[]|select(.name|select(.==\"${TERRAFORM_GROUP_NAME}\"
     ${TERRAFORM_FLAGS} \
     -var-file=tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log
 
-ERROR=$?
+TF_COMMAND_ERROR=$?
 
 set +o pipefail
-
-if [ "${TERRAFORM_COMMAND}" == "destroy" ]; then
-  # Destroy requires to run twice
-  set -o pipefail && \
-    terraform ${TERRAFORM_COMMAND} \
-      ${TERRAFORM_FLAGS} \
-      -var-file=${WORKDIR}/tf/tfvars.json | tee -a ${WORKDIR}/terraform-out/terraform.log
-  
-  ERROR=$?
-  
-  set +o pipefail
-fi
 
 terraform show \
     -json > ${WORKDIR}/terraform-state/state.json && \
   echo '```' > ${WORKDIR}/terraform-out/terraform.md && \
   cat ${WORKDIR}/terraform-out/terraform.log >> ${WORKDIR}/terraform-out/terraform.md && \
-  echo '```' >> ${WORKDIR}/terraform-out/terraform.md && \
-  exit $ERROR
+  echo '```' >> ${WORKDIR}/terraform-out/terraform.md
+  
+ERROR=$?
+
+if [ $TF_COMMAND_ERROR -ne 0 ]; then
+  exit $TF_COMMAND_ERROR
+fi
+
+exit $ERROR
