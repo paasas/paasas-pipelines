@@ -201,12 +201,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				"TERRAFORM_PREFIX", target + "-" + watcher.getName(),
 				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
 				"TERRAFORM_DIRECTORY", watcher.getGit().getPath(),
-				"TERRAFORM_GROUP_NAME", watcher.getName()));
-
-		if (gcpConfiguration.getImpersonateServiceAccount() != null
-				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
-			terraformParams.put("GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", gcpConfiguration.getImpersonateServiceAccount());
-		}
+				"TERRAFORM_GROUP_NAME", watcher.getName(),
+				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+						"terraform@%s.iam.gserviceaccount.com",
+						manifest.getProject())));
 
 		var src = String.format("terraform-%s-src", watcher.getName());
 
