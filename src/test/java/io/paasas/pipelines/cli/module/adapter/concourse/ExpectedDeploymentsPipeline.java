@@ -72,7 +72,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      MANIFEST_PATH: {{manifest-path}}
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_DIRECTORY: dataset-1
@@ -102,7 +102,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      MANIFEST_PATH: {{manifest-path}}
 			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
 			      TERRAFORM_DIRECTORY: dataset-2
