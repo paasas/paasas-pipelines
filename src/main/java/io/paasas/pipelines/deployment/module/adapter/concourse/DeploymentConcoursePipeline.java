@@ -132,7 +132,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			String deploymentManifestPath) {
 		return Stream
 				.concat(
-						Stream.of(updateCloudRunJob(deploymentManifestPath)),
+						Stream.of(updateCloudRunJob(manifest, deploymentManifestPath)),
 						manifest.getTerraform() != null
 								? manifest.getTerraform().stream()
 										.map(watcher -> terraformApplyJob(watcher, manifest, target,
@@ -275,14 +275,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				: Stream.of();
 	}
 
-	Job updateCloudRunJob(String deploymentManifestPath) {
+	Job updateCloudRunJob(DeploymentManifest manifest, String deploymentManifestPath) {
 		var taskParams = new TreeMap<>(Map.of(
-				"MANIFEST_PATH", deploymentManifestPath));
-
-		if (gcpConfiguration.getImpersonateServiceAccount() != null
-				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
-			taskParams.put("PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", gcpConfiguration.getImpersonateServiceAccount());
-		}
+				"MANIFEST_PATH", deploymentManifestPath,
+				"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
+						"terraform@%s.iam.gserviceaccount.com",
+						manifest.getProject())));
 
 		return Job.builder()
 				.name("update-cloud-run")
