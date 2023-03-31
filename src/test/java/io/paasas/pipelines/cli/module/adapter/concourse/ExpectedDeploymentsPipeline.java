@@ -74,7 +74,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GCP_PROJECT_ID: control-plane-377914
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      MANIFEST_PATH: {{manifest-path}}
-			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_BACKEND_GCS_BUCKET: control-plane-377914
 			      TERRAFORM_DIRECTORY: dataset-1
 			      TERRAFORM_GROUP_NAME: dataset-1
 			      TERRAFORM_PREFIX: project1-backend-dev-dataset-1
@@ -104,7 +104,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GCP_PROJECT_ID: control-plane-377914
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      MANIFEST_PATH: {{manifest-path}}
-			      TERRAFORM_BACKEND_GCS_BUCKET: terraform-states
+			      TERRAFORM_BACKEND_GCS_BUCKET: control-plane-377914
 			      TERRAFORM_DIRECTORY: dataset-2
 			      TERRAFORM_GROUP_NAME: dataset-2
 			      TERRAFORM_PREFIX: project1-backend-dev-dataset-2

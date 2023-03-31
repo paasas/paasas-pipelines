@@ -34,6 +34,7 @@ public class ConcourseConfiguration {
 	String deploymentSrcUri;
 	
 	String deploymentTerraformBackendPrefix;
+	String deploymentTerraformBackendBucketSuffix;
 
 	@NotNull
 	String platformPathPrefix;

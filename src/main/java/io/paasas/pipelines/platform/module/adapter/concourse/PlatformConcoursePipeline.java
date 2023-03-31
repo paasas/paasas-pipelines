@@ -175,6 +175,13 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 					gcpConfiguration.getImpersonateServiceAccount());
 		}
 
+		if (configuration.getDeploymentTerraformBackendBucketSuffix() != null
+				&& !configuration.getDeploymentTerraformBackendBucketSuffix().isBlank()) {
+			deploymentUpdateParams.put(
+					"PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDBUCKETSUFFIX",
+					configuration.getDeploymentTerraformBackendBucketSuffix());
+		}
+
 		return Stream.of(
 				terraformJob("apply", targetConfig, true),
 				terraformJob("destroy", targetConfig, false),

@@ -195,11 +195,19 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			DeploymentManifest manifest,
 			String target,
 			String deploymentManifestPath) {
+		var terraformBackendGcsBucket = configuration.getDeploymentTerraformBackendBucketSuffix() != null
+				&& !configuration.getDeploymentTerraformBackendBucketSuffix().isBlank()
+						? String.format(
+								"$s.%s",
+								manifest.getProject(),
+								configuration.getDeploymentTerraformBackendBucketSuffix())
+						: manifest.getProject();
+
 		var terraformParams = new TreeMap<>(Map.of(
 				"GCP_PROJECT_ID", manifest.getProject(),
 				"MANIFEST_PATH", deploymentManifestPath,
 				"TERRAFORM_PREFIX", target + "-" + watcher.getName(),
-				"TERRAFORM_BACKEND_GCS_BUCKET", configuration.getTerraformBackendGcsBucket(),
+				"TERRAFORM_BACKEND_GCS_BUCKET", terraformBackendGcsBucket,
 				"TERRAFORM_DIRECTORY", watcher.getGit().getPath(),
 				"TERRAFORM_GROUP_NAME", watcher.getName(),
 				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
