@@ -64,6 +64,7 @@ if [ $? -ne 0 ]; then
 fi
 
 yq -o=json -I=0 ".terraform[]|select(.name|select(.==\"${TERRAFORM_GROUP_NAME}\")).vars" ${WORKDIR}/manifest-src/${MANIFEST_PATH} > tfvars.json && \
+  set -o pipefail && \
   terraform ${TERRAFORM_COMMAND} \
     ${TERRAFORM_FLAGS} \
     -var-file=tfvars.json | tee ${WORKDIR}/terraform-out/terraform.log
