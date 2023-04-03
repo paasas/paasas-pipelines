@@ -306,6 +306,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										"src", "manifest-src")))
 								.params(taskParams)
 								.build()))
+				.onSuccess(teamsSuccessNotification())
+				.onFailure(teamsFailureNotification())
 				.build();
 	}
 

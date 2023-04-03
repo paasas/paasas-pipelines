@@ -60,6 +60,16 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      src: manifest-src
+			  on_success:
+			    put: teams
+			    params:
+			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
+			  on_failure:
+			    put: teams
+			    params:
+			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
 			- name: terraform-apply-dataset-1
 			  plan:
 			  - in_parallel:
