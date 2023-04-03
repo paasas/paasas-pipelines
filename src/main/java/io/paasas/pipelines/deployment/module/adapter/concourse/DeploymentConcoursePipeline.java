@@ -198,7 +198,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		var terraformBackendGcsBucket = configuration.getDeploymentTerraformBackendBucketSuffix() != null
 				&& !configuration.getDeploymentTerraformBackendBucketSuffix().isBlank()
 						? String.format(
-								"$s.%s",
+								"%s.%s",
 								manifest.getProject(),
 								configuration.getDeploymentTerraformBackendBucketSuffix())
 						: manifest.getProject();
