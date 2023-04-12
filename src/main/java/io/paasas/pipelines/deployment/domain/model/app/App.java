@@ -1,4 +1,4 @@
-package io.paasas.pipelines.deployment.domain.model;
+package io.paasas.pipelines.deployment.domain.model.app;
 
 import java.util.List;
 import java.util.Map;
@@ -11,10 +11,13 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder(toBuilder = true)
 public class App {
-	String name;
-	String image;
 	Map<String, String> env;
+	String image;
+	String name;
 	Integer port;
+	Resources resources;
 	Map<String, String> secretEnv;
+	String serviceAccount;
+	Probe startupProbe;
 	List<String> subdomains;
 }

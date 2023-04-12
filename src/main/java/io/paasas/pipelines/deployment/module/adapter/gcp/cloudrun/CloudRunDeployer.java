@@ -17,19 +17,22 @@ import com.google.cloud.run.v2.CreateServiceRequest;
 import com.google.cloud.run.v2.EnvVar;
 import com.google.cloud.run.v2.EnvVarSource;
 import com.google.cloud.run.v2.LocationName;
+import com.google.cloud.run.v2.Probe;
+import com.google.cloud.run.v2.ResourceRequirements;
 import com.google.cloud.run.v2.RevisionTemplate;
 import com.google.cloud.run.v2.SecretKeySelector;
 import com.google.cloud.run.v2.Service;
 import com.google.cloud.run.v2.ServiceName;
 import com.google.cloud.run.v2.ServicesClient;
 import com.google.cloud.run.v2.ServicesSettings;
+import com.google.cloud.run.v2.TCPSocketAction;
 import com.google.cloud.run.v2.UpdateServiceRequest;
 import com.google.cloud.secretmanager.v1.SecretName;
 
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.cli.domain.ports.backend.Deployer;
-import io.paasas.pipelines.deployment.domain.model.App;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
+import io.paasas.pipelines.deployment.domain.model.app.App;
 import io.paasas.pipelines.deployment.module.adapter.gcp.GcpCredentials;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -77,8 +80,8 @@ public class CloudRunDeployer implements Deployer {
 	@Override
 	public void deploy(DeploymentManifest deploymentManifest) {
 		try {
-			var apps = Optional.ofNullable(deploymentManifest.getApps()).orElseGet(()->List.of());
-			
+			var apps = Optional.ofNullable(deploymentManifest.getApps()).orElseGet(() -> List.of());
+
 			var client = ServicesClient.create(ServicesSettings.newBuilder()
 					.setCredentialsProvider(GcpCredentials.credentialProviders(configuration))
 					.build());
@@ -146,12 +149,37 @@ public class CloudRunDeployer implements Deployer {
 	}
 
 	private RevisionTemplate revisionTemplate(App app, DeploymentManifest deploymentManifest) {
-		return RevisionTemplate.newBuilder()
-				.addContainers(Container.newBuilder()
-						.setImage(app.getImage())
-						.addAllEnv(envVars(app))
-						.addAllEnv(secretRefEnvVars(app, deploymentManifest)))
-				.build();
+		var containerBuilder = Container.newBuilder()
+				.setImage(app.getImage())
+				.addAllEnv(envVars(app))
+				.addAllEnv(secretRefEnvVars(app, deploymentManifest));
+
+		if (app.getStartupProbe() != null) {
+			var probeBuilder = Probe.newBuilder()
+					.setFailureThreshold(app.getStartupProbe().getFailureThreshold())
+					.setPeriodSeconds(app.getStartupProbe().getPeriodSeconds())
+					.setTimeoutSeconds(app.getStartupProbe().getTimeoutSeconds());
+
+			if (app.getStartupProbe().getTcpSocket() != null) {
+				probeBuilder.setTcpSocket(TCPSocketAction.newBuilder()
+						.setPort(app.getStartupProbe().getTcpSocket().getPort())
+						.build());
+			}
+		}
+
+		if (app.getResources() != null && app.getResources().getLimits() != null) {
+			containerBuilder
+					.setResources(ResourceRequirements.newBuilder()
+							.putAllLimits(app.getResources().getLimits()));
+		}
+
+		var revisionTemplaterBuilder = RevisionTemplate.newBuilder().addContainers(containerBuilder);
+
+		if (app.getServiceAccount() != null) {
+			revisionTemplaterBuilder.setServiceAccount(app.getServiceAccount());
+		}
+
+		return revisionTemplaterBuilder.build();
 	}
 
 	List<EnvVar> secretRefEnvVars(App app, DeploymentManifest deploymentManifest) {
@@ -161,9 +189,13 @@ public class CloudRunDeployer implements Deployer {
 				.map(entry -> EnvVar
 						.newBuilder()
 						.setName(entry.getKey())
-						.setValueSource(EnvVarSource.newBuilder().setSecretKeyRef(SecretKeySelector.newBuilder()
-								.setSecret(SecretName.format(deploymentManifest.getProject(), entry.getValue()))
-								.build())
+						.setValueSource(EnvVarSource.newBuilder()
+								.setSecretKeyRef(SecretKeySelector.newBuilder()
+										.setSecret(SecretName.format(
+												deploymentManifest.getProject(),
+												entry.getValue()))
+										.setVersion("latest")
+										.build())
 								.build())
 						.build())
 				.toList();

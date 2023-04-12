@@ -1,9 +1,29 @@
 project: control-plane-377914
 region: northamerica-northeast1
 apps:
-- name: hello
+- name: demo-webapp
   image: us-docker.pkg.dev/cloudrun/container/hello
+  serviceAccount: cloud-run@control-plane-377914.iam.gserviceaccount.com
+  env:
+    MY_ENV_VAR: env-variable
+  secretEnv:
+    DOCUMENTAPI_CLIENT_ID: DOCUMENTAPI_CLIENT_ID
+    DOCUMENTAPI_CLIENT_SECRET: LOOKERSDK_BASE_URL
+    LOOKERSDK_CLIENT_ID: LOOKERSDK_CLIENT_ID
+    LOOKERSDK_CLIENT_SECRET: LOOKERSDK_CLIENT_SECRET
+    LOOKERSDK_EMBED_HOST: LOOKERSDK_EMBED_HOST
+    LOOKERSDK_EMBED_SECRET: LOOKERSDK_EMBED_SECRET
   port: 8080
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  startupProbe:
+    timeoutSeconds: 240
+    periodSeconds: 240
+    failureThreshold: 1
+    tcpSocket:
+      port: 8080
 terraform:
 - name: dataset-1
   git:
