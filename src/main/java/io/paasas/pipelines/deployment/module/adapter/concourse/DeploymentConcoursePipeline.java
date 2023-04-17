@@ -200,7 +200,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		if (manifest.getComposerDags() != null) {
 			manifest.getComposerDags().stream()
-					.map(this::updateComposerDags)
+					.map(dags -> updateComposerDags(dags, manifest))
 					.forEach(streamBuilder::add);
 		}
 
@@ -341,7 +341,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Job updateComposerDags(Dags dags) {
+	Job updateComposerDags(Dags dags, DeploymentManifest manifest) {
 		var dagsSrc = String.format("%s-dags-src", dags.getName());
 		return Job.builder()
 				.name(String.format("update-composer-dags-%s", dags.getName()))
@@ -356,7 +356,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.params(new TreeMap<>(Map.of(
 										"COMPOSER_DAGS_BUCKET_NAME", dags.getBucketName(),
 										"COMPOSER_DAGS_BUCKET_PATH", dags.getBucketPath(),
-										"COMPOSER_DAGS_PATH", dags.getGit().getPath())))
+										"COMPOSER_DAGS_PATH", dags.getGit().getPath(),
+										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+												"terraform@%s.iam.gserviceaccount.com",
+												manifest.getProject()))))
 								.build()))
 				.build();
 	}

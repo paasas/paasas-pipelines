@@ -14,7 +14,8 @@ inputs:
 params:
   COMPOSER_DAGS_BUCKET_NAME: 
   COMPOSER_DAGS_BUCKET_PATH: 
-  COMPOSER_DAGS_PATH:
+  COMPOSER_DAGS_PATH: 
+  GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
 
 run:
   path: ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.sh

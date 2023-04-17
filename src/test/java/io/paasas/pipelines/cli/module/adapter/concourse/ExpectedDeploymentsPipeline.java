@@ -150,6 +150,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      COMPOSER_DAGS_BUCKET_NAME: composer-1-bucket
 			      COMPOSER_DAGS_BUCKET_PATH: dags
 			      COMPOSER_DAGS_PATH: dags-path
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      dags-src: composer-1-dags-src
 			""";
