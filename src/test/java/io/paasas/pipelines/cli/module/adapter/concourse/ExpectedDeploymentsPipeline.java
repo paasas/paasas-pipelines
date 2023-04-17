@@ -145,7 +145,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    - get: composer-1-dags-src
 			      trigger: true
 			  - task: update-dags
-			    file: ci-src/.concourse/tasks/composer-update-dags/compose-update-dags.yaml
+			    file: ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml
 			    params:
 			      COMPOSER_DAGS_BUCKET_NAME: composer-1-bucket
 			      COMPOSER_DAGS_BUCKET_PATH: dags

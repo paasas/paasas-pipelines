@@ -351,7 +351,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								getWithTrigger(dagsSrc))),
 						Task.builder()
 								.task("update-dags")
-								.file("ci-src/.concourse/tasks/composer-update-dags/compose-update-dags.yaml")
+								.file("ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
 								.params(new TreeMap<>(Map.of(
 										"COMPOSER_DAGS_BUCKET_NAME", dags.getBucketName(),
