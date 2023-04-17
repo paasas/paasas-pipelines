@@ -17,4 +17,4 @@ params:
   COMPOSER_DAGS_PATH:
 
 run:
-  path: ci-src/.concourse/tasks/compose-update-dags/compose-update-dags.yaml
+  path: ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.sh
