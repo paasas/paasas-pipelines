@@ -22,7 +22,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     $GS_UTIL_FLAGS \
     rsync \
     -d \
-    -r \ 
+    -r \
     dags-src/$COMPOSER_DAGS_PATH \
     gs://$COMPOSER_DAGS_BUCKET_NAME/$COMPOSER_DAGS_BUCKET_PATH
 
