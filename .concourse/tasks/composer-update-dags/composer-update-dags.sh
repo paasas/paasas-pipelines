@@ -14,7 +14,7 @@ if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
   GS_UTIL_FLAGS="-i $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
 fi
 
-set -x
+mkdir -p /root/.config/gcloud
 
 echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
   gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
