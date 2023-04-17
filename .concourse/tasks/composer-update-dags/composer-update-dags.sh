@@ -15,7 +15,13 @@ if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
 fi
 
 set -x
- 
-gsutil \
-  $GS_UTIL_FLAGS \
-  rsync dags-src/$COMPOSER_DAGS_PATH gs://$COMPOSER_DAGS_BUCKET_NAME/$COMPOSER_DAGS_BUCKET_PATH
+
+echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
+  gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
+  gsutil $GS_UTIL_FLAGS rsync dags-src/$COMPOSER_DAGS_PATH gs://$COMPOSER_DAGS_BUCKET_NAME/$COMPOSER_DAGS_BUCKET_PATH
+
+EXIT_CODE=$?
+
+rm /root/.config/gcloud/application_default_credentials.json
+
+exit $EXIT_CODE
