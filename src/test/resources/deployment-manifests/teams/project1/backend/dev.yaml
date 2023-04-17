@@ -24,6 +24,14 @@ apps:
     failureThreshold: 1
     tcpSocket:
       port: 8080
+composerDags:
+- name: composer-1
+  bucketName: composer-1-bucket
+  bucketPath: dags
+  git:
+    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
+    branch: dags-branch
+    path: dags-path
 terraform:
 - name: dataset-1
   git:

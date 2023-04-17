@@ -46,6 +46,14 @@ public abstract class ExpectedDeploymentsPipeline {
 			    branch: my-branch
 			    paths:
 			    - dataset-2
+			- name: composer-1-dags-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
+			    private_key: ((git.ssh-private-key))
+			    branch: dags-branch
+			    paths:
+			    - dags-path
 			jobs:
 			- name: update-cloud-run
 			  plan:
@@ -130,5 +138,19 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
+			- name: update-composer-dags-composer-1
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: composer-1-dags-src
+			      trigger: true
+			  - task: update-dags
+			    file: ci-src/.concourse/tasks/composer-update-dags/compose-update-dags.yaml
+			    params:
+			      COMPOSER_DAGS_BUCKET_NAME: composer-1-bucket
+			      COMPOSER_DAGS_BUCKET_PATH: dags
+			      COMPOSER_DAGS_PATH: dags-path
+			    input_mapping:
+			      dags-src: composer-1-dags-src
 			""";
 }

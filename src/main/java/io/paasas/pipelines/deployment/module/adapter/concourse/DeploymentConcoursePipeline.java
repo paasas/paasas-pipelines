@@ -16,6 +16,7 @@ import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.deployment.domain.model.TerraformWatcher;
+import io.paasas.pipelines.deployment.domain.model.composer.Dags;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
 import io.paasas.pipelines.util.concourse.CommonResourceTypes;
 import io.paasas.pipelines.util.concourse.ConcoursePipeline;
@@ -52,12 +53,21 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		this.gcpConfiguration = gcpConfiguration;
 	}
 
-	private void assertArgument(String value, String property, TerraformWatcher bigQuery) {
+	private void assertArgument(String value, String property, Dags dags) {
+		if (value == null || value.isBlank()) {
+			throw new IllegalArgumentException(String.format(
+					"value of property %s of composer dags `%s` is undefined",
+					property,
+					dags.getName()));
+		}
+	}
+
+	private void assertArgument(String value, String property, TerraformWatcher terraformGroup) {
 		if (value == null || value.isBlank()) {
 			throw new IllegalArgumentException(String.format(
 					"value of property %s of terraform group `%s` is undefined",
 					property,
-					bigQuery.getName()));
+					terraformGroup.getName()));
 		}
 	}
 
@@ -86,10 +96,59 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.build());
 	}
 
+	Resource<?> composerDagsResource(Dags dags, int index) {
+		if (dags.getName() == null || dags.getName().isBlank()) {
+			throw new IllegalArgumentException(String.format(
+					"name is defined for cloud compoer dags at index %i",
+					index));
+		}
+
+		if (dags.getGit() == null) {
+			throw new IllegalArgumentException(String.format(
+					"git configuration for composer dags %s is undefined",
+					dags.getName()));
+		}
+
+		assertArgument(dags.getGit().getUri(), "git.uri", dags);
+
+		if ((dags.getGit().getBranch() == null || dags.getGit().getBranch().isBlank()) &&
+				(dags.getGit().getTag() == null || dags.getGit().getTag().isBlank())) {
+			throw new IllegalArgumentException(String.format(
+					"branch or tag filter needs to be defined for composer dags %s",
+					dags.getName()));
+		}
+
+		return Resource.builder()
+				.name(String.format("%s-dags-src", dags.getName()))
+				.type("git")
+				.source(GitSource.builder()
+						.uri(dags.getGit().getUri())
+						.privateKey("((git.ssh-private-key))")
+						.branch(dags.getGit().getBranch())
+						.paths(dags.getGit().getPath() != null ? List.of(dags.getGit().getPath()) : null)
+						.build())
+				.build();
+	}
+
 	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest, String deploymentManifestPath) {
-		return Stream.concat(
-				Stream.of(manifestResource(deploymentManifestPath)),
-				terraformResources(manifest));
+		var streamBuilder = Stream.<Resource<?>>builder()
+				.add(manifestResource(deploymentManifestPath));
+
+		if (manifest.getTerraform() != null) {
+			IntStream.range(0, manifest.getTerraform().size())
+					.boxed()
+					.map(index -> terraformResource(manifest.getTerraform().get(index), index))
+					.forEach(streamBuilder::add);
+		}
+
+		if (manifest.getComposerDags() != null) {
+			IntStream.range(0, manifest.getComposerDags().size())
+					.boxed()
+					.map(index -> composerDagsResource(manifest.getComposerDags().get(index), index))
+					.forEach(streamBuilder::add);
+		}
+
+		return streamBuilder.build();
 	}
 
 	private Get get(String resource) {
@@ -130,15 +189,22 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			DeploymentManifest manifest,
 			String target,
 			String deploymentManifestPath) {
-		return Stream
-				.concat(
-						Stream.of(updateCloudRunJob(manifest, deploymentManifestPath)),
-						manifest.getTerraform() != null
-								? manifest.getTerraform().stream()
-										.map(watcher -> terraformApplyJob(watcher, manifest, target,
-												deploymentManifestPath))
-								: Stream.of())
-				.toList();
+		var streamBuilder = Stream.<Job>builder()
+				.add(updateCloudRunJob(manifest, deploymentManifestPath));
+
+		if (manifest.getTerraform() != null) {
+			manifest.getTerraform().stream()
+					.map(watcher -> terraformApplyJob(watcher, manifest, target, deploymentManifestPath))
+					.forEach(streamBuilder::add);
+		}
+
+		if (manifest.getComposerDags() != null) {
+			manifest.getComposerDags().stream()
+					.map(this::updateComposerDags)
+					.forEach(streamBuilder::add);
+		}
+
+		return streamBuilder.build().toList();
 	}
 
 	Resource<?> manifestResource(String deploymentManifestPath) {
@@ -275,12 +341,24 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Stream<Resource<?>> terraformResources(DeploymentManifest manifest) {
-		return manifest.getTerraform() != null
-				? IntStream.range(0, manifest.getTerraform().size())
-						.boxed()
-						.map(index -> terraformResource(manifest.getTerraform().get(index), index))
-				: Stream.of();
+	Job updateComposerDags(Dags dags) {
+		var dagsSrc = String.format("%s-dags-src", dags.getName());
+		return Job.builder()
+				.name(String.format("update-composer-dags-%s", dags.getName()))
+				.plan(List.of(
+						inParallel(List.of(
+								get("ci-src"),
+								getWithTrigger(dagsSrc))),
+						Task.builder()
+								.task("update-dags")
+								.file("ci-src/.concourse/tasks/composer-update-dags/compose-update-dags.yaml")
+								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
+								.params(new TreeMap<>(Map.of(
+										"COMPOSER_DAGS_BUCKET_NAME", dags.getBucketName(),
+										"COMPOSER_DAGS_BUCKET_PATH", dags.getBucketPath(),
+										"COMPOSER_DAGS_PATH", dags.getGit().getPath())))
+								.build()))
+				.build();
 	}
 
 	Job updateCloudRunJob(DeploymentManifest manifest, String deploymentManifestPath) {
