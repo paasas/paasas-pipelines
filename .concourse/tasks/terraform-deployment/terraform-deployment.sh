@@ -47,6 +47,10 @@ provider "google" {
   project = "${GCP_PROJECT_ID}"
 }
 
+provider "google-beta" {
+  project = "${GCP_PROJECT_ID}"
+}
+
 terraform {
   backend "gcs" {}
 }
