@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [ -z "${GCP_PROJECT_ID} ]; then
+if [ -z "${GCP_PROJECT_ID}" ]; then
   echo "env variable GCP_PROJECT_ID is undefined"
   exit 1
 fi
 
-if [ -z "${FIREBASE_CONFIG} ]; then
+if [ -z "${FIREBASE_CONFIG}" ]; then
   echo "env variable FIREBASE_CONFIG is undefined"
   exit 1
 fi
