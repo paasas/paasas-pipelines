@@ -70,7 +70,7 @@ resources:
     password: ((registry.password))
 
 jobs:
-- name: paasas-firebase-vm
+- name: paasas-firebase
   plan:
   - get: paasas-firebase-image-src
     trigger: true
