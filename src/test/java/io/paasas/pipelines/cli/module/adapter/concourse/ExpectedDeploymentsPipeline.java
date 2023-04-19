@@ -199,7 +199,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			          }
 			        }
 			      GCP_PROJECT_ID: control-plane-377914
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      src: firebase-src
 			    output_mapping:
