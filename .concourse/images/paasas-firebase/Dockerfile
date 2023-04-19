@@ -1,3 +1,3 @@
-FROM node:18.15.0
+FROM harbor.paasas.io/public/ci:latest
 
 RUN curl -Lo /usr/local/bin/firebase https://firebase.tools/bin/linux/latest
