@@ -77,6 +77,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 	}
 
+	String blankIfNull(String value) {
+		return value != null ? value : "";
+	}
+
 	Stream<Resource<?>> commonResources() {
 		return Stream.of(
 				Resource.builder()
@@ -155,6 +159,47 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		return streamBuilder.build();
 	}
 
+	Job firebaseJob(DeploymentManifest manifest) {
+		var firebaseApp = manifest.getFirebaseApp();
+
+		if (firebaseApp == null) {
+			throw new IllegalArgumentException("firebase app is undefined");
+		}
+
+		var serviceAccount = String.format("terraform@%s.iam.gserviceaccount.com", manifest.getProject());
+
+		var mappings = new TreeMap<>(Map.of("src", "firebase-src"));
+
+		return Job.builder()
+				.name("deploy-firebase")
+				.plan(List.of(
+						inParallel(List.of(
+								get("ci-src"),
+								getWithTrigger("firebase-src"))),
+						Task.builder()
+								.task("npm-build")
+								.file("ci-src/.concourse/tasks/npm-build/npm-build.yaml")
+								.inputMapping(mappings)
+								.outputMapping(mappings)
+								.params(new TreeMap<>(Map.of(
+										"NPM_INSTALL_ARGS", blankIfNull(firebaseApp.getNpmInstallArgs()),
+										"NPM_COMMAND", blankIfNull(firebaseApp.getNpmCommand()),
+										"NPM_PATH", blankIfNull(firebaseApp.getGit().getPath()))))
+								.build(),
+						Task.builder()
+								.task("firebase-deploy")
+								.file("ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.yaml")
+								.inputMapping(mappings)
+								.outputMapping(mappings)
+								.params(new TreeMap<>(Map.of(
+										"GCP_PROJECT_ID", manifest.getProject(),
+										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", serviceAccount,
+										"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath()),
+										"FIREBASE_CONFIG", firebaseApp.getConfig())))
+								.build()))
+				.build();
+	}
+
 	Resource<?> firebaseResource(DeploymentManifest deploymentManifest) {
 		if (deploymentManifest.getFirebaseApp() == null) {
 			throw new IllegalArgumentException("firebase app is undefined");
@@ -187,50 +232,6 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								? List.of(deploymentManifest.getFirebaseApp().getGit().getPath())
 								: null)
 						.build())
-				.build();
-	}
-
-	String blankIfNull(String value) {
-		return value != null ? value : "";
-	}
-
-	Job firebaseJob(DeploymentManifest manifest) {
-		var firebaseApp = manifest.getFirebaseApp();
-
-		if (firebaseApp == null) {
-			throw new IllegalArgumentException("firebase app is undefined");
-		}
-
-		var mappings = new TreeMap<>(Map.of("src", "firebase-src"));
-		var deployParams = new TreeMap<>(Map.of(
-				"GCP_PROJECT_ID", manifest.getProject(),
-				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", blankIfNull(gcpConfiguration.getImpersonateServiceAccount()),
-				"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath()),
-				"FIREBASE_CONFIG", firebaseApp.getConfig()));
-
-		return Job.builder()
-				.name("deploy-firebase")
-				.plan(List.of(
-						inParallel(List.of(
-								get("ci-src"),
-								getWithTrigger("firebase-src"))),
-						Task.builder()
-								.task("npm-build")
-								.file("ci-src/.concourse/tasks/npm-build/npm-build.yaml")
-								.inputMapping(mappings)
-								.outputMapping(mappings)
-								.params(new TreeMap<>(Map.of(
-										"NPM_INSTALL_ARGS", blankIfNull(firebaseApp.getNpmInstallArgs()),
-										"NPM_COMMAND", blankIfNull(firebaseApp.getNpmCommand()),
-										"NPM_PATH", blankIfNull(firebaseApp.getGit().getPath()))))
-								.build(),
-						Task.builder()
-								.task("firebase-deploy")
-								.file("ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.yaml")
-								.inputMapping(mappings)
-								.outputMapping(mappings)
-								.params(deployParams)
-								.build()))
 				.build();
 	}
 
@@ -428,29 +429,6 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Job updateComposerDags(Dags dags, DeploymentManifest manifest) {
-		var dagsSrc = String.format("%s-dags-src", dags.getName());
-		return Job.builder()
-				.name(String.format("update-composer-dags-%s", dags.getName()))
-				.plan(List.of(
-						inParallel(List.of(
-								get("ci-src"),
-								getWithTrigger(dagsSrc))),
-						Task.builder()
-								.task("update-dags")
-								.file("ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
-								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
-								.params(new TreeMap<>(Map.of(
-										"COMPOSER_DAGS_BUCKET_NAME", dags.getBucketName(),
-										"COMPOSER_DAGS_BUCKET_PATH", dags.getBucketPath(),
-										"COMPOSER_DAGS_PATH", dags.getGit().getPath(),
-										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
-												"terraform@%s.iam.gserviceaccount.com",
-												manifest.getProject()))))
-								.build()))
-				.build();
-	}
-
 	Job updateCloudRunJob(DeploymentManifest manifest, String deploymentManifestPath) {
 		var taskParams = new TreeMap<>(Map.of(
 				"MANIFEST_PATH", deploymentManifestPath,
@@ -473,6 +451,29 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.build()))
 				.onSuccess(teamsSuccessNotification())
 				.onFailure(teamsFailureNotification())
+				.build();
+	}
+
+	Job updateComposerDags(Dags dags, DeploymentManifest manifest) {
+		var dagsSrc = String.format("%s-dags-src", dags.getName());
+		return Job.builder()
+				.name(String.format("update-composer-dags-%s", dags.getName()))
+				.plan(List.of(
+						inParallel(List.of(
+								get("ci-src"),
+								getWithTrigger(dagsSrc))),
+						Task.builder()
+								.task("update-dags")
+								.file("ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
+								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
+								.params(new TreeMap<>(Map.of(
+										"COMPOSER_DAGS_BUCKET_NAME", dags.getBucketName(),
+										"COMPOSER_DAGS_BUCKET_PATH", dags.getBucketPath(),
+										"COMPOSER_DAGS_PATH", dags.getGit().getPath(),
+										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+												"terraform@%s.iam.gserviceaccount.com",
+												manifest.getProject()))))
+								.build()))
 				.build();
 	}
 
