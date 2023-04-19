@@ -7,6 +7,14 @@ resources:
     branch: main
     paths:
     - .concourse/images/paasas-graal-vm
+- name: paasas-firebase-image-src
+  type: git
+  source: 
+    uri: git@github.com:paasas/paasas-pipelines.git
+    private_key: ((git.ssh-private-key))
+    branch: main
+    paths:
+    - .concourse/images/paasas-firebase
     
 - name: paasas-terraform-image-src
   type: git
@@ -40,6 +48,13 @@ resources:
     username: ((registry.username))
     password: ((registry.password))
 
+- name: paasas-firebase-image
+  type: docker-image
+  source:
+    repository: ((registry.publicUrl))/paasas-firebase
+    username: ((registry.username))
+    password: ((registry.password))
+
 - name: paasas-graal-vm-image
   type: docker-image
   source:
@@ -55,6 +70,17 @@ resources:
     password: ((registry.password))
 
 jobs:
+- name: paasas-firebase-vm
+  plan:
+  - get: paasas-firebase-image-src
+    trigger: true
+  - put: paasas-firebase-image
+    params: 
+      build: paasas-firebase-image-src/.concourse/images/paasas-firebase
+      tag_as_latest: true
+    get_params: 
+      skip_download: true
+
 - name: paasas-graal-vm
   plan:
   - get: paasas-graal-vm-image-src
