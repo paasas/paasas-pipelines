@@ -148,7 +148,89 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 					.forEach(streamBuilder::add);
 		}
 
+		if (manifest.getFirebaseApp() != null) {
+			streamBuilder.add(firebaseResource(manifest));
+		}
+
 		return streamBuilder.build();
+	}
+
+	Resource<?> firebaseResource(DeploymentManifest deploymentManifest) {
+		if (deploymentManifest.getFirebaseApp() == null) {
+			throw new IllegalArgumentException("firebase app is undefined");
+		}
+
+		if (deploymentManifest.getFirebaseApp().getGit() == null) {
+			throw new IllegalArgumentException("git configuration for firebase app is undefined");
+		}
+
+		if (deploymentManifest.getFirebaseApp().getGit().getUri() == null ||
+				deploymentManifest.getFirebaseApp().getGit().getUri().isBlank()) {
+			throw new IllegalArgumentException("property git.uri of firebase app is undefined");
+		}
+
+		if ((deploymentManifest.getFirebaseApp().getGit().getBranch() == null ||
+				deploymentManifest.getFirebaseApp().getGit().getBranch().isBlank()) &&
+				(deploymentManifest.getFirebaseApp().getGit().getTag() == null ||
+						deploymentManifest.getFirebaseApp().getGit().getTag().isBlank())) {
+			throw new IllegalArgumentException("branch or tag filter needs to be defined for firebase app");
+		}
+
+		return Resource.builder()
+				.name("firebase-src")
+				.type("git")
+				.source(GitSource.builder()
+						.uri(deploymentManifest.getFirebaseApp().getGit().getUri())
+						.privateKey("((git.ssh-private-key))")
+						.branch(deploymentManifest.getFirebaseApp().getGit().getBranch())
+						.paths(deploymentManifest.getFirebaseApp().getGit().getPath() != null
+								? List.of(deploymentManifest.getFirebaseApp().getGit().getPath())
+								: null)
+						.build())
+				.build();
+	}
+
+	String blankIfNull(String value) {
+		return value != null ? value : "";
+	}
+
+	Job firebaseJob(DeploymentManifest manifest) {
+		var firebaseApp = manifest.getFirebaseApp();
+
+		if (firebaseApp == null) {
+			throw new IllegalArgumentException("firebase app is undefined");
+		}
+
+		var mappings = new TreeMap<>(Map.of("src", "firebase-src"));
+		var deployParams = new TreeMap<>(Map.of(
+				"GCP_PROJECT_ID", manifest.getProject(),
+				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", blankIfNull(gcpConfiguration.getImpersonateServiceAccount()),
+				"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath())));
+
+		return Job.builder()
+				.name("deploy-firebase")
+				.plan(List.of(
+						inParallel(List.of(
+								get("ci-src"),
+								getWithTrigger("firebase-src"))),
+						Task.builder()
+								.task("npm-build")
+								.file("ci-src/.concourse/tasks/npm-build/npm-build.yaml")
+								.inputMapping(mappings)
+								.outputMapping(mappings)
+								.params(new TreeMap<>(Map.of(
+										"NPM_INSTALL_ARGS", blankIfNull(firebaseApp.getNpmInstallArgs()),
+										"NPM_COMMAND", blankIfNull(firebaseApp.getNpmCommand()),
+										"NPM_PATH", blankIfNull(firebaseApp.getGit().getPath()))))
+								.build(),
+						Task.builder()
+								.task("firebase-deploy")
+								.file("ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.yaml")
+								.inputMapping(mappings)
+								.outputMapping(mappings)
+								.params(deployParams)
+								.build()))
+				.build();
 	}
 
 	private Get get(String resource) {
@@ -202,6 +284,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			manifest.getComposerDags().stream()
 					.map(dags -> updateComposerDags(dags, manifest))
 					.forEach(streamBuilder::add);
+		}
+
+		if (manifest.getFirebaseApp() != null) {
+			streamBuilder.add(firebaseJob(manifest));
 		}
 
 		return streamBuilder.build().toList();
@@ -374,12 +460,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		return Job.builder()
 				.name("update-cloud-run")
 				.plan(List.of(
-						InParallel
-								.builder()
-								.inParallel(List.of(
-										get("ci-src"),
-										getWithTrigger("manifest-src")))
-								.build(),
+						inParallel(List.of(
+								get("ci-src"),
+								getWithTrigger("manifest-src"))),
 						Task.builder()
 								.task("update-cloud-run")
 								.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")

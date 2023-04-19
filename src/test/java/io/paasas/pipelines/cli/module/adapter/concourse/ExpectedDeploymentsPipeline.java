@@ -54,6 +54,14 @@ public abstract class ExpectedDeploymentsPipeline {
 			    branch: dags-branch
 			    paths:
 			    - dags-path
+			- name: firebase-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
+			    private_key: ((git.ssh-private-key))
+			    branch: firebase-app
+			    paths:
+			    - firebase-app
 			jobs:
 			- name: update-cloud-run
 			  plan:
@@ -153,5 +161,31 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      dags-src: composer-1-dags-src
-			""";
+			- name: deploy-firebase
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: firebase-src
+			      trigger: true
+			  - task: npm-build
+			    file: ci-src/.concourse/tasks/npm-build/npm-build.yaml
+			    params:
+			      NPM_COMMAND: run build:dev
+			      NPM_INSTALL_ARGS: --legacy-peer-deps
+			      NPM_PATH: firebase-app
+			    input_mapping:
+			      src: firebase-src
+			    output_mapping:
+			      src: firebase-src
+			  - task: firebase-deploy
+			    file: ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.yaml
+			    params:
+			      FIREBASE_APP_PATH: firebase-app
+			      GCP_PROJECT_ID: control-plane-377914
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
+			    input_mapping:
+			      src: firebase-src
+			    output_mapping:
+			      src: firebase-src
+			      """;
 }

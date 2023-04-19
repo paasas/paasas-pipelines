@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.paasas.pipelines.deployment.domain.model.app.App;
 import io.paasas.pipelines.deployment.domain.model.composer.Dags;
+import io.paasas.pipelines.deployment.domain.model.firebase.FirebaseAppDefinition;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -14,8 +15,9 @@ import lombok.extern.jackson.Jacksonized;
 public class DeploymentManifest {
 	List<App> apps;
 	List<Dags> composerDags;
+	FirebaseAppDefinition firebaseApp;
 	String project;
 	String region;
 	List<TerraformWatcher> terraform;
-	
+
 }

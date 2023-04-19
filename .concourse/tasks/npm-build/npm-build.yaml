@@ -1,0 +1,23 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: node
+    tag: 18.15.0
+
+inputs:
+- name: ci-src
+- name: src
+
+outputs:
+- name: src
+
+params: 
+  NPM_COMMAND: run build
+  NPM_INSTALL_ARGS: 
+  NPM_PATH: 
+
+run:
+  path: ci-src/.concourse/tasks/npm-build/npm-build.sh
