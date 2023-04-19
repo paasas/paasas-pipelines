@@ -11,7 +11,7 @@ if [ -z "${FIREBASE_CONFIG}" ]; then
 fi
 
 if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
-  GCLOUD_FLAGS="-i $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
+  GCLOUD_FLAGS="--impersonate-service-account $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
 fi
 
 mkdir -p /root/.config/gcloud
