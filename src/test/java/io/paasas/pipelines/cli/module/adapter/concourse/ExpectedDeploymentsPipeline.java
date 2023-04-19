@@ -181,6 +181,23 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.yaml
 			    params:
 			      FIREBASE_APP_PATH: firebase-app
+			      FIREBASE_CONFIG: |
+			        {
+			          "hosting": {
+			            "public": "out",
+			            "ignore": [
+			              "firebase.json",
+			              "**/.*",
+			              "**/node_modules/**"
+			            ],
+			            "rewrites": [
+			              {
+			                "source": "**",
+			                "destination": "/index.html"
+			              }
+			            ]
+			          }
+			        }
 			      GCP_PROJECT_ID: control-plane-377914
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: service-account@yo.com
 			    input_mapping:

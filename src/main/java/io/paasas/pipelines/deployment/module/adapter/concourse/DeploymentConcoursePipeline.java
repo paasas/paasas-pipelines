@@ -205,7 +205,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		var deployParams = new TreeMap<>(Map.of(
 				"GCP_PROJECT_ID", manifest.getProject(),
 				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", blankIfNull(gcpConfiguration.getImpersonateServiceAccount()),
-				"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath())));
+				"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath()),
+				"FIREBASE_CONFIG", firebaseApp.getConfig()));
 
 		return Job.builder()
 				.name("deploy-firebase")
