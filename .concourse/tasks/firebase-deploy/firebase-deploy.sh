@@ -26,6 +26,7 @@ EOM
 
 
 echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
+  set -x && \
   gcloud auth activate-service-account ${GCLOUD_FLAGS} --key-file=/root/.config/gcloud/application_default_credentials.json && \
   pushd src/${FIREBASE_APP_PATH} && \
   echo "$FIREBASE_CONFIG" > firebase.json && \
