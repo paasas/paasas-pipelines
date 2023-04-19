@@ -1,5 +1,3 @@
 FROM node:18.15.0
 
-user root
-
-RUN curl -sL https://firebase.tools | bash
+RUN curl -Lo /usr/local/bin/firebase https://firebase.tools/bin/linux/latest
