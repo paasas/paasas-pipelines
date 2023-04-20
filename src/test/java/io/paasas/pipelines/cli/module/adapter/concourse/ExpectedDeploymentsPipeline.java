@@ -170,7 +170,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - task: npm-build
 			    file: ci-src/.concourse/tasks/npm-build/npm-build.yaml
 			    params:
-			      NPM_COMMAND: run build:dev
+			      NPM_COMMAND: env-cmd -f .env npm run build
 			      NPM_ENV: |
 			        my-test-env: my-test-value
 			      NPM_INSTALL_ARGS: --legacy-peer-deps
