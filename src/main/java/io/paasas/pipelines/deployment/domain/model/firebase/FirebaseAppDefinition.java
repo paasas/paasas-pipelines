@@ -9,7 +9,6 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder(toBuilder = true)
 public class FirebaseAppDefinition {
-	String config;
 	GitWatcher git;
 	String npmInstallArgs;
 	String npmCommand;

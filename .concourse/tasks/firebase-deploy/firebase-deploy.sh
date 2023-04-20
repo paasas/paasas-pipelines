@@ -5,11 +5,6 @@ if [ -z "${GCP_PROJECT_ID}" ]; then
   exit 1
 fi
 
-if [ -z "${FIREBASE_CONFIG}" ]; then
-  echo "env variable FIREBASE_CONFIG is undefined"
-  exit 1
-fi
-
 if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
   GCLOUD_FLAGS="--impersonate-service-account=$GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
 fi
@@ -29,7 +24,6 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
   set -x && \
   gcloud auth activate-service-account ${GCLOUD_FLAGS} --key-file=/root/.config/gcloud/application_default_credentials.json && \
   pushd src/${FIREBASE_APP_PATH} && \
-  echo "$FIREBASE_CONFIG" > firebase.json && \
   echo "$FIREBASERC" > .firebaserc && \
   firebase \
       --token $(gcloud auth print-access-token $GCLOUD_FLAGS) \
