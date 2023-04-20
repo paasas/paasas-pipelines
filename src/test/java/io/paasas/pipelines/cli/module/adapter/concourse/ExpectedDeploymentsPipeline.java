@@ -171,6 +171,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/npm-build/npm-build.yaml
 			    params:
 			      NPM_COMMAND: run build:dev
+			      NPM_ENV: |
+			        my-test-env: my-test-value
 			      NPM_INSTALL_ARGS: --legacy-peer-deps
 			      NPM_PATH: firebase-app
 			    input_mapping:

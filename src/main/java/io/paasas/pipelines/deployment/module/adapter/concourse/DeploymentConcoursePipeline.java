@@ -165,6 +165,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		if (firebaseApp == null) {
 			throw new IllegalArgumentException("firebase app is undefined");
 		}
+		if (firebaseApp.getNpm() == null) {
+			throw new IllegalArgumentException("firebase app npm config is undefined");
+		}
 
 		var serviceAccount = String.format("terraform@%s.iam.gserviceaccount.com", manifest.getProject());
 
@@ -182,8 +185,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.inputMapping(mappings)
 								.outputMapping(mappings)
 								.params(new TreeMap<>(Map.of(
-										"NPM_INSTALL_ARGS", blankIfNull(firebaseApp.getNpmInstallArgs()),
-										"NPM_COMMAND", blankIfNull(firebaseApp.getNpmCommand()),
+										"NPM_INSTALL_ARGS", blankIfNull(firebaseApp.getNpm().getInstallArgs()),
+										"NPM_COMMAND", blankIfNull(firebaseApp.getNpm().getCommand()),
+										"NPM_ENV", blankIfNull(firebaseApp.getNpm().getEnv()),
 										"NPM_PATH", blankIfNull(firebaseApp.getGit().getPath()))))
 								.build(),
 						Task.builder()

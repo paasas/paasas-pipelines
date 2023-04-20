@@ -37,8 +37,11 @@ firebaseApp:
     uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
     path: firebase-app
     branch: firebase-app
-  npmCommand: run build:dev
-  npmInstallArgs: --legacy-peer-deps
+  npm:
+    command: env-cmd -f .env npm run build
+    installArgs: --legacy-peer-deps
+    env: |
+      my-test-env: my-test-value
 terraform:
 - name: dataset-1
   git:
