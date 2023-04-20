@@ -8,4 +8,4 @@ fi
 pushd src/${NPM_PATH} && \
   echo "$NPM_ENV" > .env && \
   npm install ${NPM_INSTALL_ARGS} && \
-  npm ${NPM_COMMAND}
+  npx ${NPM_COMMAND}
