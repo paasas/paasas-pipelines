@@ -33,6 +33,18 @@ composerDags:
     uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
     path: dags-path
 firebaseApp:
+  config: |
+    {
+      "hosting": {
+        "headers": [{
+          "source": "*",
+          "headers": [{
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }]
+        }]
+      }
+    }
   git:
     uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
     path: firebase-app

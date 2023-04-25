@@ -15,7 +15,8 @@ params:
   GCP_PROJECT_ID: 
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
   GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
-  FIREBASE_APP_PATH: 
+  FIREBASE_APP_PATH:  
+  FIREBASE_CONFIG: 
 
 run:
   path: ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.sh
