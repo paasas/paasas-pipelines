@@ -56,7 +56,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     $EXTERNAL_IP/32 \
     $GCLOUD_FLAGS
 
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
   rm /root/.config/gcloud/application_default_credentials.json
   
   exit 1
