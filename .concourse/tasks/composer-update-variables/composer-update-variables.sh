@@ -60,7 +60,7 @@ if [ $? -ne 0 ]; then
   rm /root/.config/gcloud/application_default_credentials.json
   
   exit 1
-if
+fi
 
 gcloud \
   composer \
