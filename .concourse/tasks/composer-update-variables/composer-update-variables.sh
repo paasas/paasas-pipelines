@@ -41,13 +41,15 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     composer-variables-src/$COMPOSER_VARIABLES_PATH \
     gs://$COMPOSER_DAGS_BUCKET_NAME/composer-variables.json && \
   EXTERNAL_IP=$(dig @resolver4.opendns.com myip.opendns.com +short) && \
-  CONTAINER_CLUSTER_NAME=$(basename $(gcloud composer environments describe $COMPOSER_ENVIRONMENT_NAME --location=$COMPOSER_LOCATION --project=${COMPOSER_PROJECT} $GCLOUD_FLAGS --format="value(config.gkeCluster)")) &&
+  CONTAINER_CLUSTER_FULLNAME=$(gcloud composer environments describe $COMPOSER_ENVIRONMENT_NAME --location=$COMPOSER_LOCATION --project=${COMPOSER_PROJECT} $GCLOUD_FLAGS --format="value(config.gkeCluster)") &&
+  CONTAINER_CLUSTER_NAME=$(basename $CONTAINER_CLUSTER_FULLNAME) && \
+  CONTAINER_CLUSTER_LOCATION=$(dirname $CONTAINER_CLUSTER_FULLNAME | xargs dirname | xargs basename) && \
   gcloud \
     container \
     clusters \
     update \
     $CONTAINER_CLUSTER_NAME \
-    --region=$COMPOSER_LOCATION \
+    --location=$CONTAINER_CLUSTER_LOCATION \
     --project=${COMPOSER_PROJECT} \
     --enable-master-authorized-networks \
     --master-authorized-networks \
@@ -77,8 +79,8 @@ gcloud \
   clusters \
   update \
   $CONTAINER_CLUSTER_NAME \
-  --project=${COMPOSER_PROJECT} \ 
-  --region=$COMPOSER_LOCATION \
+  --project=${COMPOSER_PROJECT} \
+  --location=$CONTAINER_CLUSTER_LOCATION \
   --no-enable-master-authorized-networks \
   $GCLOUD_FLAGS
 
