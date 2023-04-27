@@ -54,6 +54,14 @@ public abstract class ExpectedDeploymentsPipeline {
 			    branch: dags-branch
 			    paths:
 			    - dags-path
+			- name: composer-1-variables-src
+			  type: git
+			  source:
+			    uri: git@github.com:daniellavoie/deployment-as-code-demo.git
+			    private_key: ((git.ssh-private-key))
+			    branch: main
+			    paths:
+			    - {{manifest-dir}}/dev-composer-variables/composer-1.json
 			- name: firebase-src
 			  type: git
 			  source:
@@ -161,6 +169,22 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      dags-src: composer-1-dags-src
+			- name: update-composer-variables-composer-1
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: composer-1-variables-src
+			      trigger: true
+			  - task: update-variables
+			    file: ci-src/.concourse/tasks/composer-update-variables/composer-update-variables.yaml
+			    params:
+			      COMPOSER_DAGS_BUCKET_NAME: composer-1-bucket
+			      COMPOSER_DAGS_BUCKET_PATH: dags
+			      COMPOSER_ENVIRONMENT_NAME: composer-1
+			      COMPOSER_LOCATION: us-east1
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			    input_mapping:
+			      dags-src: composer-1-variables-src
 			- name: deploy-firebase
 			  plan:
 			  - in_parallel:

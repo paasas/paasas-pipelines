@@ -8,9 +8,6 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder(toBuilder = true)
-public class Dags {
-	String bucketName;
-	String bucketPath;
+public class ComposerDags {
 	GitWatcher git;
-	String name;
 }

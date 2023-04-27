@@ -1,5 +1,6 @@
 package io.paasas.pipelines.deployment.module.adapter.concourse;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,7 +17,7 @@ import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.deployment.domain.model.TerraformWatcher;
-import io.paasas.pipelines.deployment.domain.model.composer.Dags;
+import io.paasas.pipelines.deployment.domain.model.composer.ComposerConfig;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
 import io.paasas.pipelines.util.concourse.CommonResourceTypes;
 import io.paasas.pipelines.util.concourse.ConcoursePipeline;
@@ -53,12 +54,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		this.gcpConfiguration = gcpConfiguration;
 	}
 
-	private void assertArgument(String value, String property, Dags dags) {
+	private void assertArgument(String value, String property, ComposerConfig composerConfig) {
 		if (value == null || value.isBlank()) {
 			throw new IllegalArgumentException(String.format(
 					"value of property %s of composer dags `%s` is undefined",
 					property,
-					dags.getName()));
+					composerConfig.getName()));
 		}
 	}
 
@@ -100,36 +101,95 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.build());
 	}
 
-	Resource<?> composerDagsResource(Dags dags, int index) {
-		if (dags.getName() == null || dags.getName().isBlank()) {
+	Resource<?> composerDagsResource(ComposerConfig composerConfig, int index) {
+		if (composerConfig.getDags() == null) {
+			throw new IllegalArgumentException(String.format(
+					"dags configuration for composer %s is undefined",
+					composerConfig.getName()));
+		}
+
+		if (composerConfig.getDags().getGit() == null) {
+			throw new IllegalArgumentException(String.format(
+					"git configuration for composer dags %s is undefined",
+					composerConfig.getName()));
+		}
+
+		assertArgument(composerConfig.getDags().getGit().getUri(), "git.uri", composerConfig);
+
+		if ((composerConfig.getDags().getGit().getBranch() == null
+				|| composerConfig.getDags().getGit().getBranch().isBlank()) &&
+				(composerConfig.getDags().getGit().getTag() == null
+						|| composerConfig.getDags().getGit().getTag().isBlank())) {
+			throw new IllegalArgumentException(String.format(
+					"branch or tag filter needs to be defined for composer dags %s",
+					composerConfig.getName()));
+		}
+
+		return Resource.builder()
+				.name(String.format("%s-dags-src", composerConfig.getName()))
+				.type("git")
+				.source(GitSource.builder()
+						.uri(composerConfig.getDags().getGit().getUri())
+						.privateKey("((git.ssh-private-key))")
+						.branch(composerConfig.getDags().getGit().getBranch())
+						.paths(composerConfig.getDags().getGit().getPath() != null
+								? List.of(composerConfig.getDags().getGit().getPath())
+								: null)
+						.build())
+				.build();
+	}
+
+	Stream<Job> composerJobs(ComposerConfig composerConfig, DeploymentManifest manifest) {
+		return Stream.of(
+				updateComposerDags(composerConfig, manifest),
+				updateComposerVariables(composerConfig, manifest));
+	}
+
+	Stream<Resource<?>> composerResources(
+			String deploymentManifestDirectory,
+			String deploymentName,
+			ComposerConfig composerConfig,
+			int index,
+			String deploymentManifestPath) {
+		if (composerConfig.getName() == null || composerConfig.getName().isBlank()) {
 			throw new IllegalArgumentException(String.format(
 					"name is defined for cloud compoer dags at index %i",
 					index));
 		}
 
-		if (dags.getGit() == null) {
+		if (composerConfig.getLocation() == null || composerConfig.getLocation().isBlank()) {
 			throw new IllegalArgumentException(String.format(
-					"git configuration for composer dags %s is undefined",
-					dags.getName()));
+					"location for cloud compoer %s is undefined",
+					composerConfig.getName()));
 		}
 
-		assertArgument(dags.getGit().getUri(), "git.uri", dags);
+		return Stream.of(
+				composerDagsResource(composerConfig, index),
+				composerVariablesResource(
+						deploymentManifestDirectory,
+						deploymentName,
+						composerConfig));
+	}
 
-		if ((dags.getGit().getBranch() == null || dags.getGit().getBranch().isBlank()) &&
-				(dags.getGit().getTag() == null || dags.getGit().getTag().isBlank())) {
-			throw new IllegalArgumentException(String.format(
-					"branch or tag filter needs to be defined for composer dags %s",
-					dags.getName()));
-		}
-
+	Resource<?> composerVariablesResource(
+			String deploymentManifestDirectory,
+			String deploymentName,
+			ComposerConfig composerConfig) {
 		return Resource.builder()
-				.name(String.format("%s-dags-src", dags.getName()))
+				.name(String.format("%s-variables-src", composerConfig.getName()))
 				.type("git")
 				.source(GitSource.builder()
-						.uri(dags.getGit().getUri())
+						.branch(configuration.getDeploymentSrcBranch() != null
+								&& !configuration.getDeploymentSrcBranch().isBlank()
+										? configuration.getDeploymentSrcBranch()
+										: null)
+						.paths(List.of(String.format(
+								"%s/%s-composer-variables/%s.json",
+								deploymentManifestDirectory,
+								deploymentName,
+								composerConfig.getName())))
 						.privateKey("((git.ssh-private-key))")
-						.branch(dags.getGit().getBranch())
-						.paths(dags.getGit().getPath() != null ? List.of(dags.getGit().getPath()) : null)
+						.uri(configuration.getDeploymentSrcUri())
 						.build())
 				.build();
 	}
@@ -145,10 +205,19 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 					.forEach(streamBuilder::add);
 		}
 
-		if (manifest.getComposerDags() != null) {
-			IntStream.range(0, manifest.getComposerDags().size())
+		if (manifest.getComposer() != null) {
+			var path = Path.of(deploymentManifestPath);
+			var deploymentManifestDirectory = path.getParent().toString();
+			var deploymentName = path.getFileName().toString().split("\\.")[0];
+
+			IntStream.range(0, manifest.getComposer().size())
 					.boxed()
-					.map(index -> composerDagsResource(manifest.getComposerDags().get(index), index))
+					.flatMap(index -> composerResources(
+							deploymentManifestDirectory,
+							deploymentName,
+							manifest.getComposer().get(index),
+							index,
+							deploymentManifestPath))
 					.forEach(streamBuilder::add);
 		}
 
@@ -286,9 +355,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 					.forEach(streamBuilder::add);
 		}
 
-		if (manifest.getComposerDags() != null) {
-			manifest.getComposerDags().stream()
-					.map(dags -> updateComposerDags(dags, manifest))
+		if (manifest.getComposer() != null) {
+			manifest.getComposer().stream()
+					.flatMap(dags -> composerJobs(dags, manifest))
 					.forEach(streamBuilder::add);
 		}
 
@@ -458,10 +527,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Job updateComposerDags(Dags dags, DeploymentManifest manifest) {
-		var dagsSrc = String.format("%s-dags-src", dags.getName());
+	Job updateComposerDags(ComposerConfig composerConfig, DeploymentManifest manifest) {
+		var dagsSrc = String.format("%s-dags-src", composerConfig.getName());
 		return Job.builder()
-				.name(String.format("update-composer-dags-%s", dags.getName()))
+				.name(String.format("update-composer-dags-%s", composerConfig.getName()))
 				.plan(List.of(
 						inParallel(List.of(
 								get("ci-src"),
@@ -471,9 +540,34 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.file("ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
 								.params(new TreeMap<>(Map.of(
-										"COMPOSER_DAGS_BUCKET_NAME", dags.getBucketName(),
-										"COMPOSER_DAGS_BUCKET_PATH", dags.getBucketPath(),
-										"COMPOSER_DAGS_PATH", dags.getGit().getPath(),
+										"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),
+										"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),
+										"COMPOSER_DAGS_PATH", composerConfig
+												.getDags().getGit().getPath(),
+										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+												"terraform@%s.iam.gserviceaccount.com",
+												manifest.getProject()))))
+								.build()))
+				.build();
+	}
+
+	Job updateComposerVariables(ComposerConfig composerConfig, DeploymentManifest manifest) {
+		var dagsSrc = String.format("%s-variables-src", composerConfig.getName());
+		return Job.builder()
+				.name(String.format("update-composer-variables-%s", composerConfig.getName()))
+				.plan(List.of(
+						inParallel(List.of(
+								get("ci-src"),
+								getWithTrigger(dagsSrc))),
+						Task.builder()
+								.task("update-variables")
+								.file("ci-src/.concourse/tasks/composer-update-variables/composer-update-variables.yaml")
+								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
+								.params(new TreeMap<>(Map.of(
+										"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),
+										"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),
+										"COMPOSER_ENVIRONMENT_NAME", composerConfig.getName(),
+										"COMPOSER_LOCATION", composerConfig.getLocation(),
 										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
 												"terraform@%s.iam.gserviceaccount.com",
 												manifest.getProject()))))

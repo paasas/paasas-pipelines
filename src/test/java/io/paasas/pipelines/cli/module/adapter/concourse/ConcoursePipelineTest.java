@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class ConcoursePipelineTest {
+	static final String DEPLOYMENT_NAME = "dev";
+	
 	static final Path DIRECTORY = Path.of(
 			System.getProperty("java.io.tmpdir"),
 			UUID.randomUUID().toString());

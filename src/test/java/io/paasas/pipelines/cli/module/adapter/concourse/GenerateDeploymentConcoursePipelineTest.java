@@ -57,7 +57,8 @@ public class GenerateDeploymentConcoursePipelineTest extends ConcoursePipelineTe
 
 	@Test
 	public void assertValidOutputArguments() throws IOException {
-		var manifestPath = Path.of(DIRECTORY.toString(), "/project1/backend/dev.yaml").toString();
+		var manifestDir = Path.of(DIRECTORY.toString(), "/project1/backend").toString();
+		var manifestPath = Path.of(manifestDir, DEPLOYMENT_NAME + ".yaml").toString();
 		command().execute(
 				"project1-backend-dev",
 				manifestPath,
@@ -65,9 +66,11 @@ public class GenerateDeploymentConcoursePipelineTest extends ConcoursePipelineTe
 
 		Assertions.assertEquals("", ERROR_OUTPUT.getOutput());
 
+		// /var/folders/s6/qy1ckdwn26scltx5j4_0__xr0000gn/T/fe2a785e-97a4-45aa-add5-f9b44d5ec400/project1/backend/dev-composer-variables/composer-1.json
 		Assertions.assertEquals(
 				ExpectedDeploymentsPipeline.PIPELINE
-				.replace("{{manifest-path}}", manifestPath),
+						.replace("{{manifest-path}}", manifestPath)
+						.replace("{{manifest-dir}}", manifestDir),
 				new String(Files.readAllBytes(Path.of(OUTPUT_FILE))));
 	}
 
