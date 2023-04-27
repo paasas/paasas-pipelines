@@ -182,6 +182,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      COMPOSER_DAGS_BUCKET_PATH: dags
 			      COMPOSER_ENVIRONMENT_NAME: composer-1
 			      COMPOSER_LOCATION: us-east1
+			      COMPOSER_VARIABLES_PATH: {{manifest-dir}}/dev-composer-variables/composer-1.json
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      dags-src: composer-1-variables-src

@@ -139,15 +139,16 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Stream<Job> composerJobs(ComposerConfig composerConfig, DeploymentManifest manifest) {
+	Stream<Job> composerJobs(
+			ComposerConfig composerConfig,
+			DeploymentManifest manifest,
+			String deploymentManifestPath) {
 		return Stream.of(
-				updateComposerDags(composerConfig, manifest),
-				updateComposerVariables(composerConfig, manifest));
+				updateComposerDagsJob(composerConfig, manifest),
+				updateComposerVariablesJob(composerConfig, manifest, deploymentManifestPath));
 	}
 
 	Stream<Resource<?>> composerResources(
-			String deploymentManifestDirectory,
-			String deploymentName,
 			ComposerConfig composerConfig,
 			int index,
 			String deploymentManifestPath) {
@@ -166,15 +167,13 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		return Stream.of(
 				composerDagsResource(composerConfig, index),
 				composerVariablesResource(
-						deploymentManifestDirectory,
-						deploymentName,
-						composerConfig));
+						composerConfig,
+						deploymentManifestPath));
 	}
 
 	Resource<?> composerVariablesResource(
-			String deploymentManifestDirectory,
-			String deploymentName,
-			ComposerConfig composerConfig) {
+			ComposerConfig composerConfig,
+			String deploymentManifestPath) {
 		return Resource.builder()
 				.name(String.format("%s-variables-src", composerConfig.getName()))
 				.type("git")
@@ -183,11 +182,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								&& !configuration.getDeploymentSrcBranch().isBlank()
 										? configuration.getDeploymentSrcBranch()
 										: null)
-						.paths(List.of(String.format(
-								"%s/%s-composer-variables/%s.json",
-								deploymentManifestDirectory,
-								deploymentName,
-								composerConfig.getName())))
+						.paths(List.of(composerVariablesPath(composerConfig, deploymentManifestPath)))
 						.privateKey("((git.ssh-private-key))")
 						.uri(configuration.getDeploymentSrcUri())
 						.build())
@@ -206,15 +201,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 
 		if (manifest.getComposer() != null) {
-			var path = Path.of(deploymentManifestPath);
-			var deploymentManifestDirectory = path.getParent().toString();
-			var deploymentName = path.getFileName().toString().split("\\.")[0];
-
 			IntStream.range(0, manifest.getComposer().size())
 					.boxed()
 					.flatMap(index -> composerResources(
-							deploymentManifestDirectory,
-							deploymentName,
 							manifest.getComposer().get(index),
 							index,
 							deploymentManifestPath))
@@ -226,6 +215,20 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 
 		return streamBuilder.build();
+	}
+
+	String composerVariablesPath(
+			ComposerConfig composerConfig,
+			String manifestPath) {
+		var path = Path.of(manifestPath);
+		var manifestDirectory = path.getParent().toString();
+		var deploymentName = path.getFileName().toString().split("\\.")[0];
+
+		return String.format(
+				"%s/%s-composer-variables/%s.json",
+				manifestDirectory,
+				deploymentName,
+				composerConfig.getName());
 	}
 
 	Job firebaseJob(DeploymentManifest manifest) {
@@ -357,7 +360,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		if (manifest.getComposer() != null) {
 			manifest.getComposer().stream()
-					.flatMap(dags -> composerJobs(dags, manifest))
+					.flatMap(dags -> composerJobs(dags, manifest, deploymentManifestPath))
 					.forEach(streamBuilder::add);
 		}
 
@@ -527,7 +530,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Job updateComposerDags(ComposerConfig composerConfig, DeploymentManifest manifest) {
+	Job updateComposerDagsJob(ComposerConfig composerConfig, DeploymentManifest manifest) {
 		var dagsSrc = String.format("%s-dags-src", composerConfig.getName());
 		return Job.builder()
 				.name(String.format("update-composer-dags-%s", composerConfig.getName()))
@@ -551,7 +554,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Job updateComposerVariables(ComposerConfig composerConfig, DeploymentManifest manifest) {
+	Job updateComposerVariablesJob(
+			ComposerConfig composerConfig,
+			DeploymentManifest manifest,
+			String deploymentManifestPath) {
 		var dagsSrc = String.format("%s-variables-src", composerConfig.getName());
 		return Job.builder()
 				.name(String.format("update-composer-variables-%s", composerConfig.getName()))
@@ -568,6 +574,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),
 										"COMPOSER_ENVIRONMENT_NAME", composerConfig.getName(),
 										"COMPOSER_LOCATION", composerConfig.getLocation(),
+										"COMPOSER_VARIABLES_PATH", composerVariablesPath(
+												composerConfig,
+												deploymentManifestPath),
 										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
 												"terraform@%s.iam.gserviceaccount.com",
 												manifest.getProject()))))

@@ -19,6 +19,11 @@ if [ -z "${COMPOSER_LOCATION}" ]; then
   exit 1
 fi
 
+if [ -z "${COMPOSER_VARIABLES_PATH}" ]; then
+  echo "env variable COMPOSER_VARIABLES_PATH is undefined"
+  exit 1
+fi
+
 mkdir -p /root/.config/gcloud
 
 echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
