@@ -49,7 +49,8 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     --region=$COMPOSER_LOCATION \
     --enable-master-authorized-networks \
     --master-authorized-networks \
-    $EXTERNAL_IP/32
+    $EXTERNAL_IP/32 \
+    $GCLOUD_FLAGS
 
 if [ $? -ne 0]; then 
   rm /root/.config/gcloud/application_default_credentials.json
