@@ -34,6 +34,7 @@ mkdir -p /root/.config/gcloud
 
 echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
   gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
+  set -x && \
   gsutil \
     $GS_UTIL_FLAGS \
     cp \
@@ -76,7 +77,8 @@ gcloud \
   update \
   $CONTAINER_CLUSTER_NAME \
   --region=$COMPOSER_LOCATION \
-  --no-enable-master-authorized-networks
+  --no-enable-master-authorized-networks \
+  $GCLOUD_FLAGS
 
 rm /root/.config/gcloud/application_default_credentials.json
 
