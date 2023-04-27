@@ -558,17 +558,18 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			ComposerConfig composerConfig,
 			DeploymentManifest manifest,
 			String deploymentManifestPath) {
-		var dagsSrc = String.format("%s-variables-src", composerConfig.getName());
+		var variablesSrc = String.format("%s-variables-src", composerConfig.getName());
+		
 		return Job.builder()
 				.name(String.format("update-composer-variables-%s", composerConfig.getName()))
 				.plan(List.of(
 						inParallel(List.of(
 								get("ci-src"),
-								getWithTrigger(dagsSrc))),
+								getWithTrigger(variablesSrc))),
 						Task.builder()
 								.task("update-variables")
 								.file("ci-src/.concourse/tasks/composer-update-variables/composer-update-variables.yaml")
-								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
+								.inputMapping(new TreeMap<>(Map.of("composer-variables-src", variablesSrc)))
 								.params(new TreeMap<>(Map.of(
 										"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),
 										"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),

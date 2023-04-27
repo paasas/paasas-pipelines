@@ -185,7 +185,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      COMPOSER_VARIABLES_PATH: {{manifest-dir}}/dev-composer-variables/composer-1.json
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
-			      dags-src: composer-1-variables-src
+			      composer-variables-src: composer-1-variables-src
 			- name: deploy-firebase
 			  plan:
 			  - in_parallel:

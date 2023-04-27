@@ -9,7 +9,7 @@ image_resource:
 
 inputs:
 - name: ci-src
-- name: dags-src
+- name: composer-variables-src
 
 params:
   COMPOSER_DAGS_BUCKET_NAME: 
