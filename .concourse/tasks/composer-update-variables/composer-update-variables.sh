@@ -30,9 +30,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
   gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
   gsutil \
     $GS_UTIL_FLAGS \
-    rsync \
-    -d \
-    -r \
+    cp \
     composer-variables-src/$COMPOSER_VARIABLES_PATH \
     gs://$COMPOSER_DAGS_BUCKET_NAME/composer-variables.json && \
   gcloud \
