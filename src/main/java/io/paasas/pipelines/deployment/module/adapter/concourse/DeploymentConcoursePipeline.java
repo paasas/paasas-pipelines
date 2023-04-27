@@ -559,7 +559,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			DeploymentManifest manifest,
 			String deploymentManifestPath) {
 		var variablesSrc = String.format("%s-variables-src", composerConfig.getName());
-		
+
 		return Job.builder()
 				.name(String.format("update-composer-variables-%s", composerConfig.getName()))
 				.plan(List.of(
@@ -575,6 +575,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),
 										"COMPOSER_ENVIRONMENT_NAME", composerConfig.getName(),
 										"COMPOSER_LOCATION", composerConfig.getLocation(),
+										"COMPOSER_PROJECT", manifest.getProject(),
 										"COMPOSER_VARIABLES_PATH", composerVariablesPath(
 												composerConfig,
 												deploymentManifestPath),

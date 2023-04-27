@@ -19,6 +19,11 @@ if [ -z "${COMPOSER_LOCATION}" ]; then
   exit 1
 fi
 
+if [ -z "${COMPOSER_PROJECT}" ]; then
+  echo "env variable COMPOSER_PROJECT is undefined"
+  exit 1
+fi
+
 if [ -z "${COMPOSER_VARIABLES_PATH}" ]; then
   echo "env variable COMPOSER_VARIABLES_PATH is undefined"
   exit 1
@@ -37,6 +42,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     composer \
     environments \
     run $COMPOSER_ENVIRONMENT_NAME \
+    --project=${COMPOSER_PROJECT} \
     --location=${COMPOSER_LOCATION} \
     variables \
       import -- /home/airflow/gcs/composer-variables.json
