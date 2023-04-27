@@ -39,7 +39,25 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     cp \
     composer-variables-src/$COMPOSER_VARIABLES_PATH \
     gs://$COMPOSER_DAGS_BUCKET_NAME/composer-variables.json && \
+  EXTERNAL_IP=$(dig @resolver4.opendns.com myip.opendns.com +short) && \
+  CONTAINER_CLUSTER_NAME=$(basename $(gcloud composer environments describe $COMPOSER_ENVIRONMENT_NAME --location=$COMPOSER_LOCATION --format="value(config.gkeCluster)")) &&
   gcloud \
+    container \
+    clusters \
+    update \
+    $CONTAINER_CLUSTER_NAME \
+    --region=$COMPOSER_LOCATION \
+    --enable-master-authorized-networks \
+    --master-authorized-networks \
+    $EXTERNAL_IP/32
+
+if [ $? -ne 0]; then 
+  rm /root/.config/gcloud/application_default_credentials.json
+  
+  exit 1
+if
+
+gcloud \
     composer \
     environments \
     run $COMPOSER_ENVIRONMENT_NAME \
@@ -50,6 +68,14 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
       import -- /home/airflow/gcs/composer-variables.json
 
 EXIT_CODE=$?
+
+gcloud \
+  container \
+  clusters \
+  update \
+  $CONTAINER_CLUSTER_NAME \
+  --region=$COMPOSER_LOCATION \
+  --no-enable-master-authorized-networks
 
 rm /root/.config/gcloud/application_default_credentials.json
 
