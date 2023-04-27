@@ -7,6 +7,7 @@ fi
 
 if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
   GS_UTIL_FLAGS="-i $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
+  GCLOUD_FLAGS="--impersonate-service-account $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
 fi
 
 if [ -z "${COMPOSER_ENVIRONMENT_NAME}" ]; then
@@ -44,6 +45,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     run $COMPOSER_ENVIRONMENT_NAME \
     --project=${COMPOSER_PROJECT} \
     --location=${COMPOSER_LOCATION} \
+    $GCLOUD_FLAGS \
     variables \
       import -- /home/airflow/gcs/composer-variables.json
 
