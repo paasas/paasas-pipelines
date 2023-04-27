@@ -56,21 +56,21 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     $EXTERNAL_IP/32 \
     $GCLOUD_FLAGS
 
-if [ $? -ne 0]; then 
+if [ $? -ne 0 ]; then 
   rm /root/.config/gcloud/application_default_credentials.json
   
   exit 1
 if
 
 gcloud \
-    composer \
-    environments \
-    run $COMPOSER_ENVIRONMENT_NAME \
-    --project=${COMPOSER_PROJECT} \
-    --location=${COMPOSER_LOCATION} \
-    $GCLOUD_FLAGS \
-    variables \
-      import -- /home/airflow/gcs/composer-variables.json
+  composer \
+  environments \
+  run $COMPOSER_ENVIRONMENT_NAME \
+  --project=${COMPOSER_PROJECT} \
+  --location=${COMPOSER_LOCATION} \
+  $GCLOUD_FLAGS \
+  variables \
+    import -- /home/airflow/gcs/composer-variables.json
 
 EXIT_CODE=$?
 
