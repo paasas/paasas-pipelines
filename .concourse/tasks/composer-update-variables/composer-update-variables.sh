@@ -40,7 +40,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     composer-variables-src/$COMPOSER_VARIABLES_PATH \
     gs://$COMPOSER_DAGS_BUCKET_NAME/composer-variables.json && \
   EXTERNAL_IP=$(dig @resolver4.opendns.com myip.opendns.com +short) && \
-  CONTAINER_CLUSTER_NAME=$(basename $(gcloud composer environments describe $COMPOSER_ENVIRONMENT_NAME --location=$COMPOSER_LOCATION --format="value(config.gkeCluster)")) &&
+  CONTAINER_CLUSTER_NAME=$(basename $(gcloud composer environments describe $COMPOSER_ENVIRONMENT_NAME --location=$COMPOSER_LOCATION $GCLOUD_FLAGS --format="value(config.gkeCluster)")) &&
   gcloud \
     container \
     clusters \
