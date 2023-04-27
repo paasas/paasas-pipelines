@@ -39,7 +39,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     $GS_UTIL_FLAGS \
     cp \
     composer-variables-src/$COMPOSER_VARIABLES_PATH \
-    gs://$COMPOSER_DAGS_BUCKET_NAME/composer-variables.json && \
+    gs://$COMPOSER_DAGS_BUCKET_NAME/dags/composer-variables.json && \
   EXTERNAL_IP=$(dig @resolver4.opendns.com myip.opendns.com +short) && \
   CONTAINER_CLUSTER_FULLNAME=$(gcloud composer environments describe $COMPOSER_ENVIRONMENT_NAME --location=$COMPOSER_LOCATION --project=${COMPOSER_PROJECT} $GCLOUD_FLAGS --format="value(config.gkeCluster)") && \
   CONTAINER_CLUSTER_NAME=$(basename $CONTAINER_CLUSTER_FULLNAME) && \
@@ -70,7 +70,7 @@ gcloud \
   --location=${COMPOSER_LOCATION} \
   $GCLOUD_FLAGS \
   variables \
-    import -- /home/airflow/gcs/composer-variables.json
+    import -- /home/airflow/gcs/dags/composer-variables.json
 
 EXIT_CODE=$?
 
