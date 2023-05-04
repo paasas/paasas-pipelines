@@ -62,9 +62,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "Composer variables:\n"
-echo "$(cat /home/airflow/gcs/dags/composer-variables.json)"
-
 gcloud \
   composer \
   environments \
