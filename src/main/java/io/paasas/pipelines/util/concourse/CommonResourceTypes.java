@@ -5,6 +5,7 @@ import io.paasas.pipelines.util.concourse.model.ResourceTypeSource;
 
 public final class CommonResourceTypes {
 	public static final String GIT_RESOURCE_TYPE = "git";
+	public static final String REGISTRY_IMAGE_RESOURCE_TYPE = "registry-image";
 	public final static String TEAMS_NOTIFICATION_RESOURCE_TYPE = "teams-notification";
 
 	public final static ResourceType TEAMS_NOTIFICATION = ResourceType.builder()

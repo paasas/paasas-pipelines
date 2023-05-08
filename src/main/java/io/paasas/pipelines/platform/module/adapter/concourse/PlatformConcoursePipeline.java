@@ -181,6 +181,13 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 					"PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDBUCKETSUFFIX",
 					configuration.getDeploymentTerraformBackendBucketSuffix());
 		}
+		
+		if (configuration.getGcrCredentialsJsonSecretName() != null
+				&& !configuration.getGcrCredentialsJsonSecretName().isBlank()) {
+			deploymentUpdateParams.put(
+					"PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME",
+					configuration.getGcrCredentialsJsonSecretName());
+		}
 
 		return Stream.of(
 				terraformJob("apply", targetConfig, true),

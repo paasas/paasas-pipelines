@@ -17,6 +17,8 @@ import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.deployment.domain.model.TerraformWatcher;
+import io.paasas.pipelines.deployment.domain.model.app.App;
+import io.paasas.pipelines.deployment.domain.model.app.RegistryType;
 import io.paasas.pipelines.deployment.domain.model.composer.ComposerConfig;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
 import io.paasas.pipelines.util.concourse.CommonResourceTypes;
@@ -27,6 +29,7 @@ import io.paasas.pipelines.util.concourse.model.Pipeline;
 import io.paasas.pipelines.util.concourse.model.Resource;
 import io.paasas.pipelines.util.concourse.model.ResourceType;
 import io.paasas.pipelines.util.concourse.model.resource.GitSource;
+import io.paasas.pipelines.util.concourse.model.resource.RegistryImageSource;
 import io.paasas.pipelines.util.concourse.model.step.Get;
 import io.paasas.pipelines.util.concourse.model.step.InParallel;
 import io.paasas.pipelines.util.concourse.model.step.Step;
@@ -52,6 +55,30 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		super(configuration);
 
 		this.gcpConfiguration = gcpConfiguration;
+	}
+
+	Resource<?> appResource(App app) {
+		if (app.getRegistryType() == RegistryType.GCR
+				&& (configuration.getGcrCredentialsJsonSecretName() != null &&
+						configuration.getGcrCredentialsJsonSecretName().isBlank())) {
+			throw new IllegalStateException("gcr credentials json is undefined");
+		}
+
+		return Resource.builder()
+				.name(String.format("%s-src", app.getName()))
+				.type(CommonResourceTypes.REGISTRY_IMAGE_RESOURCE_TYPE)
+				.source(RegistryImageSource.builder()
+						.repository(app.getImage())
+						.tag(app.getTag() != null && !app.getTag().isBlank()
+								? app.getTag()
+								: null)
+						.username(app.getRegistryType() == RegistryType.GCR ? "_json_key" : null)
+						.password(
+								app.getRegistryType() == RegistryType.GCR
+										? String.format("((%s))", configuration.getGcrCredentialsJsonSecretName())
+										: null)
+						.build())
+				.build();
 	}
 
 	private void assertArgument(String value, String property, ComposerConfig composerConfig) {
@@ -192,6 +219,13 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest, String deploymentManifestPath) {
 		var streamBuilder = Stream.<Resource<?>>builder()
 				.add(manifestResource(deploymentManifestPath));
+
+		if (manifest.getApps() != null) {
+			manifest.getApps()
+					.stream()
+					.map(this::appResource)
+					.forEach(streamBuilder::add);
+		}
 
 		if (manifest.getTerraform() != null) {
 			IntStream.range(0, manifest.getTerraform().size())
@@ -407,13 +441,17 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		return writePipeline(
 				Pipeline.builder()
 						.resourceTypes(resourceTypes())
-						.resources(Stream
-								.concat(
-										commonResources(),
-										deploymentResources(manifest, deploymentManifestPath))
-								.toList())
+						.resources(resources(manifest, deploymentManifestPath))
 						.jobs(jobs(manifest, target, deploymentManifestPath))
 						.build());
+	}
+
+	List<Resource<?>> resources(DeploymentManifest manifest, String deploymentManifestPath) {
+		return Stream
+				.concat(
+						commonResources(),
+						deploymentResources(manifest, deploymentManifestPath))
+				.toList();
 	}
 
 	List<ResourceType> resourceTypes() {
@@ -515,9 +553,15 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		return Job.builder()
 				.name("update-cloud-run")
 				.plan(List.of(
-						inParallel(List.of(
-								get("ci-src"),
-								getWithTrigger("manifest-src"))),
+						inParallel(
+								Stream.concat(
+										Stream.<Step>of(
+												get("ci-src"),
+												getWithTrigger("manifest-src")),
+										manifest.getApps().stream()
+												.map(app -> String.format("%s-src", app.getName()))
+												.map(this::getWithTrigger))
+										.toList()),
 						Task.builder()
 								.task("update-cloud-run")
 								.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")

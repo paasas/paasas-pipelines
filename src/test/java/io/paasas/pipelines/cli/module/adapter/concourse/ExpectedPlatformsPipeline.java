@@ -257,6 +257,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME: googleCredentials
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
@@ -395,6 +396,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME: googleCredentials
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
@@ -533,6 +535,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME: googleCredentials
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
@@ -671,6 +674,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
+			      PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME: googleCredentials
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2

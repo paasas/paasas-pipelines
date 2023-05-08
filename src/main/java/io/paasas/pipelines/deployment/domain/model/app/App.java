@@ -15,9 +15,11 @@ public class App {
 	String image;
 	String name;
 	Integer port;
+	RegistryType registryType;
 	Resources resources;
 	Map<String, String> secretEnv;
 	String serviceAccount;
 	Probe startupProbe;
 	List<String> subdomains;
+	String tag;
 }

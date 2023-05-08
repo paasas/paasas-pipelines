@@ -36,6 +36,8 @@ public class ConcourseConfiguration {
 	String deploymentTerraformBackendPrefix;
 	String deploymentTerraformBackendBucketSuffix;
 
+	String gcrCredentialsJsonSecretName;
+	
 	@NotNull
 	String platformPathPrefix;
 

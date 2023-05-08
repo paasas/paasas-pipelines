@@ -30,6 +30,13 @@ public abstract class ExpectedDeploymentsPipeline {
 			    branch: main
 			    paths:
 			    - {{manifest-path}}
+			- name: demo-webapp-src
+			  type: registry-image
+			  source:
+			    password: ((googleCredentials))
+			    repository: gcr.io/cloudrun/container/hello
+			    tag: latest
+			    username: _json_key
 			- name: terraform-dataset-1-src
 			  type: git
 			  source:
@@ -76,6 +83,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - in_parallel:
 			    - get: ci-src
 			    - get: manifest-src
+			      trigger: true
+			    - get: demo-webapp-src
 			      trigger: true
 			  - task: update-cloud-run
 			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
