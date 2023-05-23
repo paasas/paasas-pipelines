@@ -550,6 +550,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						"terraform@%s.iam.gserviceaccount.com",
 						manifest.getProject())));
 
+		var apps = manifest.getApps() != null ? manifest.getApps() : List.<App>of();
+
 		return Job.builder()
 				.name("update-cloud-run")
 				.plan(List.of(
@@ -558,7 +560,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										Stream.<Step>of(
 												get("ci-src"),
 												getWithTrigger("manifest-src")),
-										manifest.getApps().stream()
+										apps.stream()
 												.map(app -> String.format("%s-src", app.getName()))
 												.map(this::getWithTrigger))
 										.toList()),

@@ -80,7 +80,7 @@ public class CloudRunDeployer implements Deployer {
 	@Override
 	public void deploy(DeploymentManifest deploymentManifest) {
 		try {
-			var apps = Optional.ofNullable(deploymentManifest.getApps()).orElseGet(() -> List.of());
+			var apps = deploymentManifest.getApps() != null ? deploymentManifest.getApps() : List.<App>of();
 
 			var client = ServicesClient.create(ServicesSettings.newBuilder()
 					.setCredentialsProvider(GcpCredentials.credentialProviders(configuration))
