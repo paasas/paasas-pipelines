@@ -178,12 +178,6 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						"source bucket is undefined for cloud composer flex templates at index %d",
 						index));
 
-		assertNotBlank(
-				composerConfig.getFlexTemplates().getSourceTag(),
-				String.format(
-						"source tag is undefined for cloud composer flex templates at index %d",
-						index));
-
 		var regexp = composerConfig.getFlexTemplates().getTargetPathPrefix() != null
 				? String.format("%s/(.*)", composerConfig.getFlexTemplates().getTargetPathPrefix())
 				: null;

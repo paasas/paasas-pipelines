@@ -10,6 +10,5 @@ import lombok.extern.jackson.Jacksonized;
 public class FlexTemplates {
 	String sourceBucket;
 	String sourcePathPrefix;
-	String sourceTag;
 	String targetPathPrefix;
 }
