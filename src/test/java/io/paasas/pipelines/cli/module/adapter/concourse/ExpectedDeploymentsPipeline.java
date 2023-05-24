@@ -4,6 +4,11 @@ public abstract class ExpectedDeploymentsPipeline {
 	public static final String PIPELINE = """
 			---
 			resource_types:
+			- name: gcs
+			  type: docker-image
+			  source:
+			    repository: frodenas/gcs-resource
+			    tag: latest
 			- name: teams-notification
 			  type: docker-image
 			  source:
@@ -30,7 +35,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    branch: main
 			    paths:
 			    - {{manifest-path}}
-			- name: demo-webapp-src
+			- name: demo-webapp-image
 			  type: registry-image
 			  source:
 			    password: ((googleCredentials))
@@ -69,6 +74,12 @@ public abstract class ExpectedDeploymentsPipeline {
 			    branch: main
 			    paths:
 			    - {{manifest-dir}}/dev-composer-variables/composer-1.json
+			- name: composer-1-flex-templates-src
+			  type: gcs
+			  source:
+			    bucket: my-source-bucket
+			    regexp: target-sub-folder/(.*)
+			    json_key: ((googleCredentials))
 			- name: firebase-src
 			  type: git
 			  source:
@@ -84,7 +95,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    - get: ci-src
 			    - get: manifest-src
 			      trigger: true
-			    - get: demo-webapp-src
+			    - get: demo-webapp-image
 			      trigger: true
 			  - task: update-cloud-run
 			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
@@ -196,6 +207,21 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      composer-variables-src: composer-1-variables-src
+			- name: update-composer-flex-templates-composer-1
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: composer-1-flex-templates-src
+			      trigger: true
+			  - task: update-flex-templates
+			    file: ci-src/.concourse/tasks/composer-flex-templates/composer-flex-templates.yaml
+			    params:
+			      COMPOSER_FLEX_TEMPLATES_SOURCE_PATH_PREFIX: my-source-prefix
+			      COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: composer-1-bucket
+			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH_PREFIX: target-sub-folder
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			    input_mapping:
+			      flex-templates-src: composer-1-flex-templates-src
 			- name: deploy-firebase
 			  plan:
 			  - in_parallel:

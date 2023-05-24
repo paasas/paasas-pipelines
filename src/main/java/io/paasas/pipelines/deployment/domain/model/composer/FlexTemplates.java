@@ -7,11 +7,9 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder(toBuilder = true)
-public class ComposerConfig {
-	String bucketName;
-	String bucketPath;
-	ComposerDags dags;
-	FlexTemplates flexTemplates;
-	String location;
-	String name;
+public class FlexTemplates {
+	String sourceBucket;
+	String sourcePathPrefix;
+	String sourceTag;
+	String targetPathPrefix;
 }

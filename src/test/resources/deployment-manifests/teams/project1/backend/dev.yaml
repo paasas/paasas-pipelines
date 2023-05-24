@@ -36,6 +36,12 @@ composer:
       branch: dags-branch
       uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
       path: dags-path
+  flexTemplates:
+    sourceBucket: my-source-bucket
+    sourcePathPrefix: my-source-prefix
+    sourceTag: my-tag
+    targetPathPrefix: target-sub-folder
+    
 firebaseApp:
   config: |
     {

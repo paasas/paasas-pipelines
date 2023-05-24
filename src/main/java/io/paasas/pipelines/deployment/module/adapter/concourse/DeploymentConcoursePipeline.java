@@ -28,6 +28,7 @@ import io.paasas.pipelines.util.concourse.model.Job;
 import io.paasas.pipelines.util.concourse.model.Pipeline;
 import io.paasas.pipelines.util.concourse.model.Resource;
 import io.paasas.pipelines.util.concourse.model.ResourceType;
+import io.paasas.pipelines.util.concourse.model.resource.GcsSource;
 import io.paasas.pipelines.util.concourse.model.resource.GitSource;
 import io.paasas.pipelines.util.concourse.model.resource.RegistryImageSource;
 import io.paasas.pipelines.util.concourse.model.step.Get;
@@ -65,7 +66,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 
 		return Resource.builder()
-				.name(String.format("%s-src", app.getName()))
+				.name(String.format("%s-image", app.getName()))
 				.type(CommonResourceTypes.REGISTRY_IMAGE_RESOURCE_TYPE)
 				.source(RegistryImageSource.builder()
 						.repository(app.getImage())
@@ -166,13 +167,53 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
+	Resource<?> composerFlexTemplatesResource(ComposerConfig composerConfig, int index) {
+		if (composerConfig.getFlexTemplates() == null) {
+			throw new IllegalArgumentException("undefined flex template for cloud composer at index " + index);
+		}
+
+		assertNotBlank(
+				composerConfig.getFlexTemplates().getSourceBucket(),
+				String.format(
+						"source bucket is undefined for cloud composer flex templates at index %d",
+						index));
+
+		assertNotBlank(
+				composerConfig.getFlexTemplates().getSourceTag(),
+				String.format(
+						"source tag is undefined for cloud composer flex templates at index %d",
+						index));
+
+		var regexp = composerConfig.getFlexTemplates().getTargetPathPrefix() != null
+				? String.format("%s/(.*)", composerConfig.getFlexTemplates().getTargetPathPrefix())
+				: null;
+
+		return Resource.builder()
+				.name(String.format("%s-flex-templates-src", composerConfig.getName()))
+				.type("gcs")
+				.source(GcsSource.builder()
+						.bucket(composerConfig.getFlexTemplates().getSourceBucket())
+						.jsonKey(String.format("((%s))", configuration.getGcrCredentialsJsonSecretName()))
+						.regexp(regexp)
+						.build())
+				.build();
+
+	}
+
 	Stream<Job> composerJobs(
 			ComposerConfig composerConfig,
 			DeploymentManifest manifest,
 			String deploymentManifestPath) {
-		return Stream.of(
-				updateComposerDagsJob(composerConfig, manifest),
-				updateComposerVariablesJob(composerConfig, manifest, deploymentManifestPath));
+
+		var streamBuilder = Stream.<Job>builder()
+				.add(updateComposerDagsJob(composerConfig, manifest))
+				.add(updateComposerVariablesJob(composerConfig, manifest, deploymentManifestPath));
+
+		if (composerConfig.getFlexTemplates() != null) {
+			streamBuilder.add(updateComposerFlexTemplatesJob(composerConfig, manifest));
+		}
+
+		return streamBuilder.build();
 	}
 
 	Stream<Resource<?>> composerResources(
@@ -181,21 +222,25 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			String deploymentManifestPath) {
 		if (composerConfig.getName() == null || composerConfig.getName().isBlank()) {
 			throw new IllegalArgumentException(String.format(
-					"name is defined for cloud compoer dags at index %i",
+					"name is undefined for cloud composer dags at index %i",
 					index));
 		}
 
 		if (composerConfig.getLocation() == null || composerConfig.getLocation().isBlank()) {
 			throw new IllegalArgumentException(String.format(
-					"location for cloud compoer %s is undefined",
+					"location for cloud composer %s is undefined",
 					composerConfig.getName()));
 		}
 
-		return Stream.of(
-				composerDagsResource(composerConfig, index),
-				composerVariablesResource(
-						composerConfig,
-						deploymentManifestPath));
+		var streamBuilder = Stream.<Resource<?>>builder()
+				.add(composerDagsResource(composerConfig, index))
+				.add(composerVariablesResource(composerConfig, deploymentManifestPath));
+
+		if (composerConfig.getFlexTemplates() != null) {
+			streamBuilder.add(composerFlexTemplatesResource(composerConfig, index));
+		}
+
+		return streamBuilder.build();
 	}
 
 	Resource<?> composerVariablesResource(
@@ -440,7 +485,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		return writePipeline(
 				Pipeline.builder()
-						.resourceTypes(resourceTypes())
+						.resourceTypes(resourceTypes(manifest))
 						.resources(resources(manifest, deploymentManifestPath))
 						.jobs(jobs(manifest, target, deploymentManifestPath))
 						.build());
@@ -454,8 +499,18 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.toList();
 	}
 
-	List<ResourceType> resourceTypes() {
-		return List.of(CommonResourceTypes.TEAMS_NOTIFICATION);
+	List<ResourceType> resourceTypes(DeploymentManifest manifest) {
+		var streamBuilder = Stream.<ResourceType>builder();
+
+		if (manifest.getComposer() != null && manifest.getComposer().stream()
+				.filter(composerConfig -> composerConfig.getFlexTemplates() != null)
+				.findAny().isPresent()) {
+			streamBuilder.add(CommonResourceTypes.GCS);
+		}
+
+		streamBuilder.add(CommonResourceTypes.TEAMS_NOTIFICATION);
+
+		return streamBuilder.build().toList();
 	}
 
 	Job terraformApplyJob(
@@ -506,7 +561,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	Resource<?> terraformResource(TerraformWatcher watcher, int index) {
 		if (watcher.getName() == null || watcher.getName().isBlank()) {
 			throw new IllegalArgumentException(String.format(
-					"dataset is defined for big query watcher at index %i",
+					"dataset is undefined for big query watcher at index %i",
 					index));
 		}
 
@@ -561,7 +616,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 												get("ci-src"),
 												getWithTrigger("manifest-src")),
 										apps.stream()
-												.map(app -> String.format("%s-src", app.getName()))
+												.map(app -> String.format("%s-image", app.getName()))
 												.map(this::getWithTrigger))
 										.toList()),
 						Task.builder()
@@ -593,6 +648,35 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),
 										"COMPOSER_DAGS_PATH", composerConfig
 												.getDags().getGit().getPath(),
+										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+												"terraform@%s.iam.gserviceaccount.com",
+												manifest.getProject()))))
+								.build()))
+				.build();
+	}
+
+	Job updateComposerFlexTemplatesJob(ComposerConfig composerConfig, DeploymentManifest manifest) {
+		var dagsSrc = String.format("%s-flex-templates-src", composerConfig.getName());
+		return Job.builder()
+				.name(String.format("update-composer-flex-templates-%s", composerConfig.getName()))
+				.plan(List.of(
+						inParallel(List.of(
+								get("ci-src"),
+								getWithTrigger(dagsSrc))),
+						Task.builder()
+								.task("update-flex-templates")
+								.file("ci-src/.concourse/tasks/composer-flex-templates/composer-flex-templates.yaml")
+								.inputMapping(new TreeMap<>(Map.of("flex-templates-src", dagsSrc)))
+								.params(new TreeMap<>(Map.of(
+										"COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET", composerConfig.getBucketName(),
+										"COMPOSER_FLEX_TEMPLATES_SOURCE_PATH_PREFIX", composerConfig
+												.getFlexTemplates().getSourcePathPrefix() != null
+														? composerConfig.getFlexTemplates().getSourcePathPrefix()
+														: "",
+										"COMPOSER_FLEX_TEMPLATES_TARGET_PATH_PREFIX", composerConfig
+												.getFlexTemplates().getTargetPathPrefix() != null
+														? composerConfig.getFlexTemplates().getTargetPathPrefix()
+														: "",
 										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
 												"terraform@%s.iam.gserviceaccount.com",
 												manifest.getProject()))))

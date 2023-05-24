@@ -1,0 +1,22 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: harbor.paasas.io/public/ci
+    tag: latest
+
+inputs:
+- name: ci-src
+- name: dags-src
+
+params:
+  COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: 
+  COMPOSER_FLEX_TEMPLATES_SOURCE_PATH_PREFIX: 
+  COMPOSER_FLEX_TEMPLATES_TARGET_PATH_PREFIX: 
+  GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
+  GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
+
+run:
+  path: ci-src/.concourse/tasks/composer-update-dags/composer-update-flex-templates.sh
