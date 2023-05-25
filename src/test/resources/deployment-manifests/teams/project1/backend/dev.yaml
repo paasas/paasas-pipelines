@@ -57,7 +57,8 @@ firebaseApp:
   git:
     uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
     path: firebase-app
-    branch: firebase-app
+    # branch: firebase-app
+    tag: my-tag
   npm:
     command: env-cmd -f .env npm run build
     installArgs: --legacy-peer-deps

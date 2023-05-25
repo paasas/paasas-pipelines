@@ -380,6 +380,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.paths(deploymentManifest.getFirebaseApp().getGit().getPath() != null
 								? List.of(deploymentManifest.getFirebaseApp().getGit().getPath())
 								: null)
+						.tagFilter(deploymentManifest.getFirebaseApp().getGit().getTag())
 						.build())
 				.build();
 	}

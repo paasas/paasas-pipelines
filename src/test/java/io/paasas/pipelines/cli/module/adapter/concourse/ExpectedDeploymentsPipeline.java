@@ -85,9 +85,9 @@ public abstract class ExpectedDeploymentsPipeline {
 			  source:
 			    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
 			    private_key: ((git.ssh-private-key))
-			    branch: firebase-app
 			    paths:
 			    - firebase-app
+			    tag_filter: my-tag
 			jobs:
 			- name: update-cloud-run
 			  plan:
