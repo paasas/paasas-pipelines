@@ -149,8 +149,10 @@ public class CloudRunDeployer implements Deployer {
 	}
 
 	private RevisionTemplate revisionTemplate(App app, DeploymentManifest deploymentManifest) {
+		var image = app.getImage() + (app.getTag() != null && !app.getTag().isBlank() ? ":" + app.getTag() : "");
+
 		var containerBuilder = Container.newBuilder()
-				.setImage(app.getImage())
+				.setImage(image)
 				.addAllEnv(envVars(app))
 				.addAllEnv(secretRefEnvVars(app, deploymentManifest));
 
