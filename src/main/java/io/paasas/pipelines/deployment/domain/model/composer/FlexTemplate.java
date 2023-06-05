@@ -7,8 +7,8 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder(toBuilder = true)
-public class FlexTemplates {
-	String sourceBucket;
-	String sourcePathPrefix;
-	String targetPathPrefix;
+public class FlexTemplate {
+	String gcsPath;
+	String image;
+	String metadataFile;
 }

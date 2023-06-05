@@ -28,7 +28,6 @@ import io.paasas.pipelines.util.concourse.model.Job;
 import io.paasas.pipelines.util.concourse.model.Pipeline;
 import io.paasas.pipelines.util.concourse.model.Resource;
 import io.paasas.pipelines.util.concourse.model.ResourceType;
-import io.paasas.pipelines.util.concourse.model.resource.GcsSource;
 import io.paasas.pipelines.util.concourse.model.resource.GitSource;
 import io.paasas.pipelines.util.concourse.model.resource.RegistryImageSource;
 import io.paasas.pipelines.util.concourse.model.step.Get;
@@ -167,47 +166,14 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Resource<?> composerFlexTemplatesResource(ComposerConfig composerConfig, int index) {
-		if (composerConfig.getFlexTemplates() == null) {
-			throw new IllegalArgumentException("undefined flex template for cloud composer at index " + index);
-		}
-
-		assertNotBlank(
-				composerConfig.getFlexTemplates().getSourceBucket(),
-				String.format(
-						"source bucket is undefined for cloud composer flex templates at index %d",
-						index));
-
-		var regexp = composerConfig.getFlexTemplates().getTargetPathPrefix() != null
-				? String.format("%s/(.*)", composerConfig.getFlexTemplates().getTargetPathPrefix())
-				: null;
-
-		return Resource.builder()
-				.name(String.format("%s-flex-templates-src", composerConfig.getName()))
-				.type("gcs")
-				.source(GcsSource.builder()
-						.bucket(composerConfig.getFlexTemplates().getSourceBucket())
-						.jsonKey(String.format("((%s))", configuration.getGcrCredentialsJsonSecretName()))
-						.regexp(regexp)
-						.build())
-				.build();
-
-	}
-
 	Stream<Job> composerJobs(
 			ComposerConfig composerConfig,
 			DeploymentManifest manifest,
 			String deploymentManifestPath) {
-
-		var streamBuilder = Stream.<Job>builder()
+		return Stream.<Job>builder()
 				.add(updateComposerDagsJob(composerConfig, manifest))
-				.add(updateComposerVariablesJob(composerConfig, manifest, deploymentManifestPath));
-
-		if (composerConfig.getFlexTemplates() != null) {
-			streamBuilder.add(updateComposerFlexTemplatesJob(composerConfig, manifest));
-		}
-
-		return streamBuilder.build();
+				.add(updateComposerVariablesJob(composerConfig, manifest, deploymentManifestPath))
+				.build();
 	}
 
 	Stream<Resource<?>> composerResources(
@@ -226,15 +192,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 					composerConfig.getName()));
 		}
 
-		var streamBuilder = Stream.<Resource<?>>builder()
+		return Stream.<Resource<?>>builder()
 				.add(composerDagsResource(composerConfig, index))
-				.add(composerVariablesResource(composerConfig, deploymentManifestPath));
-
-		if (composerConfig.getFlexTemplates() != null) {
-			streamBuilder.add(composerFlexTemplatesResource(composerConfig, index));
-		}
-
-		return streamBuilder.build();
+				.add(composerVariablesResource(composerConfig, deploymentManifestPath))
+				.build();
 	}
 
 	Resource<?> composerVariablesResource(
@@ -495,17 +456,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	List<ResourceType> resourceTypes(DeploymentManifest manifest) {
-		var streamBuilder = Stream.<ResourceType>builder();
-
-		if (manifest.getComposer() != null && manifest.getComposer().stream()
-				.filter(composerConfig -> composerConfig.getFlexTemplates() != null)
-				.findAny().isPresent()) {
-			streamBuilder.add(CommonResourceTypes.GCS);
-		}
-
-		streamBuilder.add(CommonResourceTypes.TEAMS_NOTIFICATION);
-
-		return streamBuilder.build().toList();
+		return Stream.<ResourceType>builder()
+				.add(CommonResourceTypes.TEAMS_NOTIFICATION)
+				.build().toList();
 	}
 
 	Job terraformApplyJob(
@@ -628,6 +581,26 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 	Job updateComposerDagsJob(ComposerConfig composerConfig, DeploymentManifest manifest) {
 		var dagsSrc = String.format("%s-dags-src", composerConfig.getName());
+
+		var params = new TreeMap<>(Map.of(
+				"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),
+				"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),
+				"COMPOSER_DAGS_PATH", composerConfig
+						.getDags().getGit().getPath(),
+				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+						"terraform@%s.iam.gserviceaccount.com",
+						manifest.getProject())));
+
+		if (composerConfig.getDags() != null && composerConfig.getDags().getFlexTemplates() != null) {
+			try {
+				params.put(
+						"COMPOSER_FLEX_TEMPLATES",
+						OBJECT_MAPPER.writeValueAsString(composerConfig.getDags().getFlexTemplates()));
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		return Job.builder()
 				.name(String.format("update-composer-dags-%s", composerConfig.getName()))
 				.plan(List.of(
@@ -638,43 +611,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.task("update-dags")
 								.file("ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
-								.params(new TreeMap<>(Map.of(
-										"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),
-										"COMPOSER_DAGS_BUCKET_PATH", composerConfig.getBucketPath(),
-										"COMPOSER_DAGS_PATH", composerConfig
-												.getDags().getGit().getPath(),
-										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
-												"terraform@%s.iam.gserviceaccount.com",
-												manifest.getProject()))))
-								.build()))
-				.build();
-	}
-
-	Job updateComposerFlexTemplatesJob(ComposerConfig composerConfig, DeploymentManifest manifest) {
-		var dagsSrc = String.format("%s-flex-templates-src", composerConfig.getName());
-		return Job.builder()
-				.name(String.format("update-composer-flex-templates-%s", composerConfig.getName()))
-				.plan(List.of(
-						inParallel(List.of(
-								get("ci-src"),
-								getWithTrigger(dagsSrc))),
-						Task.builder()
-								.task("update-flex-templates")
-								.file("ci-src/.concourse/tasks/composer-flex-templates/composer-flex-templates.yaml")
-								.inputMapping(new TreeMap<>(Map.of("flex-templates-src", dagsSrc)))
-								.params(new TreeMap<>(Map.of(
-										"COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET", composerConfig.getBucketName(),
-										"COMPOSER_FLEX_TEMPLATES_SOURCE_PATH_PREFIX", composerConfig
-												.getFlexTemplates().getSourcePathPrefix() != null
-														? composerConfig.getFlexTemplates().getSourcePathPrefix()
-														: "",
-										"COMPOSER_FLEX_TEMPLATES_TARGET_PATH_PREFIX", composerConfig
-												.getFlexTemplates().getTargetPathPrefix() != null
-														? composerConfig.getFlexTemplates().getTargetPathPrefix()
-														: "",
-										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
-												"terraform@%s.iam.gserviceaccount.com",
-												manifest.getProject()))))
+								.params(params)
 								.build()))
 				.build();
 	}

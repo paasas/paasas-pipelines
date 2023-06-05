@@ -4,11 +4,6 @@ public abstract class ExpectedDeploymentsPipeline {
 	public static final String PIPELINE = """
 			---
 			resource_types:
-			- name: gcs
-			  type: docker-image
-			  source:
-			    repository: frodenas/gcs-resource
-			    tag: latest
 			- name: teams-notification
 			  type: docker-image
 			  source:
@@ -74,12 +69,6 @@ public abstract class ExpectedDeploymentsPipeline {
 			    branch: main
 			    paths:
 			    - {{manifest-dir}}/dev-composer-variables/composer-1.json
-			- name: composer-1-flex-templates-src
-			  type: gcs
-			  source:
-			    bucket: my-source-bucket
-			    regexp: target-sub-folder/(.*)
-			    json_key: ((googleCredentials))
 			- name: firebase-src
 			  type: git
 			  source:
@@ -186,6 +175,23 @@ public abstract class ExpectedDeploymentsPipeline {
 			      COMPOSER_DAGS_BUCKET_NAME: composer-1-bucket
 			      COMPOSER_DAGS_BUCKET_PATH: dags
 			      COMPOSER_DAGS_PATH: dags-path
+			      COMPOSER_FLEX_TEMPLATES: |
+			        ---
+			        - gcsPath: flex-templates/iawealth-api-to-gcs-ingestion/v1.0.0/dataflow-ingestion.json
+			          image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-api-to-gcs-ingestion:v1.0.0
+			          metadataFile: cloud-composer/dags/raw/df-docker-metadata/api-to-gcs-ingestion/metadata.json
+			        - gcsPath: flex-templates/iawealth-gcs-to-bq-cob/v1.0.0/dataflow-ingestion.json
+			          image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-cob:v1.0.0
+			          metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-cob/metadata.json
+			        - gcsPath: flex-templates/iawealth-gcs-to-bq-csv-ingestion/v1.0.0/dataflow-ingestion.json
+			          image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-csv-ingestion:v1.0.0
+			          metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-csv-ingestion/metadata.json
+			        - gcsPath: flex-templates/iawealth-gcs-to-bq-json-ingestion/v1.0.0/dataflow-ingestion.json
+			          image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-json-ingestion:v1.0.0
+			          metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-json-ingestion/metadata.json
+			        - gcsPath: flex-templates/iawealth-gcs-to-bq-mdm/v1.0.0/dataflow-ingestion.json
+			          image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-mdm:v1.0.0
+			          metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-mdm/metadata.json
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      dags-src: composer-1-dags-src
@@ -207,21 +213,6 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      composer-variables-src: composer-1-variables-src
-			- name: update-composer-flex-templates-composer-1
-			  plan:
-			  - in_parallel:
-			    - get: ci-src
-			    - get: composer-1-flex-templates-src
-			      trigger: true
-			  - task: update-flex-templates
-			    file: ci-src/.concourse/tasks/composer-flex-templates/composer-flex-templates.yaml
-			    params:
-			      COMPOSER_FLEX_TEMPLATES_SOURCE_PATH_PREFIX: my-source-prefix
-			      COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: composer-1-bucket
-			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH_PREFIX: target-sub-folder
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
-			    input_mapping:
-			      flex-templates-src: composer-1-flex-templates-src
 			- name: deploy-firebase
 			  plan:
 			  - in_parallel:

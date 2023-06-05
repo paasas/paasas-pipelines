@@ -11,7 +11,6 @@ public class ComposerConfig {
 	String bucketName;
 	String bucketPath;
 	ComposerDags dags;
-	FlexTemplates flexTemplates;
 	String location;
 	String name;
 }

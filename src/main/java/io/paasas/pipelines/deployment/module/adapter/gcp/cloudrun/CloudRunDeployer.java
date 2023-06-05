@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -21,18 +22,23 @@ import com.google.cloud.run.v2.Probe;
 import com.google.cloud.run.v2.ResourceRequirements;
 import com.google.cloud.run.v2.RevisionTemplate;
 import com.google.cloud.run.v2.SecretKeySelector;
+import com.google.cloud.run.v2.SecretVolumeSource;
 import com.google.cloud.run.v2.Service;
 import com.google.cloud.run.v2.ServiceName;
 import com.google.cloud.run.v2.ServicesClient;
 import com.google.cloud.run.v2.ServicesSettings;
 import com.google.cloud.run.v2.TCPSocketAction;
 import com.google.cloud.run.v2.UpdateServiceRequest;
+import com.google.cloud.run.v2.VersionToPath;
+import com.google.cloud.run.v2.Volume;
+import com.google.cloud.run.v2.VolumeMount;
 import com.google.cloud.secretmanager.v1.SecretName;
 
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.cli.domain.ports.backend.Deployer;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.deployment.domain.model.app.App;
+import io.paasas.pipelines.deployment.domain.model.app.SecretVolume;
 import io.paasas.pipelines.deployment.module.adapter.gcp.GcpCredentials;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -154,7 +160,8 @@ public class CloudRunDeployer implements Deployer {
 		var containerBuilder = Container.newBuilder()
 				.setImage(image)
 				.addAllEnv(envVars(app))
-				.addAllEnv(secretRefEnvVars(app, deploymentManifest));
+				.addAllEnv(secretRefEnvVars(app, deploymentManifest))
+				.addAllVolumeMounts(secretVolumeMounts(app, deploymentManifest));
 
 		if (app.getStartupProbe() != null) {
 			var probeBuilder = Probe.newBuilder()
@@ -175,7 +182,9 @@ public class CloudRunDeployer implements Deployer {
 							.putAllLimits(app.getResources().getLimits()));
 		}
 
-		var revisionTemplaterBuilder = RevisionTemplate.newBuilder().addContainers(containerBuilder);
+		var revisionTemplaterBuilder = RevisionTemplate.newBuilder()
+				.addContainers(containerBuilder)
+				.addAllVolumes(secretVolumes(app, deploymentManifest));
 
 		if (app.getServiceAccount() != null) {
 			revisionTemplaterBuilder.setServiceAccount(app.getServiceAccount());
@@ -184,8 +193,71 @@ public class CloudRunDeployer implements Deployer {
 		return revisionTemplaterBuilder.build();
 	}
 
+	List<VolumeMount> secretVolumeMounts(App app, DeploymentManifest deploymentManifest) {
+		if (app.getSecretVolumes() == null) {
+			return List.of();
+		}
+
+		return app.getSecretVolumes()
+				.stream()
+				.map(secretVolume -> VolumeMount.newBuilder()
+						.setMountPath(secretVolume.getMountPath())
+						.setName(secretVolume.getVolumeName())
+						.build())
+				.toList();
+	}
+
+	List<Volume> secretVolumes(App app, DeploymentManifest deploymentManifest) {
+		if (app.getSecretVolumes() == null) {
+			return List.of();
+		}
+
+		return IntStream.range(0, app.getSecretVolumes().size())
+				.boxed()
+				.map(index -> secretVolume(app.getSecretVolumes().get(index), index))
+				.toList();
+	}
+
+	Volume secretVolume(SecretVolume secretVolume, int index) {
+		if (secretVolume.getVolumeName() == null || secretVolume.getVolumeName().isBlank()) {
+			throw new IllegalArgumentException("volume name for secret volume at index " + index + " is undefined");
+		}
+
+		if (secretVolume.getMountPath() == null || secretVolume.getMountPath().isBlank()) {
+			throw new IllegalArgumentException(
+					"volume mount is undefined for secret volume " + secretVolume.getVolumeName());
+		}
+
+		if (secretVolume.getSecretName() == null || secretVolume.getMountPath().isBlank()) {
+			throw new IllegalArgumentException(
+					"secret name is undefined for secret volume " + secretVolume.getVolumeName());
+		}
+
+		if (secretVolume.getPaths() == null || secretVolume.getPaths().isEmpty()) {
+			throw new IllegalArgumentException(
+					"no secret path is defined for secret volume " + secretVolume.getVolumeName());
+		}
+
+		return Volume.newBuilder()
+				.setName(secretVolume.getVolumeName())
+				.setSecret(SecretVolumeSource.newBuilder()
+						.setSecret(secretVolume.getSecretName())
+						.addAllItems(
+								secretVolume.getPaths().stream()
+										.map(path -> VersionToPath.newBuilder()
+												.setPath(path)
+												.setVersion("latest")
+												.build())
+										.toList()))
+				.build();
+	}
+
 	List<EnvVar> secretRefEnvVars(App app, DeploymentManifest deploymentManifest) {
-		return Optional.ofNullable(app.getSecretEnv()).orElseGet(() -> Map.of())
+		if (app.getSecretEnv() == null) {
+			return List.of();
+		}
+
+		return app.getSecretEnv()
 				.entrySet()
 				.stream()
 				.map(entry -> EnvVar

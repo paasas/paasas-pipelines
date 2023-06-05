@@ -18,6 +18,7 @@ public class App {
 	RegistryType registryType;
 	Resources resources;
 	Map<String, String> secretEnv;
+	List<SecretVolume> secretVolumes;
 	String serviceAccount;
 	Probe startupProbe;
 	List<String> subdomains;
