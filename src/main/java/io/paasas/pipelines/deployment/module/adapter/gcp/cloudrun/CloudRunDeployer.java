@@ -190,7 +190,9 @@ public class CloudRunDeployer implements Deployer {
 			revisionTemplaterBuilder.setServiceAccount(app.getServiceAccount());
 		}
 
-		return revisionTemplaterBuilder.build();
+		return revisionTemplaterBuilder
+				.putAllAnnotations(app.getAnnotations() != null ? app.getAnnotations() : Map.of())
+				.build();
 	}
 
 	List<VolumeMount> secretVolumeMounts(App app, DeploymentManifest deploymentManifest) {

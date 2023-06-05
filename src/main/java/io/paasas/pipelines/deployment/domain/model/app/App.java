@@ -11,6 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder(toBuilder = true)
 public class App {
+	Map<String, String> annotations;
 	Map<String, String> env;
 	String image;
 	String name;
