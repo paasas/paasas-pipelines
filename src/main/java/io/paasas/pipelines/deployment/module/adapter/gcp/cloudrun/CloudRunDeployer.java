@@ -32,6 +32,7 @@ import com.google.cloud.run.v2.UpdateServiceRequest;
 import com.google.cloud.run.v2.VersionToPath;
 import com.google.cloud.run.v2.Volume;
 import com.google.cloud.run.v2.VolumeMount;
+import com.google.cloud.run.v2.VpcAccess;
 import com.google.cloud.secretmanager.v1.SecretName;
 
 import io.paasas.pipelines.GcpConfiguration;
@@ -190,9 +191,13 @@ public class CloudRunDeployer implements Deployer {
 			revisionTemplaterBuilder.setServiceAccount(app.getServiceAccount());
 		}
 
-		return revisionTemplaterBuilder
-				.putAllAnnotations(app.getAnnotations() != null ? app.getAnnotations() : Map.of())
-				.build();
+		if (app.getVpcAccessConnector() != null && !app.getVpcAccessConnector().isBlank()) {
+			revisionTemplaterBuilder.setVpcAccess(VpcAccess.newBuilder()
+					.setConnector(app.getVpcAccessConnector())
+					.build());
+		}
+
+		return revisionTemplaterBuilder.build();
 	}
 
 	List<VolumeMount> secretVolumeMounts(App app, DeploymentManifest deploymentManifest) {
