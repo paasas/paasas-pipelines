@@ -21,6 +21,12 @@ public class PaasasPipelinesApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		commandProcessor.execute(args);
+		try {
+			System.exit(commandProcessor.execute(args));
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
+
+			System.exit(1);
+		}
 	}
 }
