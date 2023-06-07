@@ -189,16 +189,11 @@ public class CloudRunDeployer implements Deployer {
 				.addAllVolumes(secretVolumes(app, deploymentManifest));
 
 		if (app.getCloudSqlInstances() != null && !app.getCloudSqlInstances().isEmpty()) {
-			revisionTemplaterBuilder.addAllVolumes(
-					IntStream.range(0, app.getCloudSqlInstances().size())
-							.boxed()
-							.map(index -> Volume.newBuilder()
-									.setName("cloudsql-instance-" + index)
-									.setCloudSqlInstance(
-											CloudSqlInstance.newBuilder()
-													.addInstances(app.getCloudSqlInstances().get(index)).build())
-									.build())
-							.toList());
+			revisionTemplaterBuilder.addVolumes(Volume.newBuilder()
+					.setName("cloudsql")
+					.setCloudSqlInstance(
+							CloudSqlInstance.newBuilder().addAllInstances(app.getCloudSqlInstances()).build())
+					.build());
 		}
 
 		if (app.getServiceAccount() != null) {
