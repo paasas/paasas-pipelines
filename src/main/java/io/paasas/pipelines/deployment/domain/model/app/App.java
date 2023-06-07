@@ -11,6 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder(toBuilder = true)
 public class App {
+	List<String> cloudSqlInstances;
 	Map<String, String> env;
 	String image;
 	String name;

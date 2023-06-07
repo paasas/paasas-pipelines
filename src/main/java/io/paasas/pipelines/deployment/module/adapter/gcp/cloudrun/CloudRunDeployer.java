@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.google.api.gax.longrunning.OperationFuture;
+import com.google.cloud.run.v2.CloudSqlInstance;
 import com.google.cloud.run.v2.Container;
 import com.google.cloud.run.v2.ContainerPort;
 import com.google.cloud.run.v2.CreateServiceRequest;
@@ -186,6 +187,16 @@ public class CloudRunDeployer implements Deployer {
 		var revisionTemplaterBuilder = RevisionTemplate.newBuilder()
 				.addContainers(containerBuilder)
 				.addAllVolumes(secretVolumes(app, deploymentManifest));
+
+		if (app.getCloudSqlInstances() != null && !app.getCloudSqlInstances().isEmpty()) {
+			revisionTemplaterBuilder.addAllVolumes(
+					app.getCloudSqlInstances().stream()
+							.map(cloudSqlInstance -> Volume.newBuilder()
+									.setCloudSqlInstance(
+											CloudSqlInstance.newBuilder().addInstances(cloudSqlInstance).build())
+									.build())
+							.toList());
+		}
 
 		if (app.getServiceAccount() != null) {
 			revisionTemplaterBuilder.setServiceAccount(app.getServiceAccount());
