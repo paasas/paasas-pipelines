@@ -34,6 +34,7 @@ import com.google.cloud.run.v2.VersionToPath;
 import com.google.cloud.run.v2.Volume;
 import com.google.cloud.run.v2.VolumeMount;
 import com.google.cloud.run.v2.VpcAccess;
+import com.google.cloud.run.v2.VpcAccess.VpcEgress;
 import com.google.cloud.secretmanager.v1.SecretName;
 
 import io.paasas.pipelines.GcpConfiguration;
@@ -203,6 +204,7 @@ public class CloudRunDeployer implements Deployer {
 		if (app.getVpcAccessConnector() != null && !app.getVpcAccessConnector().isBlank()) {
 			revisionTemplaterBuilder.setVpcAccess(VpcAccess.newBuilder()
 					.setConnector(app.getVpcAccessConnector())
+					.setEgress(VpcEgress.PRIVATE_RANGES_ONLY)
 					.build());
 		}
 
