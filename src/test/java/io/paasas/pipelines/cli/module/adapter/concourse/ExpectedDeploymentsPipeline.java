@@ -131,7 +131,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
-			      MVN_REPOSITORY_PASSWORD: ((github.accessToken))
+			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
@@ -301,7 +301,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
-			      MVN_REPOSITORY_PASSWORD: ((github.accessToken))
+			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:

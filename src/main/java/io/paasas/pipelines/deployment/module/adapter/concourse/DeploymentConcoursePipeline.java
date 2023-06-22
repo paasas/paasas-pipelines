@@ -602,7 +602,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.params(new TreeMap<>(Map.of(
 										"MANIFEST_PATH", deploymentManifestPath,
 										"MVN_REPOSITORY_USERNAME", configuration.getGithubUsername(),
-										"MVN_REPOSITORY_PASSWORD", "((github.accessToken))",
+										"MVN_REPOSITORY_PASSWORD", "((github.userAccessToken))",
 										"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
 												"terraform@%s.iam.gserviceaccount.com",
 												deploymentManifest.getProject()))))

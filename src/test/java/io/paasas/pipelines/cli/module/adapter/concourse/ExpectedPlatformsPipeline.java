@@ -45,7 +45,7 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-backend-dev-platform-pr
 			  type: pull-request
 			  source:
-			    access_token: ((github.accessToken))
+			    access_token: ((github.userAccessToken))
 			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/backend/dev.yaml
@@ -70,7 +70,7 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-backend-prod-platform-pr
 			  type: pull-request
 			  source:
-			    access_token: ((github.accessToken))
+			    access_token: ((github.userAccessToken))
 			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/backend/prod.yaml
@@ -95,7 +95,7 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-frontend-dev-platform-pr
 			  type: pull-request
 			  source:
-			    access_token: ((github.accessToken))
+			    access_token: ((github.userAccessToken))
 			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/frontend/dev.yaml
@@ -120,7 +120,7 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: project1-frontend-prod-platform-pr
 			  type: pull-request
 			  source:
-			    access_token: ((github.accessToken))
+			    access_token: ((github.userAccessToken))
 			    repository: daniellavoie/infra-as-code-demo
 			    paths:
 			    - teams/project1/frontend/prod.yaml
