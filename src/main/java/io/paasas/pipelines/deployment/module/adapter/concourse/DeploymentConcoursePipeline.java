@@ -295,6 +295,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.plan(List.of(
 						inParallel(List.of(
 								get("ci-src"),
+								get("manifest-src"),
 								getWithTrigger("firebase-src"))),
 						Task.builder()
 								.task("npm-build")
