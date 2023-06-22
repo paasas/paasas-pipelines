@@ -259,6 +259,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
 			      PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME: googleCredentials
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_GITHUBUSERNAME: daniellavoie
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
 			      PIPELINES_CONCOURSE_PLATFORMSRCURI: git@github.com:daniellavoie/infra-as-code-demo.git
@@ -398,6 +399,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
 			      PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME: googleCredentials
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_GITHUBUSERNAME: daniellavoie
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
 			      PIPELINES_CONCOURSE_PLATFORMSRCURI: git@github.com:daniellavoie/infra-as-code-demo.git
@@ -676,6 +678,7 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX: terraform/deployments/
 			      PIPELINES_CONCOURSE_GCRCREDENTIALSJSONSECRETNAME: googleCredentials
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/infra-as-code-demo
+			      PIPELINES_CONCOURSE_GITHUBUSERNAME: daniellavoie
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
 			      PIPELINES_CONCOURSE_PLATFORMSRCURI: git@github.com:daniellavoie/infra-as-code-demo.git

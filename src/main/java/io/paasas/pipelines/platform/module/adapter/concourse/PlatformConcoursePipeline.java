@@ -154,6 +154,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 				"PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX",
 				configuration.getDeploymentTerraformBackendPrefix(),
 				"PIPELINES_CONCOURSE_GITHUBREPOSITORY", configuration.getGithubRepository(),
+				"PIPELINES_CONCOURSE_GITHUBUSERNAME", configuration.getGithubUsername(),
 				"PIPELINES_CONCOURSE_PLATFORMPATHPREFIX", configuration.getPlatformPathPrefix(),
 				"PIPELINES_CONCOURSE_PLATFORMSRCBRANCH", configuration.getPlatformSrcBranch())));
 
