@@ -16,6 +16,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
+import io.paasas.pipelines.deployment.domain.model.GitWatcher;
 import io.paasas.pipelines.deployment.domain.model.TerraformWatcher;
 import io.paasas.pipelines.deployment.domain.model.app.App;
 import io.paasas.pipelines.deployment.domain.model.app.RegistryType;
@@ -57,28 +58,36 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		this.gcpConfiguration = gcpConfiguration;
 	}
 
-	Resource<?> appResource(App app) {
+	Stream<Resource<?>> appResources(App app) {
 		if (app.getRegistryType() == RegistryType.GCR
 				&& (configuration.getGcrCredentialsJsonSecretName() != null &&
 						configuration.getGcrCredentialsJsonSecretName().isBlank())) {
 			throw new IllegalStateException("gcr credentials json is undefined");
 		}
 
-		return Resource.builder()
-				.name(String.format("%s-image", app.getName()))
-				.type(CommonResourceTypes.REGISTRY_IMAGE_RESOURCE_TYPE)
-				.source(RegistryImageSource.builder()
-						.repository(app.getImage())
-						.tag(app.getTag() != null && !app.getTag().isBlank()
-								? app.getTag()
-								: null)
-						.username(app.getRegistryType() == RegistryType.GCR ? "_json_key" : null)
-						.password(
-								app.getRegistryType() == RegistryType.GCR
-										? String.format("((%s))", configuration.getGcrCredentialsJsonSecretName())
+		var streamBuilder = Stream.<Resource<?>>builder().add(
+				Resource.builder()
+						.name(String.format("%s-image", app.getName()))
+						.type(CommonResourceTypes.REGISTRY_IMAGE_RESOURCE_TYPE)
+						.source(RegistryImageSource.builder()
+								.repository(app.getImage())
+								.tag(app.getTag() != null && !app.getTag().isBlank()
+										? app.getTag()
 										: null)
-						.build())
-				.build();
+								.username(app.getRegistryType() == RegistryType.GCR ? "_json_key" : null)
+								.password(
+										app.getRegistryType() == RegistryType.GCR
+												? String.format("((%s))",
+														configuration.getGcrCredentialsJsonSecretName())
+												: null)
+								.build())
+						.build());
+
+		if (app.getTests() != null) {
+			streamBuilder.add(testResource(app.getTests(), app.getName()));
+		}
+
+		return streamBuilder.build();
 	}
 
 	private void assertArgument(String value, String property, ComposerConfig composerConfig) {
@@ -198,6 +207,20 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
+	String composerVariablesPath(
+			ComposerConfig composerConfig,
+			String manifestPath) {
+		var path = Path.of(manifestPath);
+		var manifestDirectory = path.getParent().toString();
+		var deploymentName = path.getFileName().toString().split("\\.")[0];
+
+		return String.format(
+				"%s/%s-composer-variables/%s.json",
+				manifestDirectory,
+				deploymentName,
+				composerConfig.getName());
+	}
+
 	Resource<?> composerVariablesResource(
 			ComposerConfig composerConfig,
 			String deploymentManifestPath) {
@@ -223,7 +246,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		if (manifest.getApps() != null) {
 			manifest.getApps()
 					.stream()
-					.map(this::appResource)
+					.flatMap(this::appResources)
 					.forEach(streamBuilder::add);
 		}
 
@@ -245,27 +268,15 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 
 		if (manifest.getFirebaseApp() != null) {
-			streamBuilder.add(firebaseResource(manifest));
+			firebaseResources(manifest).forEach(streamBuilder::add);
 		}
 
 		return streamBuilder.build();
 	}
 
-	String composerVariablesPath(
-			ComposerConfig composerConfig,
-			String manifestPath) {
-		var path = Path.of(manifestPath);
-		var manifestDirectory = path.getParent().toString();
-		var deploymentName = path.getFileName().toString().split("\\.")[0];
-
-		return String.format(
-				"%s/%s-composer-variables/%s.json",
-				manifestDirectory,
-				deploymentName,
-				composerConfig.getName());
-	}
-
-	Job firebaseJob(DeploymentManifest manifest) {
+	Stream<Job> firebaseJobs(
+			DeploymentManifest manifest,
+			String deploymentManifestPath) {
 		var firebaseApp = manifest.getFirebaseApp();
 
 		if (firebaseApp == null) {
@@ -279,7 +290,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		var mappings = new TreeMap<>(Map.of("src", "firebase-src"));
 
-		return Job.builder()
+		var streamBuilder = Stream.<Job>builder().add(Job.builder()
 				.name("deploy-firebase")
 				.plan(List.of(
 						inParallel(List.of(
@@ -307,10 +318,21 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath()),
 										"FIREBASE_CONFIG", blankIfNull(firebaseApp.getConfig()))))
 								.build()))
-				.build();
+				.build());
+
+		if (manifest.getFirebaseApp().getTests() != null) {
+			streamBuilder.add(testJob(
+					manifest.getFirebaseApp().getTests(),
+					"deploy-firebase",
+					"firebase-app",
+					manifest,
+					deploymentManifestPath));
+		}
+
+		return streamBuilder.build();
 	}
 
-	Resource<?> firebaseResource(DeploymentManifest deploymentManifest) {
+	Stream<Resource<?>> firebaseResources(DeploymentManifest deploymentManifest) {
 		if (deploymentManifest.getFirebaseApp() == null) {
 			throw new IllegalArgumentException("firebase app is undefined");
 		}
@@ -331,7 +353,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			throw new IllegalArgumentException("branch or tag filter needs to be defined for firebase app");
 		}
 
-		return Resource.builder()
+		var streamBuilder = Stream.<Resource<?>>builder().add(Resource.builder()
 				.name("firebase-src")
 				.type("git")
 				.source(GitSource.builder()
@@ -343,7 +365,13 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								: null)
 						.tagFilter(deploymentManifest.getFirebaseApp().getGit().getTag())
 						.build())
-				.build();
+				.build());
+
+		if (deploymentManifest.getFirebaseApp().getTests() != null) {
+			streamBuilder.add(testResource(deploymentManifest.getFirebaseApp().getTests(), "firebase-app"));
+		}
+
+		return streamBuilder.build();
 	}
 
 	private Get get(String resource) {
@@ -384,8 +412,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			DeploymentManifest manifest,
 			String target,
 			String deploymentManifestPath) {
-		var streamBuilder = Stream.<Job>builder()
-				.add(updateCloudRunJob(manifest, deploymentManifestPath));
+		var streamBuilder = Stream.<Job>builder();
+
+		updateCloudRunJobs(manifest, deploymentManifestPath)
+				.forEach(streamBuilder::add);
 
 		if (manifest.getTerraform() != null) {
 			manifest.getTerraform().stream()
@@ -400,7 +430,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		}
 
 		if (manifest.getFirebaseApp() != null) {
-			streamBuilder.add(firebaseJob(manifest));
+			firebaseJobs(manifest, deploymentManifestPath).forEach(streamBuilder::add);
 		}
 
 		return streamBuilder.build().toList();
@@ -546,16 +576,72 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Job updateCloudRunJob(DeploymentManifest manifest, String deploymentManifestPath) {
-		var taskParams = new TreeMap<>(Map.of(
-				"MANIFEST_PATH", deploymentManifestPath,
-				"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
-						"terraform@%s.iam.gserviceaccount.com",
-						manifest.getProject())));
+	Job testJob(
+			GitWatcher tests,
+			String passed,
+			String appName,
+			DeploymentManifest deploymentManifest,
+			String deploymentManifestPath) {
+		return Job.builder()
+				.name("test-" + appName)
+				.plan(List.of(
+						inParallel(List.of(
+								get("ci-src"),
+								Get.builder()
+										.get("manifest-src")
+										.passed(List.of(passed))
+										.trigger(true)
+										.build(),
+								getWithTrigger(appName + "-tests-src"))),
+						Task.builder()
+								.task("test-" + appName)
+								.file("ci-src/.concourse/tasks/maven-test/maven-test.yaml")
+								.inputMapping(new TreeMap<>(Map.of(
+										"src", appName + "-tests-src")))
+								.params(new TreeMap<>(Map.of(
+										"MANIFEST_PATH", deploymentManifestPath,
+										"MVN_REPOSITORY_USERNAME", configuration.getGithubUsername(),
+										"MVN_REPOSITORY_PASSWORD", "((github.accessToken))",
+										"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
+												"terraform@%s.iam.gserviceaccount.com",
+												deploymentManifest.getProject()))))
+								.build()))
+				.build();
+	}
 
+	Resource<?> testResource(GitWatcher tests, String appName) {
+		if ((tests.getBranch() == null || tests.getBranch().isBlank()) &&
+				tests.getTag() == null || tests.getTag().isBlank()) {
+			throw new IllegalArgumentException(
+					"branch or tag is required for test configuration of app " + appName);
+		}
+
+		if (tests.getUri() == null || tests.getUri().isBlank()) {
+			throw new IllegalArgumentException("uri is required for test configuration of app " + appName);
+		}
+
+		return Resource.builder()
+				.name(appName + "-tests-src")
+				.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
+				.source(GitSource.builder()
+						.branch(tests.getBranch() != null
+								&& !tests.getBranch().isBlank()
+										? tests.getBranch()
+										: null)
+						.tagFilter(tests.getTag() != null && !tests.getTag().isBlank()
+								? tests.getBranch()
+								: null)
+						.paths(tests.getPath() != null ? List.of(tests.getPath()) : null)
+						.privateKey("((git.ssh-private-key))")
+						.uri(tests.getUri())
+						.build())
+				.build();
+	}
+
+	Stream<Job> updateCloudRunJobs(DeploymentManifest manifest, String deploymentManifestPath) {
 		var apps = manifest.getApps() != null ? manifest.getApps() : List.<App>of();
 
-		return Job.builder()
+		var cloudRunJob = Job.builder()
 				.name("update-cloud-run")
 				.plan(List.of(
 						inParallel(
@@ -572,11 +658,29 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
 								.inputMapping(new TreeMap<>(Map.of(
 										"src", "manifest-src")))
-								.params(taskParams)
+								.params(new TreeMap<>(Map.of(
+										"MANIFEST_PATH", deploymentManifestPath,
+										"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
+												"terraform@%s.iam.gserviceaccount.com",
+												manifest.getProject()))))
 								.build()))
 				.onSuccess(teamsSuccessNotification())
 				.onFailure(teamsFailureNotification())
 				.build();
+
+		var jobBuilder = Stream.<Job>builder().add(cloudRunJob);
+
+		apps.stream()
+				.filter(app -> app.getTests() != null)
+				.map(app -> testJob(
+						app.getTests(),
+						"update-cloud-run",
+						app.getName(),
+						manifest,
+						deploymentManifestPath))
+				.forEach(jobBuilder::add);
+
+		return jobBuilder.build();
 	}
 
 	Job updateComposerDagsJob(ComposerConfig composerConfig, DeploymentManifest manifest) {

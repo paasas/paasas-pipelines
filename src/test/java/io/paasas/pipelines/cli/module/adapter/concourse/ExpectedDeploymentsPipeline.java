@@ -37,6 +37,13 @@ public abstract class ExpectedDeploymentsPipeline {
 			    repository: gcr.io/cloudrun/container/hello
 			    tag: latest
 			    username: _json_key
+			- name: demo-webapp-tests-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/my-cloud-run-tests.git
+			    private_key: ((git.ssh-private-key))
+			    paths:
+			    - cloud-run-tests
 			- name: terraform-dataset-1-src
 			  type: git
 			  source:
@@ -77,6 +84,13 @@ public abstract class ExpectedDeploymentsPipeline {
 			    paths:
 			    - firebase-app
 			    tag_filter: my-tag
+			- name: firebase-app-tests-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/my-tests.git
+			    private_key: ((git.ssh-private-key))
+			    paths:
+			    - firebase-app-tests
 			jobs:
 			- name: update-cloud-run
 			  plan:
@@ -103,6 +117,25 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
+			- name: test-demo-webapp
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: manifest-src
+			      passed:
+			      - update-cloud-run
+			      trigger: true
+			    - get: demo-webapp-tests-src
+			      trigger: true
+			  - task: test-demo-webapp
+			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
+			    params:
+			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
+			      MVN_REPOSITORY_PASSWORD: ((github.accessToken))
+			      MVN_REPOSITORY_USERNAME: daniellavoie
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			    input_mapping:
+			      src: demo-webapp-tests-src
 			- name: terraform-apply-dataset-1
 			  plan:
 			  - in_parallel:
@@ -253,5 +286,24 @@ public abstract class ExpectedDeploymentsPipeline {
 			      src: firebase-src
 			    output_mapping:
 			      src: firebase-src
+			- name: test-firebase-app
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: manifest-src
+			      passed:
+			      - deploy-firebase
+			      trigger: true
+			    - get: firebase-app-tests-src
+			      trigger: true
+			  - task: test-firebase-app
+			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
+			    params:
+			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
+			      MVN_REPOSITORY_PASSWORD: ((github.accessToken))
+			      MVN_REPOSITORY_USERNAME: daniellavoie
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			    input_mapping:
+			      src: firebase-app-tests-src
 			      """;
 }

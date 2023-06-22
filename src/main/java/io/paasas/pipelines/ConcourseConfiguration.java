@@ -20,9 +20,12 @@ import lombok.experimental.FieldDefaults;
 public class ConcourseConfiguration {
 	@NotEmpty
 	String ciSrcUri;
-
+	
 	@NotEmpty
 	String githubRepository;
+	
+	@NotEmpty
+	String githubUsername;
 
 	@NotNull
 	String deploymentPathPrefix;

@@ -12,4 +12,5 @@ public class FirebaseAppDefinition {
 	String config;
 	GitWatcher git;
 	Npm npm;
+	GitWatcher tests;
 }

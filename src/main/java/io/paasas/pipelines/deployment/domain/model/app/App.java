@@ -3,6 +3,7 @@ package io.paasas.pipelines.deployment.domain.model.app;
 import java.util.List;
 import java.util.Map;
 
+import io.paasas.pipelines.deployment.domain.model.GitWatcher;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -24,5 +25,6 @@ public class App {
 	Probe startupProbe;
 	List<String> subdomains;
 	String tag;
+	GitWatcher tests;
 	String vpcAccessConnector;
 }

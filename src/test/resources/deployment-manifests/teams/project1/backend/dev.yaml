@@ -26,6 +26,11 @@ apps:
     failureThreshold: 1
     tcpSocket:
       port: 8080
+  tests:
+    uri: git@github.com:teleport-java-client/my-cloud-run-tests.git
+    path: cloud-run-tests
+    # branch: firebase-app-tests
+    tag: my-cloud-run-tests-tag
 composer:
 - name: composer-1
   bucketName: composer-1-bucket
@@ -80,6 +85,11 @@ firebaseApp:
     installArgs: --legacy-peer-deps
     env: |
       my-test-env: my-test-value
+  tests:
+    uri: git@github.com:teleport-java-client/my-tests.git
+    path: firebase-app-tests
+    # branch: firebase-app-tests
+    tag: my-test-tag
 terraform:
 - name: dataset-1
   git:
