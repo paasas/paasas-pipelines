@@ -250,6 +250,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
+			    - get: manifest-src
 			    - get: firebase-src
 			      trigger: true
 			  - task: npm-build
