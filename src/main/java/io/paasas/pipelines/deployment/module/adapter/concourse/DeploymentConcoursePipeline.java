@@ -611,7 +611,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 	Resource<?> testResource(GitWatcher tests, String appName) {
 		if ((tests.getBranch() == null || tests.getBranch().isBlank()) &&
-				tests.getTag() == null || tests.getTag().isBlank()) {
+				(tests.getTag() == null || tests.getTag().isBlank())) {
 			throw new IllegalArgumentException(
 					"branch or tag is required for test configuration of app " + appName);
 		}
