@@ -130,6 +130,10 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - task: test-demo-webapp
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
+			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
+			      GIT_USER_EMAIL: dlavoie@live.ca
+			      GIT_USER_NAME: daniellavoie
+			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
 			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
@@ -300,6 +304,10 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - task: test-firebase-app
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
+			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
+			      GIT_USER_EMAIL: dlavoie@live.ca
+			      GIT_USER_NAME: daniellavoie
+			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
 			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie

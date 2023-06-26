@@ -45,6 +45,7 @@ public abstract class ConcoursePipelineTest {
 				.deploymentSrcUri("git@github.com:daniellavoie/deployment-as-code-demo.git")
 				.deploymentTerraformBackendPrefix("terraform/deployments/")
 				.gcrCredentialsJsonSecretName("googleCredentials")
+				.githubEmail("dlavoie@live.ca")
 				.githubRepository("daniellavoie/infra-as-code-demo")
 				.githubUsername("daniellavoie")
 				.platformPathPrefix("teams/")

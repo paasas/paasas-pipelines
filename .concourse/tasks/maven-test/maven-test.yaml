@@ -10,6 +10,7 @@ image_resource:
 inputs:
 - name: ci-src
 - name: src
+- name: test-reports-src
 
 outputs:
 - name: version
@@ -18,9 +19,14 @@ caches:
 - path: src/m2
 
 params:
+  GIT_PRIVATE_KEY: 
+  GIT_USER_EMAIL: 
+  GIT_USER_NAME: 
+  GOOGLE_PROJECT_ID: 
+  MVN_REPOSITORY_PASSWORD: ((github.accessToken))
   MVN_REPOSITORY_URL: https://maven.pkg.github.com/ia-mgcp/ax360-automation-tests-framework
   MVN_REPOSITORY_USERNAME: 
-  MVN_REPOSITORY_PASSWORD: ((github.accessToken))
+  TEST_REPORTS_GIT_BRANCH: gh-pages
   
 run:
   path: ci-src/.concourse/tasks/maven-test/maven-test.sh

@@ -22,7 +22,11 @@ public class ConcourseConfiguration {
 	String ciSrcUri;
 	
 	@NotEmpty
+	String githubEmail;
+	
+	@NotEmpty
 	String githubRepository;
+
 	
 	@NotEmpty
 	String githubUsername;

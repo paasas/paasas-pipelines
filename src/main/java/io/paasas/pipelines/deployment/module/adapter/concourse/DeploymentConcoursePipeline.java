@@ -600,6 +600,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.inputMapping(new TreeMap<>(Map.of(
 										"src", appName + "-tests-src")))
 								.params(new TreeMap<>(Map.of(
+										"GIT_PRIVATE_KEY", "((git.ssh-private-key))",
+										"GIT_USER_EMAIL", configuration.getGithubEmail(),
+										"GIT_USER_NAME", configuration.getGithubUsername(),
+										"GOOGLE_PROJECT_ID", deploymentManifest.getProject(),
 										"MANIFEST_PATH", deploymentManifestPath,
 										"MVN_REPOSITORY_USERNAME", configuration.getGithubUsername(),
 										"MVN_REPOSITORY_PASSWORD", "((github.userAccessToken))",

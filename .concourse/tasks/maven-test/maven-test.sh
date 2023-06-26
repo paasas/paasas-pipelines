@@ -5,6 +5,31 @@ if [ -z "${MVN_REPOSITORY_USERNAME}" ]; then
   exit 1
 fi
 
+if [ -z  "${GIT_USER_NAME}" ]; then
+  echo "env variable GIT_USER_NAME is undefined
+  exit 1
+fi
+
+if [ -z  "${GIT_USER_EMAIL}" ]; then
+  echo "env variable GIT_USER_EMAIL is undefined
+  exit 1
+fi
+
+if [ -z  "${GIT_PRIVATE_KEY}" ]; then
+  echo "env variable GIT_PRIVATE_KEY is undefined
+  exit 1
+fi
+
+if [ -z  "${GOOGLE_PROJECT_ID}" ]; then
+  echo "env variable GOOGLE_PROJECT_ID is undefined
+  exit 1
+fi
+
+if [ -z  "${TEST_REPORTS_GIT_BRANCH}" ]; then
+  echo "env variable TEST_REPORTS_GIT_BRANCH is undefined
+  exit 1
+fi
+
 export M2_HOME=~/.m2
 
 mkdir -p ${M2_HOME}
@@ -35,4 +60,26 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+mkdir -p test-reports-src/$GOOGLE_PROJECT_ID
+
 ./mvnw -U test
+
+TEST_RESULT=$?
+
+
+popd && \
+  pushd test-reports-src && \
+  git config --global user.name "${GIT_USER_NAME}" && \
+  git config --global user.email "${GIT_USER_EMAIL}" && \
+  mkdir ~/.ssh && \
+  ssh-keyscan github.com >> ~/.ssh/known_hosts && \
+  echo "${GIT_PRIVATE_KEY}" > ~/.ssh/id_rsa && \
+  chmod 600 ~/.ssh/id_rsa && \
+  git update-ref refs/heads/${TEST_REPORTS_GIT_BRANCH} HEAD
+  git checkout ${TEST_REPORTS_GIT_BRANCH} && \
+  git pull --ff-only && \
+  mv ../src/src/test/resources/reports/consolidated/* . && \
+  git add --all && \
+  git commit -m "chore: update test reports" && \
+  git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH && \
+  exit $TEST_RESULT
