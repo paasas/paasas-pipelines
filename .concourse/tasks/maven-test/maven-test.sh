@@ -60,7 +60,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-mkdir -p test-reports-src/$GOOGLE_PROJECT_ID
+
 
 ./mvnw -U test
 
@@ -78,8 +78,15 @@ popd && \
   chmod 600 ~/.ssh/id_rsa && \
   git update-ref refs/heads/${TEST_REPORTS_GIT_BRANCH} HEAD
   git checkout ${TEST_REPORTS_GIT_BRANCH} && \
-  git pull --ff-only && \
-  mv ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
+  git pull --ff-only
+  
+if [ $? -ne 0]; then
+  exit 1
+fi
+
+mkdir -p test-reports-src/$GOOGLE_PROJECT_ID
+
+mv ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
   git add --all && \
   git commit -m "chore: update test reports" && \
   git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH && \
