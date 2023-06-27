@@ -6,27 +6,27 @@ if [ -z "${MVN_REPOSITORY_USERNAME}" ]; then
 fi
 
 if [ -z  "${GIT_USER_NAME}" ]; then
-  echo "env variable GIT_USER_NAME is undefined
+  echo "env variable GIT_USER_NAME is undefined"
   exit 1
 fi
 
 if [ -z  "${GIT_USER_EMAIL}" ]; then
-  echo "env variable GIT_USER_EMAIL is undefined
+  echo "env variable GIT_USER_EMAIL is undefined"
   exit 1
 fi
 
 if [ -z  "${GIT_PRIVATE_KEY}" ]; then
-  echo "env variable GIT_PRIVATE_KEY is undefined
+  echo "env variable GIT_PRIVATE_KEY is undefined"
   exit 1
 fi
 
 if [ -z  "${GOOGLE_PROJECT_ID}" ]; then
-  echo "env variable GOOGLE_PROJECT_ID is undefined
+  echo "env variable GOOGLE_PROJECT_ID is undefined"
   exit 1
 fi
 
 if [ -z  "${TEST_REPORTS_GIT_BRANCH}" ]; then
-  echo "env variable TEST_REPORTS_GIT_BRANCH is undefined
+  echo "env variable TEST_REPORTS_GIT_BRANCH is undefined"
   exit 1
 fi
 
@@ -81,12 +81,5 @@ popd && \
   mv ../src/src/test/resources/reports/consolidated/* . && \
   git add --all && \
   git commit -m "chore: update test reports" && \
-  git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH
-
-if [ $? -ne 0 ]; then
-  exit 1
-fi
-
-if [ $TEST_RESULT -ne 0 ]; then
-  exit 1
-fi
+  git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH && \
+  exit $TEST_RESULT
