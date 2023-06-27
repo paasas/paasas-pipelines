@@ -81,5 +81,12 @@ popd && \
   mv ../src/src/test/resources/reports/consolidated/* . && \
   git add --all && \
   git commit -m "chore: update test reports" && \
-  git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH && \
-  exit $TEST_RESULT
+  git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH
+
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
+if [ $TEST_RESULT -ne 0 ]; then
+  exit 1
+fi
