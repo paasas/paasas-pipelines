@@ -58,6 +58,7 @@ public abstract class ConcoursePipelineTest {
 				.terraformBackendGcsBucket("terraform-states")
 				.terraformSrcBranch("main")
 				.terraformSrcUri("git@github.com:daniellavoie/infra-as-code-demo")
+				.testReportsBranch("gh-pages")
 				.build();
 	}
 

@@ -70,4 +70,7 @@ public class ConcourseConfiguration {
 
 	@NotEmpty
 	String terraformSrcUri;
+	
+	@NotEmpty
+	String testReportsBranch;
 }

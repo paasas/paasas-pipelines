@@ -84,7 +84,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.build());
 
 		if (app.getTests() != null) {
-			streamBuilder.add(testResource(app.getTests(), app.getName()));
+			testResources(app.getTests(), app.getName()).forEach(streamBuilder::add);
 		}
 
 		return streamBuilder.build();
@@ -369,7 +369,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build());
 
 		if (deploymentManifest.getFirebaseApp().getTests() != null) {
-			streamBuilder.add(testResource(deploymentManifest.getFirebaseApp().getTests(), "firebase-app"));
+			testResources(deploymentManifest.getFirebaseApp().getTests(), "firebase-app")
+					.forEach(streamBuilder::add);
 		}
 
 		return streamBuilder.build();
@@ -593,12 +594,14 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										.passed(List.of(passed))
 										.trigger(true)
 										.build(),
-								getWithTrigger(appName + "-tests-src"))),
+								getWithTrigger(appName + "-tests-src"),
+								get(appName + "-test-reports-src"))),
 						Task.builder()
 								.task("test-" + appName)
 								.file("ci-src/.concourse/tasks/maven-test/maven-test.yaml")
 								.inputMapping(new TreeMap<>(Map.of(
-										"src", appName + "-tests-src")))
+										"src", appName + "-tests-src",
+										"test-reports-src", appName + "-test-reports-src")))
 								.params(new TreeMap<>(Map.of(
 										"GIT_PRIVATE_KEY", "((git.ssh-private-key))",
 										"GIT_USER_EMAIL", configuration.getGithubEmail(),
@@ -614,7 +617,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Resource<?> testResource(GitWatcher tests, String appName) {
+	Stream<Resource<?>> testResources(GitWatcher tests, String appName) {
 		if ((tests.getBranch() == null || tests.getBranch().isBlank()) &&
 				(tests.getTag() == null || tests.getTag().isBlank())) {
 			throw new IllegalArgumentException(
@@ -625,20 +628,31 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			throw new IllegalArgumentException("uri is required for test configuration of app " + appName);
 		}
 
-		return Resource.builder()
-				.name(appName + "-tests-src")
-				.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
-				.source(GitSource.builder()
-						.branch(tests.getBranch() != null
-								&& !tests.getBranch().isBlank()
+		return Stream.<Resource<?>>builder()
+				.add(Resource.builder()
+						.name(appName + "-tests-src")
+						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
+						.source(GitSource.builder()
+								.branch(tests.getBranch() != null
+										&& !tests.getBranch().isBlank()
+												? tests.getBranch()
+												: null)
+								.tagFilter(tests.getTag() != null && !tests.getTag().isBlank()
 										? tests.getBranch()
 										: null)
-						.tagFilter(tests.getTag() != null && !tests.getTag().isBlank()
-								? tests.getBranch()
-								: null)
-						.paths(tests.getPath() != null ? List.of(tests.getPath()) : null)
-						.privateKey("((git.ssh-private-key))")
-						.uri(tests.getUri())
+								.paths(tests.getPath() != null ? List.of(tests.getPath()) : null)
+								.privateKey("((git.ssh-private-key))")
+								.uri(tests.getUri())
+								.build())
+						.build())
+				.add(Resource.builder()
+						.name(appName + "-test-reports-src")
+						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
+						.source(GitSource.builder()
+								.branch(configuration.getTestReportsBranch())
+								.privateKey("((git.ssh-private-key))")
+								.uri(tests.getUri())
+								.build())
 						.build())
 				.build();
 	}

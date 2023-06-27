@@ -44,6 +44,12 @@ public abstract class ExpectedDeploymentsPipeline {
 			    private_key: ((git.ssh-private-key))
 			    paths:
 			    - cloud-run-tests
+			- name: demo-webapp-test-reports-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/my-cloud-run-tests.git
+			    private_key: ((git.ssh-private-key))
+			    branch: gh-pages
 			- name: terraform-dataset-1-src
 			  type: git
 			  source:
@@ -91,6 +97,12 @@ public abstract class ExpectedDeploymentsPipeline {
 			    private_key: ((git.ssh-private-key))
 			    paths:
 			    - firebase-app-tests
+			- name: firebase-app-test-reports-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/my-tests.git
+			    private_key: ((git.ssh-private-key))
+			    branch: gh-pages
 			jobs:
 			- name: update-cloud-run
 			  plan:
@@ -127,6 +139,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      trigger: true
 			    - get: demo-webapp-tests-src
 			      trigger: true
+			    - get: demo-webapp-test-reports-src
 			  - task: test-demo-webapp
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
@@ -140,6 +153,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      src: demo-webapp-tests-src
+			      test-reports-src: demo-webapp-test-reports-src
 			- name: terraform-apply-dataset-1
 			  plan:
 			  - in_parallel:
@@ -301,6 +315,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      trigger: true
 			    - get: firebase-app-tests-src
 			      trigger: true
+			    - get: firebase-app-test-reports-src
 			  - task: test-firebase-app
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
@@ -314,5 +329,6 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      src: firebase-app-tests-src
+			      test-reports-src: firebase-app-test-reports-src
 			      """;
 }
