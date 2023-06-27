@@ -86,7 +86,7 @@ fi
 
 mkdir -p $GOOGLE_PROJECT_ID
 
-mv ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
+cp -R ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
   git add --all && \
   git commit -m "chore: update test reports" && \
   git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH && \
