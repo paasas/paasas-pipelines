@@ -66,6 +66,7 @@ mkdir -p test-reports-src/$GOOGLE_PROJECT_ID
 
 TEST_RESULT=$?
 
+set -x
 
 popd && \
   pushd test-reports-src && \
