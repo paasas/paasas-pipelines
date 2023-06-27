@@ -80,11 +80,11 @@ popd && \
   git checkout ${TEST_REPORTS_GIT_BRANCH} && \
   git pull --ff-only
   
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
   exit 1
 fi
 
-mkdir -p test-reports-src/$GOOGLE_PROJECT_ID
+mkdir -p $GOOGLE_PROJECT_ID
 
 mv ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
   git add --all && \
