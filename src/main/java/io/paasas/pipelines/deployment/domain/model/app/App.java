@@ -15,6 +15,8 @@ public class App {
 	List<String> cloudSqlInstances;
 	Map<String, String> env;
 	String image;
+	Integer maxReplicas;
+	Integer minReplicas;
 	String name;
 	Integer port;
 	RegistryType registryType;

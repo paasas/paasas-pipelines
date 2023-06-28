@@ -21,6 +21,7 @@ import com.google.cloud.run.v2.EnvVarSource;
 import com.google.cloud.run.v2.LocationName;
 import com.google.cloud.run.v2.Probe;
 import com.google.cloud.run.v2.ResourceRequirements;
+import com.google.cloud.run.v2.RevisionScaling;
 import com.google.cloud.run.v2.RevisionTemplate;
 import com.google.cloud.run.v2.SecretKeySelector;
 import com.google.cloud.run.v2.SecretVolumeSource;
@@ -206,6 +207,20 @@ public class CloudRunDeployer implements Deployer {
 					.setConnector(app.getVpcAccessConnector())
 					.setEgress(VpcEgress.PRIVATE_RANGES_ONLY)
 					.build());
+		}
+
+		if (app.getMinReplicas() != null || app.getMaxReplicas() != null) {
+			var revisionScaling = RevisionScaling.newBuilder();
+
+			if (app.getMaxReplicas() != null) {
+				revisionScaling.setMaxInstanceCount(app.getMaxReplicas());
+			}
+
+			if (app.getMinReplicas() != null) {
+				revisionScaling.setMinInstanceCount(app.getMinReplicas());
+			}
+
+			revisionTemplaterBuilder.setScaling(revisionScaling);
 		}
 
 		return revisionTemplaterBuilder.build();
