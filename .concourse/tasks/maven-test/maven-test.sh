@@ -53,6 +53,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+set -x
+
 mkdir -p $GOOGLE_PROJECT_ID
   
 cp -R $GOOGLE_PROJECT_ID/* ../src/src/test/resources/reports/consolidated/ && \
@@ -79,11 +81,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+ls -l src/test/resources/reports/consolidated/
+
 ./mvnw -U test
 
 TEST_RESULT=$?
-
-set -x
 
 popd && \
   pushd test-reports-src
