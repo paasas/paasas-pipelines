@@ -38,8 +38,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-popd && \
-  pushd test-reports-src && \
+pushd test-reports-src && \
   git config --global user.name "${GIT_USER_NAME}" && \
   git config --global user.email "${GIT_USER_EMAIL}" && \
   mkdir ~/.ssh && \
