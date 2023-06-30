@@ -38,7 +38,27 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-pushd src && \
+popd && \
+  pushd test-reports-src && \
+  git config --global user.name "${GIT_USER_NAME}" && \
+  git config --global user.email "${GIT_USER_EMAIL}" && \
+  mkdir ~/.ssh && \
+  ssh-keyscan github.com >> ~/.ssh/known_hosts && \
+  echo "${GIT_PRIVATE_KEY}" > ~/.ssh/id_rsa && \
+  chmod 600 ~/.ssh/id_rsa && \
+  git update-ref refs/heads/${TEST_REPORTS_GIT_BRANCH} HEAD
+  git checkout ${TEST_REPORTS_GIT_BRANCH} && \
+  git pull --ff-only
+  
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+mkdir -p $GOOGLE_PROJECT_ID
+  
+cp -R $GOOGLE_PROJECT_ID/* ../src/src/test/resources/reports/consolidated/ && \
+  popd && \
+  pushd src && \
   rm -rf ~/.m2 && \
   ln -fs $(pwd)/m2 ~/.m2 && \
   cat > $(pwd)/m2/settings.xml <<EOF
@@ -60,8 +80,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
-
 ./mvnw -U test
 
 TEST_RESULT=$?
@@ -69,22 +87,11 @@ TEST_RESULT=$?
 set -x
 
 popd && \
-  pushd test-reports-src && \
-  git config --global user.name "${GIT_USER_NAME}" && \
-  git config --global user.email "${GIT_USER_EMAIL}" && \
-  mkdir ~/.ssh && \
-  ssh-keyscan github.com >> ~/.ssh/known_hosts && \
-  echo "${GIT_PRIVATE_KEY}" > ~/.ssh/id_rsa && \
-  chmod 600 ~/.ssh/id_rsa && \
-  git update-ref refs/heads/${TEST_REPORTS_GIT_BRANCH} HEAD
-  git checkout ${TEST_REPORTS_GIT_BRANCH} && \
-  git pull --ff-only
+  pushd test-reports-src
   
 if [ $? -ne 0 ]; then
   exit 1
 fi
-
-mkdir -p $GOOGLE_PROJECT_ID
 
 cp -R ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
   git add --all && \
