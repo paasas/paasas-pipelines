@@ -35,13 +35,13 @@ export M2_HOME=~/.m2
 mkdir -p ${M2_HOME}
 
 if [ $? -ne 0 ]; then
-    exit 1
+  exit 1
 fi
 
-export BUILD_NUMBER=$(cat metadata/build_name)
+export BUILD_NUMBER="$(cat metadata/build_name)"
 
 if [ -z "$BUILD_NUMBER" ]; then
-    exit 1
+  exit 1
 fi
 
 pushd test-reports-src && \
