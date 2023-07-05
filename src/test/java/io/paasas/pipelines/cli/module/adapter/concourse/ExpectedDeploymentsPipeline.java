@@ -9,6 +9,11 @@ public abstract class ExpectedDeploymentsPipeline {
 			  source:
 			    repository: navicore/teams-notification-resource
 			    tag: latest
+			- name: metadata
+			  type: docker-image
+			  source:
+			    repository: olhtbr/metadata-resource
+			    tag: 2.0.1
 			resources:
 			- name: ci-src
 			  type: git
@@ -22,6 +27,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			  type: teams-notification
 			  source:
 			    url: ((teams.webhookUrl))
+			- name: metadata
+			  type: metadata
 			- name: manifest-src
 			  type: git
 			  source:
@@ -133,6 +140,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
+			    - put: metadata
 			    - get: manifest-src
 			      passed:
 			      - update-cloud-run
@@ -309,6 +317,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
+			    - put: metadata
 			    - get: manifest-src
 			      passed:
 			      - deploy-firebase

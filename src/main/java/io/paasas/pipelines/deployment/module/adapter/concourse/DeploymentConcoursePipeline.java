@@ -119,8 +119,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		return value != null ? value : "";
 	}
 
-	Stream<Resource<?>> commonResources() {
-		return Stream.of(
+	Stream<Resource<?>> commonResources(DeploymentManifest manifest) {
+		var builder = Stream.<Resource<?>>builder().add(
 				Resource.builder()
 						.name(CI_SRC_RESOURCE)
 						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
@@ -130,12 +130,22 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.branch("main")
 								.paths(List.of(".concourse"))
 								.build())
-						.build(),
-				Resource.builder()
-						.name("teams")
-						.type(CommonResourceTypes.TEAMS_NOTIFICATION_RESOURCE_TYPE)
-						.source(Map.of("url", "((teams.webhookUrl))"))
-						.build());
+						.build())
+				.add(
+						Resource.builder()
+								.name("teams")
+								.type(CommonResourceTypes.TEAMS_NOTIFICATION_RESOURCE_TYPE)
+								.source(Map.of("url", "((teams.webhookUrl))"))
+								.build());
+
+		if (containsTests(manifest)) {
+			builder.add(Resource.builder()
+					.name("metadata")
+					.type(CommonResourceTypes.METADATA_RESOURCE_TYPE)
+					.build());
+		}
+
+		return builder.build();
 	}
 
 	Resource<?> composerDagsResource(ComposerConfig composerConfig, int index) {
@@ -491,11 +501,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.put(resource)
 				.build();
 	}
-	
+
 	List<Resource<?>> resources(DeploymentManifest manifest, String deploymentManifestPath) {
 		return Stream
 				.concat(
-						commonResources(),
+						commonResources(manifest),
 						deploymentResources(manifest, deploymentManifestPath))
 				.toList();
 	}
