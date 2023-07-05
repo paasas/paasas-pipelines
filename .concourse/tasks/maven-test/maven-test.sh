@@ -39,6 +39,7 @@ if [ $? -ne 0 ]; then
 fi
 
 export BUILD_NUMBER="$(cat metadata/build_name)"
+export PROJECT_ID="${GOOGLE_PROJECT_ID}"
 
 if [ -z "$BUILD_NUMBER" ]; then
   exit 1
