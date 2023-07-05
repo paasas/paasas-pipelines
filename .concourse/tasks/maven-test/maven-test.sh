@@ -38,7 +38,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-export BUILD_NUMBER=$(metadata/build_id)
+export BUILD_NUMBER=$(metadata/build_name)
 
 if [ $? -ne 0 ]; then
     exit 1
