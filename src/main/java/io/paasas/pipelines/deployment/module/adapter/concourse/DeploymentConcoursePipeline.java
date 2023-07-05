@@ -33,6 +33,7 @@ import io.paasas.pipelines.util.concourse.model.resource.GitSource;
 import io.paasas.pipelines.util.concourse.model.resource.RegistryImageSource;
 import io.paasas.pipelines.util.concourse.model.step.Get;
 import io.paasas.pipelines.util.concourse.model.step.InParallel;
+import io.paasas.pipelines.util.concourse.model.step.Put;
 import io.paasas.pipelines.util.concourse.model.step.Step;
 import io.paasas.pipelines.util.concourse.model.step.Task;
 import lombok.AccessLevel;
@@ -237,6 +238,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.uri(configuration.getDeploymentSrcUri())
 						.build())
 				.build();
+	}
+
+	boolean containsTests(DeploymentManifest manifest) {
+		return (manifest.getFirebaseApp() != null && manifest.getFirebaseApp().getTests() != null) ||
+				(manifest.getApps() != null
+						&& manifest.getApps().stream().filter(app -> app.getTests() != null).findAny().isPresent());
 	}
 
 	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest, String deploymentManifestPath) {
@@ -479,6 +486,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.build());
 	}
 
+	private Put put(String resource) {
+		return Put.builder()
+				.put(resource)
+				.build();
+	}
+	
 	List<Resource<?>> resources(DeploymentManifest manifest, String deploymentManifestPath) {
 		return Stream
 				.concat(
@@ -488,9 +501,14 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	List<ResourceType> resourceTypes(DeploymentManifest manifest) {
-		return Stream.<ResourceType>builder()
-				.add(CommonResourceTypes.TEAMS_NOTIFICATION)
-				.build().toList();
+		var builder = Stream.<ResourceType>builder()
+				.add(CommonResourceTypes.TEAMS_NOTIFICATION);
+
+		if (containsTests(manifest)) {
+			builder.add(CommonResourceTypes.METADATA);
+		}
+
+		return builder.build().toList();
 	}
 
 	Job terraformApplyJob(
@@ -589,6 +607,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.plan(List.of(
 						inParallel(List.of(
 								get("ci-src"),
+								put("metadata"),
 								Get.builder()
 										.get("manifest-src")
 										.passed(List.of(passed))

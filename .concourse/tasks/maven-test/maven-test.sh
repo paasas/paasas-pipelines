@@ -38,6 +38,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+export BUILD_NUMBER=$(metadata/build_id)
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
 pushd test-reports-src && \
   git config --global user.name "${GIT_USER_NAME}" && \
   git config --global user.email "${GIT_USER_EMAIL}" && \
@@ -80,8 +86,6 @@ EOF
 if [ $? -ne 0 ]; then
     exit 1
 fi
-
-ls -l src/test/resources/reports/consolidated/
 
 ./mvnw -U test
 
