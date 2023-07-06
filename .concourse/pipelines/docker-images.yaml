@@ -44,30 +44,23 @@ resources:
 - name: paasas-terraform-image
   type: docker-image
   source:
-    repository: ((registry.publicUrl))/paasas-terraform
-    username: ((registry.username))
-    password: ((registry.password))
+    repository: paasas/paasas-terraform
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: paasas-firebase-image
   type: docker-image
   source:
-    repository: ((registry.publicUrl))/paasas-firebase
-    username: ((registry.username))
-    password: ((registry.password))
+    repository: paasas/paasas-firebase
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 - name: paasas-graal-vm-image
   type: docker-image
   source:
-    repository: ((registry.publicUrl))/paasas-graal-vm
-    username: ((registry.username))
-    password: ((registry.password))
-
-- name: paasas-liquibase-image
-  type: docker-image
-  source:
-    repository: ((registry.publicUrl))/paasas-liquibase
-    username: ((registry.username))
-    password: ((registry.password))
+    repository: paasas/paasas-graal-vm
+    username: ((dockerhub.username))
+    password: ((dockerhub.password))
 
 jobs:
 - name: paasas-firebase
