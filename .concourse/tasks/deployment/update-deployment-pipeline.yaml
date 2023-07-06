@@ -4,7 +4,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: harbor.paasas.io/public/paasas-pipelines
+    repository: paasas/paasas-pipelines
     tag: latest
 
 inputs:

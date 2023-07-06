@@ -4,7 +4,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: harbor.paasas.io/public/paasas-graal-vm
+    repository: paasas/paasas-graal-vm
     tag: latest
 
 inputs:
