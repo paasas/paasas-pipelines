@@ -24,15 +24,6 @@ resources:
     branch: main
     paths:
     - .concourse/images/paasas-terraform
-    
-- name: paasas-liquibase-image-src
-  type: git
-  source: 
-    uri: git@github.com:paasas/paasas-pipelines.git
-    private_key: ((git.ssh-private-key))
-    branch: main
-    paths:
-    - .concourse/images/paasas-liquibase
 
 - name: terraform-release
   type: github-release
@@ -115,18 +106,6 @@ jobs:
       tag_as_latest: true
       tag_file: terraform-release/version
       build_args_file: build-args/build-args.json
-    get_params: 
-      skip_download: true
-
-- name: publish-paasas-liquibase-image
-  plan:
-  - in_parallel:
-    - get: paasas-liquibase-image-src
-      trigger: true
-  - put: paasas-liquibase-image
-    params: 
-      build: paasas-liquibase-image-src/.concourse/images/paasas-liquibase
-      tag_as_latest: true
     get_params: 
       skip_download: true
 
