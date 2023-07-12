@@ -1,6 +1,21 @@
 #!/bin/bash
 
-if [ -z "${COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET}" ]; then
+if [ -z "${COMPOSER_FLEX_TEMPLATES_IMAGE}" ]; then
+  echo "env variable COMPOSER_FLEX_TEMPLATES_IMAGE is undefined"
+  exit 1
+fi
+
+if [ -z "${COMPOSER_FLEX_TEMPLATES_TARGET_PATH}" ]; then
+  echo "env variable COMPOSER_FLEX_TEMPLATES_TARGET_PATH is undefined"
+  exit 1
+fi
+
+if [ -z "${COMPOSER_FLEX_TEMPLATES_VERSION}" ]; then
+  echo "env variable COMPOSER_FLEX_TEMPLATES_VERSION is undefined"
+  exit 1
+fi
+
+if [ -z "${COMPOSER_FLEX_TEMPLATES_METADATA}" ]; then
   echo "env variable COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET is undefined"
   exit 1
 fi
@@ -13,13 +28,11 @@ mkdir -p /root/.config/gcloud
 
 echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
   gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
-  gsutil \
-    $GS_UTIL_FLAGS \
-    rsync \
-    -d \
-    -r \
-    flex-templates-src/$COMPOSER_FLEX_TEMPLATES_SOURCE_PATH_PREFIX \
-    gs://$COMPOSER_DAGS_BUCKET_NAME/$COMPOSER_FLEX_TEMPLATES_TARGET_PATH_PREFIX
+  gcloud dataflow flex-template build \
+    "$COMPOSER_FLEX_TEMPLATES_TARGET_PATH/${COMPOSER_FLEX_TEMPLATES_VERSION}/dataflow-ingestion.json" \
+    --image "${COMPOSER_FLEX_TEMPLATES_IMAGE}" \
+    --sdk-language JAVA \
+    --metadata-file dags-src/${$COMPOSER_FLEX_TEMPLATES_METADATA}
 
 EXIT_CODE=$?
 

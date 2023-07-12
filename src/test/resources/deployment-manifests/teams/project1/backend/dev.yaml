@@ -43,24 +43,39 @@ composer:
       path: dags-path
     flexTemplates:
     - gcsPath: flex-templates/iawealth-api-to-gcs-ingestion/v1.0.0/dataflow-ingestion.json
-      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-api-to-gcs-ingestion:v1.0.0
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-api-to-gcs-ingestion
+      imageTag: v1.0.0
+      imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/api-to-gcs-ingestion/metadata.json
+      name: api-to-gcs-ingestion
       
     - gcsPath: flex-templates/iawealth-gcs-to-bq-cob/v1.0.0/dataflow-ingestion.json
-      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-cob:v1.0.0
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-cob
+      imageTag: v1.0.0
+      imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-cob/metadata.json
+      name: gcs-to-bq-cob
       
     - gcsPath: flex-templates/iawealth-gcs-to-bq-csv-ingestion/v1.0.0/dataflow-ingestion.json
-      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-csv-ingestion:v1.0.0
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-csv-ingestion
+      imageTag: v1.0.0
+      imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-csv-ingestion/metadata.json
+      name: gcs-to-bq-csv-ingestion
       
     - gcsPath: flex-templates/iawealth-gcs-to-bq-json-ingestion/v1.0.0/dataflow-ingestion.json
-      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-json-ingestion:v1.0.0
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-json-ingestion
+      imageTag: v1.0.0
+      imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-json-ingestion/metadata.json
-      
+      name: gcs-to-bq-json-ingestion
+
     - gcsPath: flex-templates/iawealth-gcs-to-bq-mdm/v1.0.0/dataflow-ingestion.json
-      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-mdm:v1.0.0
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-mdm
+      imageTag: v1.0.0
+      imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-mdm/metadata.json
+      name: gcs-to-bq-mdm
     
 firebaseApp:
   config: |
