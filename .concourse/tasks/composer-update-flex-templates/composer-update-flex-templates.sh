@@ -32,7 +32,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     "$COMPOSER_FLEX_TEMPLATES_TARGET_PATH/${COMPOSER_FLEX_TEMPLATES_VERSION}/dataflow-ingestion.json" \
     --image "${COMPOSER_FLEX_TEMPLATES_IMAGE}" \
     --sdk-language JAVA \
-    --metadata-file dags-src/${$COMPOSER_FLEX_TEMPLATES_METADATA}
+    --metadata-file dags-src/${COMPOSER_FLEX_TEMPLATES_METADATA}
 
 EXIT_CODE=$?
 
