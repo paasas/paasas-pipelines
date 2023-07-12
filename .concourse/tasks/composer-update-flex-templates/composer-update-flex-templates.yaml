@@ -20,4 +20,4 @@ params:
   GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
 
 run:
-  path: ci-src/.concourse/tasks/composer-update-dags/composer-update-flex-templates.sh
+  path: ci-src/.concourse/tasks/composer-update-flex-templates/composer-update-flex-templates.sh
