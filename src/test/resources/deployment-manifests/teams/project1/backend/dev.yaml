@@ -42,35 +42,35 @@ composer:
       uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
       path: dags-path
     flexTemplates:
-    - gcsPath: flex-templates/iawealth-api-to-gcs-ingestion/v1.0.0/dataflow-ingestion.json
+    - gcsPath: flex-templates/iawealth-api-to-gcs-ingestion
       image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-api-to-gcs-ingestion
       imageTag: v1.0.0
       imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/api-to-gcs-ingestion/metadata.json
       name: api-to-gcs-ingestion
       
-    - gcsPath: flex-templates/iawealth-gcs-to-bq-cob/v1.0.0/dataflow-ingestion.json
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-cob
       image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-cob
       imageTag: v1.0.0
       imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-cob/metadata.json
       name: gcs-to-bq-cob
       
-    - gcsPath: flex-templates/iawealth-gcs-to-bq-csv-ingestion/v1.0.0/dataflow-ingestion.json
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-csv-ingestion
       image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-csv-ingestion
       imageTag: v1.0.0
       imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-csv-ingestion/metadata.json
       name: gcs-to-bq-csv-ingestion
       
-    - gcsPath: flex-templates/iawealth-gcs-to-bq-json-ingestion/v1.0.0/dataflow-ingestion.json
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-json-ingestion
       image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-json-ingestion
       imageTag: v1.0.0
       imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-json-ingestion/metadata.json
       name: gcs-to-bq-json-ingestion
 
-    - gcsPath: flex-templates/iawealth-gcs-to-bq-mdm/v1.0.0/dataflow-ingestion.json
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-mdm
       image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-mdm
       imageTag: v1.0.0
       imageRegistryType: GCR

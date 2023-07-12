@@ -172,6 +172,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.file("ci-src/.concourse/tasks/composer-update-flex-templates/composer-update-flex-templates.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
 								.params(new TreeMap<>(Map.of(
+										"COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET", composerConfig.getBucketName(),
 										"COMPOSER_FLEX_TEMPLATES_TARGET_PATH", flexTemplate.getGcsPath(),
 										"COMPOSER_FLEX_TEMPLATES_IMAGE", flexTemplate.getImage(),
 										"COMPOSER_FLEX_TEMPLATES_VERSION", flexTemplate.getImageTag(),

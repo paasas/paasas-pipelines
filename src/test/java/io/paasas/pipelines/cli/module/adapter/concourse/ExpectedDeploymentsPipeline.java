@@ -304,7 +304,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      COMPOSER_FLEX_TEMPLATES_IMAGE: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-api-to-gcs-ingestion
 			      COMPOSER_FLEX_TEMPLATES_METADATA: cloud-composer/dags/raw/df-docker-metadata/api-to-gcs-ingestion/metadata.json
-			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-api-to-gcs-ingestion/v1.0.0/dataflow-ingestion.json
+			      COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: composer-1-bucket
+			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-api-to-gcs-ingestion
 			      COMPOSER_FLEX_TEMPLATES_VERSION: v1.0.0
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
@@ -323,7 +324,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      COMPOSER_FLEX_TEMPLATES_IMAGE: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-cob
 			      COMPOSER_FLEX_TEMPLATES_METADATA: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-cob/metadata.json
-			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-cob/v1.0.0/dataflow-ingestion.json
+			      COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: composer-1-bucket
+			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-cob
 			      COMPOSER_FLEX_TEMPLATES_VERSION: v1.0.0
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
@@ -342,7 +344,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      COMPOSER_FLEX_TEMPLATES_IMAGE: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-csv-ingestion
 			      COMPOSER_FLEX_TEMPLATES_METADATA: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-csv-ingestion/metadata.json
-			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-csv-ingestion/v1.0.0/dataflow-ingestion.json
+			      COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: composer-1-bucket
+			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-csv-ingestion
 			      COMPOSER_FLEX_TEMPLATES_VERSION: v1.0.0
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
@@ -361,7 +364,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      COMPOSER_FLEX_TEMPLATES_IMAGE: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-json-ingestion
 			      COMPOSER_FLEX_TEMPLATES_METADATA: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-json-ingestion/metadata.json
-			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-json-ingestion/v1.0.0/dataflow-ingestion.json
+			      COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: composer-1-bucket
+			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-json-ingestion
 			      COMPOSER_FLEX_TEMPLATES_VERSION: v1.0.0
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
@@ -380,7 +384,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      COMPOSER_FLEX_TEMPLATES_IMAGE: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-mdm
 			      COMPOSER_FLEX_TEMPLATES_METADATA: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-mdm/metadata.json
-			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-mdm/v1.0.0/dataflow-ingestion.json
+			      COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET: composer-1-bucket
+			      COMPOSER_FLEX_TEMPLATES_TARGET_PATH: flex-templates/iawealth-gcs-to-bq-mdm
 			      COMPOSER_FLEX_TEMPLATES_VERSION: v1.0.0
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
