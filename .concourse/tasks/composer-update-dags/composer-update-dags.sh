@@ -24,14 +24,7 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     -d \
     -r \
     dags-src/$COMPOSER_DAGS_PATH \
-    gs://$COMPOSER_DAGS_BUCKET_NAME/$COMPOSER_DAGS_BUCKET_PATH/flex-templates/iawealth-api-to-gcs-ingestion/$_VERSION/dataflow-ingestion.json" && \
-    
-    
-    gcloud dataflow flex-template build \
-      gs://$}COMPOSER_DAGS_BUCKET_NAME}${COMPOSER_DAGS_BUCKET_PATH} \
-      --image "$template_image" \
-      --sdk-language "JAVA" \
-      --metadata-file "metadata.json"
+    gs://$COMPOSER_DAGS_BUCKET_NAME/$COMPOSER_DAGS_BUCKET_PATH
 
 EXIT_CODE=$?
 
