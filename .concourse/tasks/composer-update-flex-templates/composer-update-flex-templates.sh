@@ -26,7 +26,7 @@ if [ -z "${COMPOSER_FLEX_TEMPLATES_METADATA}" ]; then
 fi
 
 if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
-  GS_UTIL_FLAGS="-i $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
+  GCLOUD_FLAGS="--impersonate-service-account $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
 fi
 
 mkdir -p /root/.config/gcloud
@@ -37,7 +37,8 @@ echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credential
     "gs://${COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET}/${COMPOSER_FLEX_TEMPLATES_TARGET_PATH}/${COMPOSER_FLEX_TEMPLATES_VERSION}/dataflow-ingestion.json" \
     --image "${COMPOSER_FLEX_TEMPLATES_IMAGE}" \
     --sdk-language JAVA \
-    --metadata-file dags-src/${COMPOSER_FLEX_TEMPLATES_METADATA}
+    --metadata-file dags-src/${COMPOSER_FLEX_TEMPLATES_METADATA} \
+    $GCLOUD_FLAGS
 
 EXIT_CODE=$?
 
