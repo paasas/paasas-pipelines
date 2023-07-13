@@ -312,7 +312,6 @@ public class CloudRunDeployer implements Deployer {
 	private Service.Builder service(App app, DeploymentManifest deploymentManifest) {
 		var builder = Service.newBuilder()
 				.putLabels("platform", deploymentManifest.getProject())
-				.setIngress(IngressTraffic.INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER)
 				.setTemplate(revisionTemplate(app, deploymentManifest));
 
 		if(app.getIngressTraffic() != null) {
