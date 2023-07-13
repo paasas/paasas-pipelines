@@ -18,6 +18,7 @@ import com.google.cloud.run.v2.ContainerPort;
 import com.google.cloud.run.v2.CreateServiceRequest;
 import com.google.cloud.run.v2.EnvVar;
 import com.google.cloud.run.v2.EnvVarSource;
+import com.google.cloud.run.v2.IngressTraffic;
 import com.google.cloud.run.v2.LocationName;
 import com.google.cloud.run.v2.Probe;
 import com.google.cloud.run.v2.ResourceRequirements;
@@ -309,9 +310,16 @@ public class CloudRunDeployer implements Deployer {
 	}
 
 	private Service.Builder service(App app, DeploymentManifest deploymentManifest) {
-		return Service.newBuilder()
+		var builder = Service.newBuilder()
 				.putLabels("platform", deploymentManifest.getProject())
+				.setIngress(IngressTraffic.INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER)
 				.setTemplate(revisionTemplate(app, deploymentManifest));
+
+		if(app.getIngressTraffic() != null) {
+			builder.setIngress(app.getIngressTraffic());
+		}
+		
+		return builder;
 	}
 
 	private OperationFuture<Service, Service> updateApp(
