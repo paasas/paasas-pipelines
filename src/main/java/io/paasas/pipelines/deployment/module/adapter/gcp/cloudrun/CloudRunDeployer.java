@@ -18,7 +18,6 @@ import com.google.cloud.run.v2.ContainerPort;
 import com.google.cloud.run.v2.CreateServiceRequest;
 import com.google.cloud.run.v2.EnvVar;
 import com.google.cloud.run.v2.EnvVarSource;
-import com.google.cloud.run.v2.IngressTraffic;
 import com.google.cloud.run.v2.LocationName;
 import com.google.cloud.run.v2.Probe;
 import com.google.cloud.run.v2.ResourceRequirements;
