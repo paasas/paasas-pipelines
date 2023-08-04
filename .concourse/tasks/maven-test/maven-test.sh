@@ -88,16 +88,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-./mvnw -U test
 
-TEST_RESULT=$?
-
-popd && \
-  pushd test-reports-src
-  
-if [ $? -ne 0 ]; then
-  exit 1
-fi
 
 if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
   mkdir -p /root/.config/gcloud
@@ -119,10 +110,16 @@ if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
     fi
 fi
 
-ENV_VARIABLES_JSON='{"VAR1": "TOTO", "VAR2": "TATA"}' && \
-  for KEY in $(echo "${sample}" | jq 'keys[]' -r); do
-    export $KEY="$(echo $sample | jq --arg key $KEY '.[$key]' -r)"
-  done
+./mvnw -U test
+
+TEST_RESULT=$?
+
+popd && \
+  pushd test-reports-src
+  
+if [ $? -ne 0 ]; then
+  exit 1
+fi
 
 cp -R ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
   git add --all && \
