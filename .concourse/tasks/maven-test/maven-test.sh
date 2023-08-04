@@ -30,11 +30,6 @@ if [ -z  "${TEST_REPORTS_GIT_BRANCH}" ]; then
   exit 1
 fi
 
-if [ -z "${TEST_URL}" ]; then
-  echo "env variable TEST_URL is undefined"
-  exit 1
-fi
-
 export M2_HOME=~/.m2
 
 mkdir -p ${M2_HOME}
