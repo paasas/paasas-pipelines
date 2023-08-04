@@ -102,13 +102,21 @@ fi
 if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
   mkdir -p /root/.config/gcloud
 
+  if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
+    GCLOUD_FLAGS="--impersonate-service-account $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
+  fi
+
   echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
     gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
-    VARIABLES_JSON=$(gcloud beta secrets versions access --project ${GOOGLE_PROJECT_ID} --secret ENV_VARIABLES_SECRET_MANAGER_KEY_NAME latest) && \
+    VARIABLES_JSON=$(gcloud beta secrets versions access --project ${GOOGLE_PROJECT_ID} --secret $ENV_VARIABLES_SECRET_MANAGER_KEY_NAME latest $GCLOUD_FLAGS) && \
     for KEY in $(echo "${VARIABLES_JSON}" | jq 'keys[]' -r); do
       echo "Exporting env variable $KEY"
       export $KEY="$(echo $VARIABLES_JSON | jq --arg key $KEY '.[$key]' -r)"
     done
+    
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
 fi
 
 ENV_VARIABLES_JSON='{"VAR1": "TOTO", "VAR2": "TATA"}' && \

@@ -745,6 +745,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										"GIT_PRIVATE_KEY", "((git.ssh-private-key))",
 										"GIT_USER_EMAIL", configuration.getGithubEmail(),
 										"GIT_USER_NAME", configuration.getGithubUsername(),
+										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+												"terraform@%s.iam.gserviceaccount.com",
+												deploymentManifest.getProject()),
 										"GOOGLE_PROJECT_ID", deploymentManifest.getProject(),
 										"MANIFEST_PATH", deploymentManifestPath,
 										"MVN_REPOSITORY_USERNAME", configuration.getGithubUsername(),

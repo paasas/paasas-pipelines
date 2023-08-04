@@ -189,6 +189,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
 			      GIT_USER_EMAIL: dlavoie@live.ca
 			      GIT_USER_NAME: daniellavoie
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
 			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
@@ -449,6 +450,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
 			      GIT_USER_EMAIL: dlavoie@live.ca
 			      GIT_USER_NAME: daniellavoie
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
 			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
