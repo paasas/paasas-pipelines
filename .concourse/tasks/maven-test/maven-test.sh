@@ -30,6 +30,11 @@ if [ -z  "${TEST_REPORTS_GIT_BRANCH}" ]; then
   exit 1
 fi
 
+if [ -z "${TEST_URL}" ]; then
+  echo "env variable TEST_URL is undefined"
+  exit 1
+fi
+
 export M2_HOME=~/.m2
 
 mkdir -p ${M2_HOME}
@@ -98,6 +103,23 @@ popd && \
 if [ $? -ne 0 ]; then
   exit 1
 fi
+
+if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
+  mkdir -p /root/.config/gcloud
+
+  echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
+    gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
+    VARIABLES_JSON=$(gcloud beta secrets versions access --project ${GOOGLE_PROJECT_ID} --secret ENV_VARIABLES_SECRET_MANAGER_KEY_NAME latest) && \
+    for KEY in $(echo "${VARIABLES_JSON}" | jq 'keys[]' -r); do
+      echo "Exporting env variable $KEY"
+      export $KEY="$(echo $VARIABLES_JSON | jq --arg key $KEY '.[$key]' -r)"
+    done
+fi
+
+ENV_VARIABLES_JSON='{"VAR1": "TOTO", "VAR2": "TATA"}' && \
+  for KEY in $(echo "${sample}" | jq 'keys[]' -r); do
+    export $KEY="$(echo $sample | jq --arg key $KEY '.[$key]' -r)"
+  done
 
 cp -R ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
   git add --all && \
