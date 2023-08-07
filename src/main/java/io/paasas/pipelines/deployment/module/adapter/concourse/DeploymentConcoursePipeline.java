@@ -227,6 +227,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.paths(composerConfig.getDags().getGit().getPath() != null
 								? List.of(composerConfig.getDags().getGit().getPath())
 								: null)
+						.tagFilter(composerConfig.getDags().getGit().getTag())
 						.build())
 				.build();
 	}

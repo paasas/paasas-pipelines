@@ -38,7 +38,7 @@ composer:
   location: us-east1
   dags:
     git:
-      branch: dags-branch
+      tag: 0.1.0
       uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
       path: dags-path
     flexTemplates:
