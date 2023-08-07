@@ -100,7 +100,7 @@ if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
   echo "$GOOGLE_CREDENTIALS" > /root/.config/gcloud/application_default_credentials.json && \
     gcloud auth activate-service-account --key-file=/root/.config/gcloud/application_default_credentials.json && \
     VARIABLES_JSON=$(gcloud beta secrets versions access --project ${GOOGLE_PROJECT_ID} --secret $ENV_VARIABLES_SECRET_MANAGER_KEY_NAME latest $GCLOUD_FLAGS) && \
-    for KEY in $(echo "${VARIABLES_JSON}" | jq 'keys[]' -r); do
+    for KEY in $(printf '%s\n' "$VARIABLES_JSON" | jq 'keys[]' -r); do
       echo "Exporting env variable $KEY"
       export $KEY="$(printf '%s\n' "$VARIABLES_JSON" | jq --arg key $KEY '.[$key]' -r)"
       
