@@ -93,7 +93,7 @@ fi
 if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
   mkdir -p /root/.config/gcloud
 
-  if [  "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
+  if [ "${GOOGLE_IMPERSONATE_SERVICE_ACCOUNT}" != "" ]; then
     GCLOUD_FLAGS="--impersonate-service-account $GOOGLE_IMPERSONATE_SERVICE_ACCOUNT"
   fi
 
@@ -102,12 +102,12 @@ if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
     VARIABLES_JSON=$(gcloud beta secrets versions access --project ${GOOGLE_PROJECT_ID} --secret $ENV_VARIABLES_SECRET_MANAGER_KEY_NAME latest $GCLOUD_FLAGS) && \
     for KEY in $(echo "${VARIABLES_JSON}" | jq 'keys[]' -r); do
       echo "Exporting env variable $KEY"
-      export $KEY="$(echo $VARIABLES_JSON | jq --arg key $KEY '.[$key]' -r)"
+      export $KEY="$(printf '%s\n' "$VARIABLES_JSON" | jq --arg key $KEY '.[$key]' -r)"
+      
+      if [ $? -ne 0 ]; then
+        exit 1
+      fi
     done
-    
-    if [ $? -ne 0 ]; then
-      exit 1
-    fi
 fi
 
 ./mvnw -U test
