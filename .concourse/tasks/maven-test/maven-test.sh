@@ -108,6 +108,10 @@ if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
         exit 1
       fi
     done
+    
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
 fi
 
 ./mvnw -U test
