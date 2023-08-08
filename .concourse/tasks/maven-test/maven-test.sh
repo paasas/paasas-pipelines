@@ -112,7 +112,7 @@ if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
     fi
 fi
 
-export TEST_CHROME_HEADLESSS="true"
+export TEST_CHROME_HEADLESS="true"
 
 ./mvnw -U test
 
