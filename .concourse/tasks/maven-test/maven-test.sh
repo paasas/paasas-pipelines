@@ -60,8 +60,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-set -x
-
 mkdir -p $GOOGLE_PROJECT_ID
   
 cp -R $GOOGLE_PROJECT_ID/* ../src/src/test/resources/reports/consolidated/ && \
@@ -113,6 +111,8 @@ if [ ! -z "$ENV_VARIABLES_SECRET_MANAGER_KEY_NAME" ]; then
       exit 1
     fi
 fi
+
+export TEST_CHROME_HEADLESSS="true"
 
 ./mvnw -U test
 
