@@ -25,6 +25,11 @@ if [ -z  "${GOOGLE_PROJECT_ID}" ]; then
   exit 1
 fi
 
+if [ -z  "${APP_ID}" ]; then
+  echo "env variable APP_ID is undefined"
+  exit 1
+fi
+
 if [ -z  "${TEST_REPORTS_GIT_BRANCH}" ]; then
   echo "env variable TEST_REPORTS_GIT_BRANCH is undefined"
   exit 1
@@ -40,6 +45,7 @@ fi
 
 export BUILD_NUMBER="$(cat metadata/build_name)"
 export PROJECT_ID="${GOOGLE_PROJECT_ID}"
+export APP_ID="${APP_ID}"
 
 if [ -z "$BUILD_NUMBER" ]; then
   exit 1
@@ -60,7 +66,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-mkdir -p $GOOGLE_PROJECT_ID
+mkdir -p "${GOOGLE_PROJECT_ID_}${APP_ID}"
   
 cp -R $GOOGLE_PROJECT_ID/* ../src/src/test/resources/reports/consolidated/ && \
   popd && \
@@ -125,7 +131,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-cp -R ../src/src/test/resources/reports/consolidated/* $GOOGLE_PROJECT_ID/ && \
+cp -R ../src/src/test/resources/reports/consolidated/* "${GOOGLE_PROJECT_ID_}${APP_ID}/" && \
   git add --all && \
   git commit -m "chore: update test reports" && \
   git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH && \

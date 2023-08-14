@@ -186,6 +186,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - task: test-demo-webapp
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
+			      APP_ID: demo-webapp
 			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
 			      GIT_USER_EMAIL: dlavoie@live.ca
 			      GIT_USER_NAME: daniellavoie
@@ -447,6 +448,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - task: test-firebase-app
 			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
 			    params:
+			      APP_ID: firebase-app
 			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
 			      GIT_USER_EMAIL: dlavoie@live.ca
 			      GIT_USER_NAME: daniellavoie

@@ -743,6 +743,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										"src", appName + "-tests-src",
 										"test-reports-src", appName + "-test-reports-src")))
 								.params(new TreeMap<>(Map.of(
+										"APP_ID", appName,
 										"GIT_PRIVATE_KEY", "((git.ssh-private-key))",
 										"GIT_USER_EMAIL", configuration.getGithubEmail(),
 										"GIT_USER_NAME", configuration.getGithubUsername(),
