@@ -132,7 +132,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-cp -R ../src/src/test/resources/reports/consolidated/* "${GOOGLE_PROJECT_ID}_${APP_ID}/" && \
+cp -R ../src/src/test/resources/reports/consolidated/* "${GOOGLE_PROJECT_ID}-${APP_ID}/" && \
   git add --all && \
   git commit -m "chore: update test reports" && \
   git push --set-upstream origin $TEST_REPORTS_GIT_BRANCH && \
