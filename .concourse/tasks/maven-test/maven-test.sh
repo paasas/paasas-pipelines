@@ -68,7 +68,7 @@ fi
 
 mkdir -p "${GOOGLE_PROJECT_ID_}${APP_ID}"
   
-cp -R "${GOOGLE_PROJECT_ID}-${APP_ID}/*" ../src/src/test/resources/reports/consolidated/ && \
+cp -R "${GOOGLE_PROJECT_ID}-${APP_ID}"/* ../src/src/test/resources/reports/consolidated/ && \
   popd && \
   pushd src && \
   rm -rf ~/.m2 && \
