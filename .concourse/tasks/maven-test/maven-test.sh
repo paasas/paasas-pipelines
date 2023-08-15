@@ -67,6 +67,7 @@ if [ $? -ne 0 ]; then
 fi
 
 mkdir -p "${GOOGLE_PROJECT_ID_}${APP_ID}"
+mkdir -o ../src/src/test/resources/reports/consolidated/
   
 cp -R "${GOOGLE_PROJECT_ID}-${APP_ID}"/* ../src/src/test/resources/reports/consolidated/ && \
   popd && \
