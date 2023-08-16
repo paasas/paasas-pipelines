@@ -66,7 +66,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-mkdir -p "${GOOGLE_PROJECT_ID_}${APP_ID}"
+mkdir -p "${GOOGLE_PROJECT_ID}-${APP_ID}"
 mkdir -p ../src/src/test/resources/reports/consolidated/
   
 cp -R "${GOOGLE_PROJECT_ID}-${APP_ID}"/* ../src/src/test/resources/reports/consolidated/ && \
