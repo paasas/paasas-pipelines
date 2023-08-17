@@ -4,7 +4,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: paasas/paasas-graal-vm
+    repository: paasas/java-ci
     tag: latest
 
 inputs:

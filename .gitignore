@@ -1,6 +1,7 @@
 .classpath
-.settings
+.envrc
 .project
+.settings
 .factorypath
 
 target

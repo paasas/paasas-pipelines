@@ -6,12 +6,13 @@ export M2_HOME=~/.m2
 
 mkdir -p ${M2_HOME}
 
-export JAVA_HOME=/root/.sdkman/candidates/java/current
-
 pushd src && \
   rm -rf ~/.m2 && \
   ln -fs $(pwd)/m2 ~/.m2 && \
   ./mvnw install && \
+  ./mvnw -f server/pom.xml jib:build \
+    -Ddocker-registry.username=${DOCKER_REGISTRY_USERNAME} \
+    -Ddocker-registry.password=${DOCKER_REGISTRY_PASSWORD}
   ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout > ../version/version && \
   popd && \
-  mv src/target/paasas-pipelines-*.jar build/paasas-pipelines.jar
+  mv src/cli/target/paasas-pipelines-cli-*.jar build/paasas-pipelines-cli.jar
