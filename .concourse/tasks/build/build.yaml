@@ -18,5 +18,9 @@ outputs:
 caches: 
 - path: src/m2
 
+params:
+  DOCKER_REGISTRY_USERNAME: 
+  DOCKER_REGISTRY_PASSWORD: 
+
 run:
   path: ci-src/.concourse/tasks/build/build.sh
