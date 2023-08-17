@@ -15,4 +15,5 @@ pushd src && \
     -Ddocker-registry.password=${DOCKER_REGISTRY_PASSWORD}
   ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout > ../version/version && \
   popd && \
-  mv src/cli/target/paasas-pipelines-cli-*.jar build/paasas-pipelines-cli.jar
+  mv src/cli/target/paasas-pipelines-cli-*.jar build/paasas-pipelines-cli.jar && \
+  mv src/server/target/paasas-pipelines-server-*.jar build/paasas-pipelines-server.jar
