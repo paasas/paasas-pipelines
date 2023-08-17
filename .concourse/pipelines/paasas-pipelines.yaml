@@ -56,9 +56,6 @@ jobs:
       outputs:
       - name: build-args
       - name: src
-      params:
-        DOCKER_REGISTRY_USERNAME: ((dockerhub.username))
-        DOCKER_REGISTRY_PASSWORD: ((dockerhub.password))
       run:
         path: ci-src/.concourse/images/paasas-pipelines-cli/prepare-docker-build.sh
   - in_parallel:
