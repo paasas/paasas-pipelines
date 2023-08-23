@@ -39,7 +39,7 @@ public abstract class ConcoursePipelineTest {
 
 	ConcourseConfiguration configuration() {
 		return ConcourseConfiguration.builder()
-				.ciSrcUri("git@github.com:paasas/paasas-pipelines.git")
+				.ciSrcUri("git@github.com:paasas/paasas-pipelines-scripts.git")
 				.deploymentPathPrefix("teams/")
 				.deploymentSrcBranch("main")
 				.deploymentSrcUri("git@github.com:daniellavoie/deployment-as-code-demo.git")

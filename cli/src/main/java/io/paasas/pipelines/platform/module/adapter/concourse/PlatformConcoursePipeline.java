@@ -66,7 +66,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 						.name(CI_SRC_RESOURCE)
 						.type("git")
 						.source(GitSource.builder()
-								.uri("git@github.com:paasas/paasas-pipelines.git")
+								.uri(configuration.getCiSrcUri())
 								.privateKey("((git.ssh-private-key))")
 								.branch("main")
 								.paths(List.of(".concourse"))
@@ -148,6 +148,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 
 		var deploymentUpdateParams = new TreeMap<>(new TreeMap<>(Map.of(
 				"MANIFEST_PATH", targetConfig.getDeploymentManifestPath(),
+				"PIPELINES_CONCOURSE_CISRCURI", configuration.getCiSrcUri(),
 				"PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX", configuration.getDeploymentPathPrefix(),
 				"PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH", configuration.getDeploymentSrcBranch(),
 				"PIPELINES_CONCOURSE_DEPLOYMENTSRCURI", configuration.getDeploymentSrcUri(),
@@ -156,10 +157,10 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 				"PIPELINES_CONCOURSE_GITHUBEMAIL", configuration.getGithubEmail(),
 				"PIPELINES_CONCOURSE_GITHUBREPOSITORY", configuration.getGithubRepository(),
 				"PIPELINES_CONCOURSE_GITHUBUSERNAME", configuration.getGithubUsername(),
-				"PIPELINES_CONCOURSE_PLATFORMPATHPREFIX", configuration.getPlatformPathPrefix(),
-				"PIPELINES_CONCOURSE_PLATFORMSRCBRANCH", configuration.getPlatformSrcBranch())));
+				"PIPELINES_CONCOURSE_PLATFORMPATHPREFIX", configuration.getPlatformPathPrefix())));
 
 		deploymentUpdateParams.putAll(new TreeMap<>(Map.of(
+				"PIPELINES_CONCOURSE_PLATFORMSRCBRANCH", configuration.getPlatformSrcBranch(),
 				"PIPELINES_CONCOURSE_PLATFORMSRCURI", configuration.getPlatformSrcUri(),
 				"PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX", configuration.getPlatformTerraformBackendPrefix(),
 				"PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET", configuration.getTerraformBackendGcsBucket(),
@@ -183,7 +184,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 					"PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDBUCKETSUFFIX",
 					configuration.getDeploymentTerraformBackendBucketSuffix());
 		}
-		
+
 		if (configuration.getGcrCredentialsJsonSecretName() != null
 				&& !configuration.getGcrCredentialsJsonSecretName().isBlank()) {
 			deploymentUpdateParams.put(
@@ -200,7 +201,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 								InParallel.builder()
 										.inParallel(List.of(
 												getWithTrigger(targetConfig.getName() + "-platform-pr"),
-												get("ci-src")))
+												get(CI_SRC_RESOURCE)))
 										.build(),
 								InParallel.builder()
 										.inParallel(List.of(
@@ -210,7 +211,8 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										.build(),
 								Task.builder()
 										.task("terraform-plan")
-										.file("ci-src/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml")
+										.file(CI_SRC_RESOURCE
+												+ "/.concourse/tasks/terraform-platform/terraform-platform-plan.yaml")
 										.inputMapping(Map.of("src", targetConfig.getName() + "-platform-pr"))
 										.params(terraformPlanParams)
 										.build(),
@@ -235,7 +237,8 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 										get(CI_SRC_RESOURCE))),
 								Task.builder()
 										.task("update-deployment-pipeline")
-										.file("ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml")
+										.file(CI_SRC_RESOURCE
+												+ "/.concourse/tasks/deployment/update-deployment-pipeline.yaml")
 										.inputMapping(Map.of("src", targetConfig.getName() + "-deployment-src"))
 										.params(deploymentUpdateParams)
 										.build(),
@@ -351,7 +354,8 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 								get(TERRAFORM_NEXT_SRC_RESOURCE))),
 						Task.builder()
 								.task("terraform-" + type)
-								.file("ci-src/.concourse/tasks/terraform-platform/terraform-platform-" + type + ".yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/terraform-platform/terraform-platform-"
+										+ type + ".yaml")
 								.inputMapping(Map.of(
 										"src", targetConfig.getName() + "-platform-src"))
 								.params(terraformParams)

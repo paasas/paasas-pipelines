@@ -126,7 +126,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.name(CI_SRC_RESOURCE)
 						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
 						.source(GitSource.builder()
-								.uri("git@github.com:paasas/paasas-pipelines.git")
+								.uri(configuration.getCiSrcUri())
 								.privateKey("((git.ssh-private-key))")
 								.branch("main")
 								.paths(List.of(".concourse"))
@@ -160,7 +160,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name("build-flex-template-" + imageName)
 				.plan(List.of(
 						inParallel(List.of(
-								get("ci-src"),
+								get(CI_SRC_RESOURCE),
 								getWithTrigger(imageName + "-image"),
 								Get.builder()
 										.get(dagsSrc)
@@ -169,7 +169,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										.build())),
 						Task.builder()
 								.task("build-flex-template")
-								.file("ci-src/.concourse/tasks/composer-update-flex-templates/composer-update-flex-templates.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/composer-update-flex-templates/composer-update-flex-templates.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
 								.params(new TreeMap<>(Map.of(
 										"COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET", composerConfig.getBucketName(),
@@ -422,12 +422,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name("deploy-firebase")
 				.plan(List.of(
 						inParallel(List.of(
-								get("ci-src"),
+								get(CI_SRC_RESOURCE),
 								get("manifest-src"),
 								getWithTrigger("firebase-src"))),
 						Task.builder()
 								.task("npm-build")
-								.file("ci-src/.concourse/tasks/npm-build/npm-build.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/npm-build/npm-build.yaml")
 								.inputMapping(mappings)
 								.outputMapping(mappings)
 								.params(new TreeMap<>(Map.of(
@@ -438,7 +438,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.build(),
 						Task.builder()
 								.task("firebase-deploy")
-								.file("ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/firebase-deploy/firebase-deploy.yaml")
 								.inputMapping(mappings)
 								.outputMapping(mappings)
 								.params(new TreeMap<>(Map.of(
@@ -662,12 +662,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name(String.format("terraform-apply-%s", watcher.getName()))
 				.plan(List.of(
 						inParallel(List.of(
-								get("ci-src"),
+								get(CI_SRC_RESOURCE),
 								getWithTrigger("manifest-src"),
 								getWithTrigger(src))),
 						Task.builder()
 								.task("terraform-apply")
-								.file("ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml")
 								.inputMapping(Map.of(
 										"src", src))
 								.params(terraformParams)
@@ -727,7 +727,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name("test-" + appName)
 				.plan(List.of(
 						inParallel(List.of(
-								get("ci-src"),
+								get(CI_SRC_RESOURCE),
 								put("metadata"),
 								Get.builder()
 										.get("manifest-src")
@@ -738,7 +738,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								get(appName + "-test-reports-src"))),
 						Task.builder()
 								.task("test-" + appName)
-								.file("ci-src/.concourse/tasks/maven-test/maven-test.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/maven-test/maven-test.yaml")
 								.inputMapping(new TreeMap<>(Map.of(
 										"src", appName + "-tests-src",
 										"test-reports-src", appName + "-test-reports-src")))
@@ -810,7 +810,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						inParallel(
 								Stream.concat(
 										Stream.<Step>of(
-												get("ci-src"),
+												get(CI_SRC_RESOURCE),
 												getWithTrigger("manifest-src")),
 										apps.stream()
 												.map(app -> String.format("%s-image", app.getName()))
@@ -818,7 +818,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										.toList()),
 						Task.builder()
 								.task("update-cloud-run")
-								.file("ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
 								.inputMapping(new TreeMap<>(Map.of(
 										"src", "manifest-src")))
 								.params(new TreeMap<>(Map.of(
@@ -862,11 +862,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name(String.format("update-composer-dags-%s", composerConfig.getName()))
 				.plan(List.of(
 						inParallel(List.of(
-								get("ci-src"),
+								get(CI_SRC_RESOURCE),
 								getWithTrigger(dagsSrc))),
 						Task.builder()
 								.task("update-dags")
-								.file("ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
 								.params(params)
 								.build()))
@@ -883,11 +883,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name(String.format("update-composer-variables-%s", composerConfig.getName()))
 				.plan(List.of(
 						inParallel(List.of(
-								get("ci-src"),
+								get(CI_SRC_RESOURCE),
 								getWithTrigger(variablesSrc))),
 						Task.builder()
 								.task("update-variables")
-								.file("ci-src/.concourse/tasks/composer-update-variables/composer-update-variables.yaml")
+								.file(CI_SRC_RESOURCE + "/.concourse/tasks/composer-update-variables/composer-update-variables.yaml")
 								.inputMapping(new TreeMap<>(Map.of("composer-variables-src", variablesSrc)))
 								.params(new TreeMap<>(Map.of(
 										"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),

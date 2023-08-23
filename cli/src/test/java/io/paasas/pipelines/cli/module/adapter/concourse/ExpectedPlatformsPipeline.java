@@ -17,7 +17,7 @@ public abstract class ExpectedPlatformsPipeline {
 			- name: ci-src
 			  type: git
 			  source:
-			    uri: git@github.com:paasas/paasas-pipelines.git
+			    uri: git@github.com:paasas/paasas-pipelines-scripts.git
 			    private_key: ((git.ssh-private-key))
 			    branch: main
 			    paths:
@@ -253,6 +253,7 @@ public abstract class ExpectedPlatformsPipeline {
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
 			      MANIFEST_PATH: teams/project1/backend/dev.yaml
+			      PIPELINES_CONCOURSE_CISRCURI: git@github.com:paasas/paasas-pipelines-scripts.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
@@ -394,6 +395,7 @@ public abstract class ExpectedPlatformsPipeline {
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
 			      MANIFEST_PATH: teams/project1/backend/prod.yaml
+			      PIPELINES_CONCOURSE_CISRCURI: git@github.com:paasas/paasas-pipelines-scripts.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
@@ -535,6 +537,7 @@ public abstract class ExpectedPlatformsPipeline {
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
 			      MANIFEST_PATH: teams/project1/frontend/dev.yaml
+			      PIPELINES_CONCOURSE_CISRCURI: git@github.com:paasas/paasas-pipelines-scripts.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
@@ -676,6 +679,7 @@ public abstract class ExpectedPlatformsPipeline {
 			    file: ci-src/.concourse/tasks/deployment/update-deployment-pipeline.yaml
 			    params:
 			      MANIFEST_PATH: teams/project1/frontend/prod.yaml
+			      PIPELINES_CONCOURSE_CISRCURI: git@github.com:paasas/paasas-pipelines-scripts.git
 			      PIPELINES_CONCOURSE_DEPLOYMENTPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCBRANCH: main
 			      PIPELINES_CONCOURSE_DEPLOYMENTSRCURI: git@github.com:daniellavoie/deployment-as-code-demo.git
