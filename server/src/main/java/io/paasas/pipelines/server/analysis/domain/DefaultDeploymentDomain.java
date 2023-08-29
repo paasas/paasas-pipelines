@@ -12,7 +12,9 @@ import io.paasas.pipelines.server.analysis.domain.port.backend.TerraformDeployme
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Repository
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -23,16 +25,22 @@ public class DefaultDeploymentDomain implements DeploymentDomain {
 
 	@Override
 	public void registerCloudRunDeployment(RegisterCloudRunDeployment registerCloudRunDeployment) {
+		log.info("Registering {}", registerCloudRunDeployment);
+		
 		cloudRunDeploymentRepository.registerDeployment(registerCloudRunDeployment);
 	}
 
 	@Override
 	public void registerFirebaseAppDeployment(RegisterFirebaseAppDeployment registerFirebaseAppDeployment) {
+		log.info("Registering {}", registerFirebaseAppDeployment);
+		
 		firebaseAppDeploymentRepository.registerDeployment(registerFirebaseAppDeployment);
 	}
 
 	@Override
 	public void registerTerraformDeployment(RegisterTerraformDeployment registerTerraformDeployment) {
+		log.info("Registering {}", registerTerraformDeployment);
+		
 		terraformDeploymentRepository.registerDeployment(registerTerraformDeployment);
 	}
 

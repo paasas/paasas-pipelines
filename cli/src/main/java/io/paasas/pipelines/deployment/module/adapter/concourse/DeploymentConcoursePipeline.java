@@ -50,6 +50,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			.findAndRegisterModules()
 			.setSerializationInclusion(Include.NON_NULL);
 
+	private static final String BUILD_METADATA = "build-metadata";
 	private static final String CI_SRC_RESOURCE = "ci-src";
 
 	GcpConfiguration gcpConfiguration;
@@ -123,15 +124,20 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	Stream<Resource<?>> commonResources(DeploymentManifest manifest) {
 		var builder = Stream.<Resource<?>>builder().add(
 				Resource.builder()
-						.name(CI_SRC_RESOURCE)
-						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
-						.source(GitSource.builder()
-								.uri(configuration.getCiSrcUri())
-								.privateKey("((git.ssh-private-key))")
-								.branch("main")
-								.paths(List.of(".concourse"))
-								.build())
+						.name(BUILD_METADATA)
+						.type(CommonResourceTypes.BUILD_METADATA_TYPE)
 						.build())
+				.add(
+						Resource.builder()
+								.name(CI_SRC_RESOURCE)
+								.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
+								.source(GitSource.builder()
+										.uri(configuration.getCiSrcUri())
+										.privateKey("((git.ssh-private-key))")
+										.branch("main")
+										.paths(List.of(".concourse"))
+										.build())
+								.build())
 				.add(
 						Resource.builder()
 								.name("teams")
@@ -169,7 +175,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										.build())),
 						Task.builder()
 								.task("build-flex-template")
-								.file(CI_SRC_RESOURCE + "/.concourse/tasks/composer-update-flex-templates/composer-update-flex-templates.yaml")
+								.file(CI_SRC_RESOURCE
+										+ "/.concourse/tasks/composer-update-flex-templates/composer-update-flex-templates.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
 								.params(new TreeMap<>(Map.of(
 										"COMPOSER_FLEX_TEMPLATES_TARGET_BUCKET", composerConfig.getBucketName(),
@@ -422,6 +429,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name("deploy-firebase")
 				.plan(List.of(
 						inParallel(List.of(
+								get(BUILD_METADATA),
 								get(CI_SRC_RESOURCE),
 								get("manifest-src"),
 								getWithTrigger("firebase-src"))),
@@ -629,6 +637,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			builder.add(CommonResourceTypes.METADATA);
 		}
 
+		builder.add(CommonResourceTypes.BUILD_METADATA);
+
 		return builder.build().toList();
 	}
 
@@ -656,18 +666,30 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						"terraform@%s.iam.gserviceaccount.com",
 						manifest.getProject())));
 
+		if (watcher.getGithubRepository() != null && !watcher.getGithubRepository().isBlank() &&
+				configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank() &&
+				configuration.getPipelinesServerUsername() != null
+				&& !configuration.getPipelinesServerUsername().isBlank()) {
+			terraformParams.putAll(Map.of(
+					"GITHUB_REPOSITORY", watcher.getGithubRepository(),
+					"PIPELINES_SERVER", configuration.getPipelinesServer(),
+					"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername()));
+		}
+
 		var src = String.format("terraform-%s-src", watcher.getName());
 
 		return Job.builder()
 				.name(String.format("terraform-apply-%s", watcher.getName()))
 				.plan(List.of(
 						inParallel(List.of(
+								get(BUILD_METADATA),
 								get(CI_SRC_RESOURCE),
 								getWithTrigger("manifest-src"),
 								getWithTrigger(src))),
 						Task.builder()
 								.task("terraform-apply")
-								.file(CI_SRC_RESOURCE + "/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml")
+								.file(CI_SRC_RESOURCE
+										+ "/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml")
 								.inputMapping(Map.of(
 										"src", src))
 								.params(terraformParams)
@@ -810,6 +832,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						inParallel(
 								Stream.concat(
 										Stream.<Step>of(
+												get(BUILD_METADATA),
 												get(CI_SRC_RESOURCE),
 												getWithTrigger("manifest-src")),
 										apps.stream()
@@ -866,7 +889,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								getWithTrigger(dagsSrc))),
 						Task.builder()
 								.task("update-dags")
-								.file(CI_SRC_RESOURCE + "/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
+								.file(CI_SRC_RESOURCE
+										+ "/.concourse/tasks/composer-update-dags/composer-update-dags.yaml")
 								.inputMapping(new TreeMap<>(Map.of("dags-src", dagsSrc)))
 								.params(params)
 								.build()))
@@ -887,7 +911,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								getWithTrigger(variablesSrc))),
 						Task.builder()
 								.task("update-variables")
-								.file(CI_SRC_RESOURCE + "/.concourse/tasks/composer-update-variables/composer-update-variables.yaml")
+								.file(CI_SRC_RESOURCE
+										+ "/.concourse/tasks/composer-update-variables/composer-update-variables.yaml")
 								.inputMapping(new TreeMap<>(Map.of("composer-variables-src", variablesSrc)))
 								.params(new TreeMap<>(Map.of(
 										"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),

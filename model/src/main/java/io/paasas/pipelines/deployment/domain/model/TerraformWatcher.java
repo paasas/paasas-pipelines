@@ -12,5 +12,6 @@ import lombok.extern.jackson.Jacksonized;
 public class TerraformWatcher {
 	String name;
 	GitWatcher git;
+	String githubRepository;
 	Map<String, String> vars;
 }

@@ -14,7 +14,14 @@ public abstract class ExpectedDeploymentsPipeline {
 			  source:
 			    repository: olhtbr/metadata-resource
 			    tag: 2.0.1
+			- name: build-metadata
+			  type: docker-image
+			  source:
+			    repository: swce/metadata-resource
+			    tag: latest
 			resources:
+			- name: build-metadata
+			  type: build-metadata
 			- name: ci-src
 			  type: git
 			  source:
@@ -149,6 +156,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: update-cloud-run
 			  plan:
 			  - in_parallel:
+			    - get: build-metadata
 			    - get: ci-src
 			    - get: manifest-src
 			      trigger: true
@@ -202,6 +210,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: terraform-apply-dataset-1
 			  plan:
 			  - in_parallel:
+			    - get: build-metadata
 			    - get: ci-src
 			    - get: manifest-src
 			      trigger: true
@@ -232,6 +241,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: terraform-apply-dataset-2
 			  plan:
 			  - in_parallel:
+			    - get: build-metadata
 			    - get: ci-src
 			    - get: manifest-src
 			      trigger: true
@@ -241,8 +251,11 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
+			      GITHUB_REPOSITORY: teleport-java-client/paas-moe-le-cloud
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      MANIFEST_PATH: {{manifest-path}}
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_USERNAME: ci
 			      TERRAFORM_BACKEND_GCS_BUCKET: control-plane-377914
 			      TERRAFORM_DIRECTORY: dataset-2
 			      TERRAFORM_GROUP_NAME: dataset-2
@@ -395,6 +408,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: deploy-firebase
 			  plan:
 			  - in_parallel:
+			    - get: build-metadata
 			    - get: ci-src
 			    - get: manifest-src
 			    - get: firebase-src

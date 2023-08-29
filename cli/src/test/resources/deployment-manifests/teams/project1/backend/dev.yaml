@@ -113,6 +113,7 @@ terraform:
     tag: v0.10.0
     path: dataset-1
 - name: dataset-2
+  githubRepository: teleport-java-client/paas-moe-le-cloud
   git:
     uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
     branch: my-branch

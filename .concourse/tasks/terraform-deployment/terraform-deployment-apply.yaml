@@ -5,9 +5,10 @@ image_resource:
   type: docker-image
   source:
     repository: paasas/paasas-terraform
-    tag: 1.5.2
+    tag: 1.5.6
 
 inputs:
+- name: build-metadata
 - name: ci-src
 - name: manifest-src
 - name: src
@@ -19,11 +20,15 @@ outputs:
 caches:
 - path: .terraform
 
-params:
+params:  
   GCP_PROJECT_ID: 
+  GITHUB_REPOSITORY: 
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
-  GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
+  GOOGLE_IMPERSONATE_SERVICE_ACCOUNT:
   MANIFEST_PATH: 
+  PIPELINES_SERVER: 
+  PIPELINES_SERVER_USERNAME: 
+  PIPELINES_SERVER_PASSWORD: ((pipelines.password))
   TERRAFORM_BACKEND_GCS_BUCKET: 
   TERRAFORM_COMMAND: apply 
   TERRAFORM_DIRECTORY: 

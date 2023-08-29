@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class ConcoursePipelineTest {
 	static final String DEPLOYMENT_NAME = "dev";
-	
+
 	static final Path DIRECTORY = Path.of(
 			System.getProperty("java.io.tmpdir"),
 			UUID.randomUUID().toString());
@@ -48,6 +48,8 @@ public abstract class ConcoursePipelineTest {
 				.githubEmail("dlavoie@live.ca")
 				.githubRepository("daniellavoie/infra-as-code-demo")
 				.githubUsername("daniellavoie")
+				.pipelinesServer("http://localhost:8080")
+				.pipelinesServerUsername("ci")
 				.platformPathPrefix("teams/")
 				.platformSrcBranch("v2")
 				.platformSrcUri("git@github.com:daniellavoie/infra-as-code-demo.git")
