@@ -255,7 +255,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      MANIFEST_PATH: {{manifest-path}}
 			      PIPELINES_SERVER: http://localhost:8080
-			      PIPELINES_USERNAME: ci
+			      PIPELINES_SERVER_USERNAME: ci
 			      TERRAFORM_BACKEND_GCS_BUCKET: control-plane-377914
 			      TERRAFORM_DIRECTORY: dataset-2
 			      TERRAFORM_GROUP_NAME: dataset-2

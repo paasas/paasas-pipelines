@@ -3,6 +3,7 @@ package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 import java.time.LocalDateTime;
 
 import io.paasas.pipelines.server.analysis.domain.model.DeploymentInfo;
+import io.paasas.pipelines.server.analysis.domain.model.JobInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Lob;
@@ -39,11 +40,11 @@ public class DeploymentInfoEntity {
 				.build();
 	}
 
-	public static DeploymentInfoEntity from(DeploymentInfo deploymentInfo) {
+	public static DeploymentInfoEntity from(JobInfo jobInfo) {
 		return DeploymentInfoEntity.builder()
-				.projectId(deploymentInfo.getProjectId())
-				.timestamp(deploymentInfo.getTimestamp())
-				.url(deploymentInfo.getUrl())
+				.projectId(jobInfo.getProjectId())
+				.timestamp(LocalDateTime.now())
+				.url(jobInfo.getUrl())
 				.build();
 	}
 }

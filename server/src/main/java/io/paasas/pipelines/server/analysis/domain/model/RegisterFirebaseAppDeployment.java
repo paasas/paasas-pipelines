@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder(toBuilder = true)
 public class RegisterFirebaseAppDeployment {
 	String config;
-	DeploymentInfo deploymentInfo;
+	JobInfo jobInfo;
 	GitRevision gitRevision;
 	Npm npm;
 }

@@ -122,23 +122,22 @@ if [ ! -z "$PIPELINES_SERVER" ]; then
     exit 1
   fi
   
-  if [ "$TAG" == "null" ]; then
-    OPTIONAL_TAG="\n,    \"tag\": \"${TAG}\""
+  if [ "$TAG" != "null" ]; then
+    OPTIONAL_TAG="\n,    \"tag\": ${TAG}"
   fi
   
-  if [ "$PATH" == "null" ]; then
-    OPTIONAL_PATH="\n,    \"path\": \"$PATH\""
+  if [ "$PATH" != "null" ]; then
+    OPTIONAL_PATH=", \"path\": $PATH"
   fi
   
   read -r -d '' TERRAFORM_DEPLOYMENT << EOM
 {
-  "deploymentInfo": {
+  "jobInfo": {
     "build": "$(/bin/cat ${WORKDIR}/build-metadata/build-name)",
     "job": "$(/bin/cat ${WORKDIR}/build-metadata/build-job-name)",
     "pipeline": "$(/bin/cat ${WORKDIR}/build-metadata/build-pipeline-name)",
     "projectId": "$GCP_PROJECT_ID",
     "team": "$(/bin/cat ${WORKDIR}/build-metadata/build-team-name)",
-    "timestamp": "$(/bin/cat ${WORKDIR}/src/.git/commit_timestamp)",
     "url": "$(/bin/cat ${WORKDIR}/build-metadata/atc-external-url)"
   },
   "gitRevision": {
@@ -147,7 +146,7 @@ if [ ! -z "$PIPELINES_SERVER" ]; then
     "repository": "${GITHUB_REPOSITORY}"${OPTIONAL_TAG}${OPTIONAL_PATH}
   },
   "packageName": "${TERRAFORM_GROUP_NAME}",
-  "params": "$(/bin/cat $WORKDIR/src/${TERRAFORM_DIRECTORY}/tfvars.json)"
+  "params": $(/bin/cat $WORKDIR/src/${TERRAFORM_DIRECTORY}/tfvars.json)
 }
 EOM
 
@@ -156,6 +155,8 @@ EOM
   fi
   
   /usr/bin/curl -X POST $PIPELINES_SERVER/api/ci/deployment/terraform \
+    --fail \
+    -H "Content-Type: application/json" \
     -u $PIPELINES_SERVER_USERNAME:$PIPELINES_SERVER_PASSWORD \
     -d "$TERRAFORM_DEPLOYMENT"
 fi

@@ -12,7 +12,7 @@ import lombok.extern.jackson.Jacksonized;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class RegisterTerraformDeployment {
-	DeploymentInfo deploymentInfo;
+	JobInfo jobInfo;
 	GitRevision gitRevision;
 	String packageName;
 	Map<String, String> params;

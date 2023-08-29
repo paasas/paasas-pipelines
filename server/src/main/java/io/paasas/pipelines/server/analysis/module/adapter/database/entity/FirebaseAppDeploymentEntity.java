@@ -59,9 +59,9 @@ public class FirebaseAppDeploymentEntity {
 		try {
 			return FirebaseAppDeploymentEntity.builder()
 					.config(registerFirebaseAppDeployment.getConfig())
-					.deploymentInfo(DeploymentInfoEntity.from(registerFirebaseAppDeployment.getDeploymentInfo()))
+					.deploymentInfo(DeploymentInfoEntity.from(registerFirebaseAppDeployment.getJobInfo()))
 					.gitRevision(GitRevisionEntity.from(registerFirebaseAppDeployment.getGitRevision()))
-					.key(DeploymentKey.from(registerFirebaseAppDeployment.getDeploymentInfo()))
+					.key(DeploymentKey.from(registerFirebaseAppDeployment.getJobInfo()))
 					.npm(DatabaseObjectMapper.OBJECT_MAPPER.writeValueAsString(registerFirebaseAppDeployment.getNpm()))
 					.build();
 		} catch (JsonProcessingException e) {

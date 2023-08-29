@@ -1,13 +1,13 @@
 package io.paasas.pipelines.server.analysis.module.web;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import io.paasas.pipelines.server.analysis.domain.model.DeploymentInfo;
 import io.paasas.pipelines.server.analysis.domain.model.GitRevision;
+import io.paasas.pipelines.server.analysis.domain.model.JobInfo;
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppDeployment;
@@ -23,13 +23,12 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 		client.post()
 				.uri("/api/ci/deployment/cloud-run")
 				.bodyValue(RegisterCloudRunDeployment.builder()
-						.deploymentInfo(DeploymentInfo.builder()
+						.jobInfo(JobInfo.builder()
 								.build("100")
 								.job("my-job")
 								.pipeline("my-pipeline")
 								.projectId("my-test-project")
 								.team("my-team")
-								.timestamp(LocalDateTime.now())
 								.url("https://my-build-url")
 								.build())
 						.image("my-image")
@@ -42,13 +41,12 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 		client.post()
 				.uri("/api/ci/deployment/firebase")
 				.bodyValue(RegisterFirebaseAppDeployment.builder()
-						.deploymentInfo(DeploymentInfo.builder()
+						.jobInfo(JobInfo.builder()
 								.build("102")
 								.job("my-firebase-job")
 								.pipeline("my-pipeline")
 								.projectId("my-test-project")
 								.team("my-team")
-								.timestamp(LocalDateTime.now())
 								.url("https://my-firebase-build-url")
 								.build())
 						.gitRevision(GitRevision.builder()
@@ -66,13 +64,12 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 		client.post()
 				.uri("/api/ci/deployment/terraform")
 				.bodyValue(RegisterTerraformDeployment.builder()
-						.deploymentInfo(DeploymentInfo.builder()
+						.jobInfo(JobInfo.builder()
 								.build("101")
 								.job("my-terraform-job")
 								.pipeline("my-pipeline")
 								.projectId("my-test-project")
 								.team("my-team")
-								.timestamp(LocalDateTime.now())
 								.url("https://my-terraform-build-url")
 								.build())
 						.gitRevision(GitRevision.builder()
@@ -84,7 +81,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 								.tag("1.1.0")
 								.build())
 						.packageName("my-tf-package")
-						.params(Map.of("my-var", "my-value"))
+						.params(new HashMap<>(Map.of("my-var", "my-value")))
 						.build())
 				.exchange()
 				.expectStatus()

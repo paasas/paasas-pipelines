@@ -1,6 +1,7 @@
 package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 
 import io.paasas.pipelines.server.analysis.domain.model.DeploymentInfo;
+import io.paasas.pipelines.server.analysis.domain.model.JobInfo;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -33,12 +34,12 @@ public class DeploymentKey {
 				.build();
 	}
 
-	public static DeploymentKey from(DeploymentInfo deploymentInfo) {
+	public static DeploymentKey from(JobInfo jobInfo) {
 		return DeploymentKey.builder()
-				.build(deploymentInfo.getBuild())
-				.job(deploymentInfo.getJob())
-				.pipeline(deploymentInfo.getPipeline())
-				.team(deploymentInfo.getTeam())
+				.build(jobInfo.getBuild())
+				.job(jobInfo.getJob())
+				.pipeline(jobInfo.getPipeline())
+				.team(jobInfo.getTeam())
 				.build();
 	}
 

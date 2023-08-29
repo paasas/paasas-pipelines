@@ -54,8 +54,8 @@ public class CloudRunDeploymentEntity {
 	public static CloudRunDeploymentEntity from(RegisterCloudRunDeployment registerCloudRunDeployment) {
 		return CloudRunDeploymentEntity.builder()
 				.app(app(registerCloudRunDeployment.getApp()))
-				.key(DeploymentKey.from(registerCloudRunDeployment.getDeploymentInfo()))
-				.deploymentInfo(DeploymentInfoEntity.from(registerCloudRunDeployment.getDeploymentInfo()))
+				.key(DeploymentKey.from(registerCloudRunDeployment.getJobInfo()))
+				.deploymentInfo(DeploymentInfoEntity.from(registerCloudRunDeployment.getJobInfo()))
 				.image(registerCloudRunDeployment.getImage())
 				.tag(registerCloudRunDeployment.getTag())
 				.build();

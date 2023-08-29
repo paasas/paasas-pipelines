@@ -1,6 +1,5 @@
 package io.paasas.pipelines.server.analysis.domain.model;
 
-import io.paasas.pipelines.deployment.domain.model.app.App;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -10,9 +9,11 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class RegisterCloudRunDeployment {
-	App app;
-	JobInfo jobInfo;
-	String image;
-	String tag;
+public class JobInfo {
+	String build;
+	String job;
+	String pipeline;
+	String projectId;
+	String team;
+	String url;
 }

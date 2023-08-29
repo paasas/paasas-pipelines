@@ -60,8 +60,8 @@ public class TerraformDeploymentEntity {
 	public static TerraformDeploymentEntity from(RegisterTerraformDeployment registerTerraformDeployment) {
 		try {
 			return TerraformDeploymentEntity.builder()
-					.deploymentInfo(DeploymentInfoEntity.from(registerTerraformDeployment.getDeploymentInfo()))
-					.key(DeploymentKey.from(registerTerraformDeployment.getDeploymentInfo()))
+					.deploymentInfo(DeploymentInfoEntity.from(registerTerraformDeployment.getJobInfo()))
+					.key(DeploymentKey.from(registerTerraformDeployment.getJobInfo()))
 					.gitRevision(GitRevisionEntity.from(registerTerraformDeployment.getGitRevision()))
 					.packageName(registerTerraformDeployment.getPackageName())
 					.params(DatabaseObjectMapper.OBJECT_MAPPER
