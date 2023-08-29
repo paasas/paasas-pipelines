@@ -1,0 +1,28 @@
+server:
+  image: paasas/paasas-pipelines-server
+  imagePullPolicy: Always
+  imageTag: 0.2.0-SNAPSHOT
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  nodeSelector: {}
+  affinity: {}
+  tolerations: {}
+  replicaCount: 1
+  github: {}
+
+postgresql:
+  enabled: true
+  global:
+    postgresql:
+      auth:
+        database: pipelines-server
+        password: ignored-password
+        secretKeys:
+          adminPasswordKey: admin-password
+          userPasswordKey: password
+          replicationPasswordKey: replication-password
+        username: pipelines-server
+
+certManager: {}

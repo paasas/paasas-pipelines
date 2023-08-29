@@ -1,0 +1,17 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "paasas-pipelines-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: Host(`{{ printf "%s" ( required "Value domain is required" .Values.domain  ) }}`)
+    kind: Rule
+    services:
+    - name: {{ include "paasas-pipelines-server.fullname" . }}
+      namespace: {{ .Release.Namespace }}
+      port: 8080
+  tls:
+    secretName: {{ printf "%s-tls" (include "paasas-pipelines-server.fullname" . ) }}

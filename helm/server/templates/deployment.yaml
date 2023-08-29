@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8080"
+  name: {{ include "paasas-pipelines-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "paasas-pipelines.name" . }}
+    release: {{ .Release.Name }}
+    component: {{ include "paasas-pipelines-server.fullname" . }}
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "paasas-pipelines.name" . }}
+      release: {{ .Release.Name }}
+      component: {{ include "paasas-pipelines-server.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "paasas-pipelines.name" . }}
+        release: {{ .Release.Name }}
+        component: {{ include "paasas-pipelines-server.fullname" . }}
+    spec:
+      containers:
+      - name: server
+        image: {{ printf "%s:%s" .Values.server.image .Values.server.imageTag }}
+        imagePullPolicy: {{ .Values.server.imagePullPolicy }}
+        ports:
+        - containerPort: 8080
+        resources: {{- toYaml .Values.server.resources | nindent 10 }}
+        {{- if or ( not ( empty .Values.server.env ) ) ( .Values.postgresql.enabled ) }}
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: postgresql
+        - name: PIPELINES_GITHUB_APPID
+          value: {{ required "Value server.github.appId is required" .Values.server.github.appId | quote }}
+        - name: PIPELINES_GITHUB_INSTALLATIONID
+          value: {{ required "Value server.github.installationId is required" .Values.server.github.installationId | quote }}
+        - name: PIPELINES_GITHUB_PRIVATEKEYBASE64
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "paasas-pipelines-server.fullname" . }}
+              key: github-private-key-base64
+        - name: PIPELINES_SECURITY_CI_USERS_0_USERNAME
+          value: {{ required "Value server.security.ci.username is required" .Values.server.security.ci.username | quote }}
+        - name: PIPELINES_SECURITY_CI_USERS_0_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "paasas-pipelines-server.fullname" . }}
+              key: security-ci-password
+        {{-     range .Values.server.env }}
+        - name: {{ .name | quote }}
+          value: {{ .value | quote }}
+        {{-     end }}
+        {{-     if .Values.postgresql.enabled }}
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/{{ .Values.postgresql.global.postgresql.auth.database }}
+        - name: SPRING_DATASOURCE_USERNAME
+          value: {{ .Values.postgresql.global.postgresql.auth.username }}
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ required "Value postgresql.global.postgresql.auth.existingSecret is required" .Values.postgresql.global.postgresql.auth.existingSecret }}
+              key: password
+        {{-     end }}
+        {{- end }}
+      {{- if .Values.server.imagePullSecretsName }}
+      imagePullSecrets:
+      - name: {{ .Values.server.imagePullSecretsName | quote }}
+      {{- end }}
+      {{- with .Values.server.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}

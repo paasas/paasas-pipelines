@@ -1,0 +1,11 @@
+apiVersion: v2
+name: pipelines-server
+description: PaaSaS Pipelines Server
+type: application
+version: 0.2.0-SNAPSHOT
+appVersion: 0.2.0-SNAPSHOT
+dependencies:
+- name: postgresql
+  version: 12.10.0
+  repository: https://charts.bitnami.com/bitnami
+  condition: postgresql.enabled

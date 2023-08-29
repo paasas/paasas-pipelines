@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "paasas-pipelines-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: {{ printf "%s-tls" ( include "paasas-pipelines-server.fullname" . ) }}
+  dnsNames:
+  - {{ printf "%s" ( required "Value domain is required" .Values.domain  ) }}
+  issuerRef:
+    name: {{ required "Value certManager.clusterIssuer is required" .Values.certManager.clusterIssuer }}
+    kind: ClusterIssuer

@@ -7,11 +7,13 @@ import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
 
 @Value
 @Embeddable
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "paasas-pipelines-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "paasas-pipelines.name" . }}
+    release: {{ .Release.Name }}
+    component: {{ include "paasas-pipelines-server.fullname" . }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ include "paasas-pipelines.name" . }}
+    release: {{ .Release.Name }}
+    component: {{ include "paasas-pipelines-server.fullname" . }}
