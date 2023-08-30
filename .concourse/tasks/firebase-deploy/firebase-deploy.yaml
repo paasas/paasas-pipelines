@@ -8,15 +8,22 @@ image_resource:
     tag: latest
 
 inputs:
+- name: build-metadata
 - name: ci-src
+- name: manifest-src
 - name: src
 
 params:
   GCP_PROJECT_ID: 
+  GITHUB_REPOSITORY: 
   GOOGLE_CREDENTIALS: ((terraform.googleCredentials))
   GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: 
+  MANIFEST_PATH: 
   FIREBASE_APP_PATH:  
   FIREBASE_CONFIG: 
+  PIPELINES_SERVER: 
+  PIPELINES_SERVER_USERNAME: 
+  PIPELINES_SERVER_PASSWORD: ((pipelines.password))
 
 run:
   path: ci-src/.concourse/tasks/firebase-deploy/firebase-deploy.sh
