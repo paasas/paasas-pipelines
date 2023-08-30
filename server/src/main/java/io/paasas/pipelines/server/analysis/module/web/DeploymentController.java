@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.paasas.pipelines.server.analysis.domain.model.RegisterCloudRunDeployment;
+import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeployment;
 import io.paasas.pipelines.server.analysis.domain.port.api.DeploymentDomain;

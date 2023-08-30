@@ -15,8 +15,8 @@ public interface TerraformDeploymentJpaRepository extends JpaRepository<Terrafor
 			FROM
 				TerraformDeployment terraformDeployment
 			WHERE
-				gitRevision.path = :path AND
-				CONCAT('git@github.com:', gitRevision.repositoryOwner, '/', gitRevision.repository, '.git') = :uri AND
+				( ( gitRevision.path IS NULL AND :path IS NULL) OR gitRevision.path = :path) AND
+				CONCAT('git@github.com:', gitRevision.repository, '.git') = :uri AND
 				gitRevision.tag = :tag""")
 	List<TerraformDeploymentEntity> find(String path, String uri, String tag);
 }

@@ -167,6 +167,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      MANIFEST_PATH: {{manifest-path}}
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci
 			    input_mapping:
 			      src: manifest-src
 			  on_success:
@@ -442,7 +444,11 @@ public abstract class ExpectedDeploymentsPipeline {
 			          }
 			        }
 			      GCP_PROJECT_ID: control-plane-377914
+			      GITHUB_REPOSITORY: teleport-java-client/paas-moe-le-cloud
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci
 			    input_mapping:
 			      src: firebase-src
 			    output_mapping:

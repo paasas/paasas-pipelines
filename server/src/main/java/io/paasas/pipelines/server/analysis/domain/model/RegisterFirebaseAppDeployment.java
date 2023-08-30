@@ -1,5 +1,6 @@
 package io.paasas.pipelines.server.analysis.domain.model;
 
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
 import io.paasas.pipelines.deployment.domain.model.firebase.Npm;
 import lombok.Builder;
 import lombok.Value;

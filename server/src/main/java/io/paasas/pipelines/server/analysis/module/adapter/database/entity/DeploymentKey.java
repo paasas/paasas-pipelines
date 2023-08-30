@@ -1,7 +1,7 @@
 package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
 import io.paasas.pipelines.server.analysis.domain.model.DeploymentInfo;
-import io.paasas.pipelines.server.analysis.domain.model.JobInfo;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

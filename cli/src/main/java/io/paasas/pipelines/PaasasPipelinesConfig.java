@@ -43,10 +43,10 @@ public class PaasasPipelinesConfig {
 	}
 
 	@Bean
-	public Deployer deployer(GcpConfiguration configuration) {
+	public Deployer deployer(ConcourseConfiguration configuration, GcpConfiguration gcpConfiguration) {
 		var consoleOutput = new ConsoleOutput();
 
-		return new CloudRunDeployer(configuration, consoleOutput::println);
+		return new CloudRunDeployer(configuration, gcpConfiguration, consoleOutput::println);
 	}
 
 	@Bean

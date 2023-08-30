@@ -1,4 +1,4 @@
-package io.paasas.pipelines.server.analysis.domain.model;
+package io.paasas.pipelines.deployment.domain.model.deployment;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

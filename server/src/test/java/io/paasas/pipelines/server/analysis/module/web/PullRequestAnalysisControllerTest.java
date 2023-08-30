@@ -6,10 +6,11 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import io.paasas.pipelines.deployment.domain.model.app.App;
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
+import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.GitRevision;
-import io.paasas.pipelines.server.analysis.domain.model.JobInfo;
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
-import io.paasas.pipelines.server.analysis.domain.model.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeployment;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
@@ -23,6 +24,9 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 		client.post()
 				.uri("/api/ci/deployment/cloud-run")
 				.bodyValue(RegisterCloudRunDeployment.builder()
+						.app(App.builder()
+								.name("my-app")
+								.build())
 						.jobInfo(JobInfo.builder()
 								.build("100")
 								.job("my-job")
@@ -52,8 +56,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 						.gitRevision(GitRevision.builder()
 								.commit("3ac0c54190f175f7843be9c26c343908182e6d2c")
 								.commitAuthor("daniellavoie")
-								.repository("firebase-repository")
-								.repositoryOwner("paasas")
+								.repository("paasas/firebase-repository")
 								.tag("1.0.1")
 								.build())
 						.build())
@@ -76,8 +79,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 								.commit("321d0eced5225b08d49cdff5e86d69d328a2b192")
 								.commitAuthor("daniellavoie")
 								.path("terraform-path")
-								.repository("terraform-repository")
-								.repositoryOwner("paasas")
+								.repository("paasas/terraform-repository")
 								.tag("1.1.0")
 								.build())
 						.packageName("my-tf-package")

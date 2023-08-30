@@ -45,8 +45,11 @@ public class ConcourseConfiguration {
 
 	String gcrCredentialsJsonSecretName;
 	
+	JobConfiguration jobInfo;
+	
 	String pipelinesServer;
 	String pipelinesServerUsername;
+	String pipelinesServerPassword;
 	
 	@NotNull
 	String platformPathPrefix;

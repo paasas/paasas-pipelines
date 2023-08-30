@@ -2,6 +2,7 @@ package io.paasas.pipelines.server.analysis.domain.model;
 
 import java.util.Map;
 
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;

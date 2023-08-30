@@ -15,8 +15,8 @@ public interface FirebaseAppDeploymentJpaRepository extends JpaRepository<Fireba
 			FROM
 				FirebaseAppDeployment firebaseAppDeployment
 			WHERE
-				((gitRevision.path is null AND :path is null) OR (gitRevision.path = :path)) AND
-				CONCAT('git@github.com:', gitRevision.repositoryOwner, '/', gitRevision.repository, '.git') = :uri AND
+				( (gitRevision.path IS NULL AND :path IS NULL) OR (gitRevision.path = :path)) AND
+				CONCAT('git@github.com:', gitRevision.repository, '.git') = :uri AND
 				gitRevision.tag = :tag""")
 	List<FirebaseAppDeploymentEntity> find(String path, String uri, String tag);
 }

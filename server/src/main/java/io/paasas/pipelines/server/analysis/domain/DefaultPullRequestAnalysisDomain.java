@@ -65,7 +65,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 			Commit: {{COMMIT}}
 			Commit Author: [{{COMMIT_AUTHOR}}](https://github.com/{{COMMIT_AUTHOR}})
-			{{REVISION}}Repository: [{{REPOSITORY_OWNER}}/{{REPOSITORY}}](https://github.com/{{REPOSITORY_OWNER}}/{{REPOSITORY}})
+			{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
 
 			#### Past deployments
 
@@ -83,7 +83,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 			Commit: {{COMMIT}}
 			Commit Author: [{{COMMIT_AUTHOR}}](https://github.com/{{COMMIT_AUTHOR}})
-			{{REVISION}}Repository: [{{REPOSITORY_OWNER}}/{{REPOSITORY}}](https://github.com/{{REPOSITORY_OWNER}}/{{REPOSITORY}})
+			{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
 
 			##### Past deployments
 
@@ -225,25 +225,20 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				.replace(
 						"{{COMMIT}}",
 						String.format(
-								"[%s](https://github.com/%s/%s/commit/%s)",
+								"[%s](https://github.com/%s/commit/%s)",
 								gitRevision.getCommit(),
-								gitRevision.getRepositoryOwner(),
 								gitRevision.getRepository(),
 								gitRevision.getCommit()))
 				.replace("{{COMMIT_AUTHOR}}", gitRevision.getCommitAuthor())
-				.replace(
-						"{{REPOSITORY_OWNER}}",
-						gitRevision.getRepositoryOwner())
 				.replace("{{REPOSITORY}}", gitRevision.getRepository())
 				.replace(
 						"{{REVISION}}",
 						hasRevision
 								? String.format(
-										"%s: [%s](https://github.com/%s/%s/tree/%s%s)\n",
+										"%s: [%s](https://github.com/%s/tree/%s%s)\n",
 										hasTag ? "Tag" : "Branch",
 										hasTag ? gitRevision.getTag()
 												: gitRevision.getBranch(),
-										gitRevision.getRepositoryOwner(),
 										gitRevision.getRepository(),
 										hasTag ? gitRevision.getTag()
 												: gitRevision.getBranch(),
@@ -311,26 +306,21 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				.replace(
 						"{{COMMIT}}",
 						String.format(
-								"[%s](https://github.com/%s/%s/commit/%s)",
+								"[%s](https://github.com/%s/commit/%s)",
 								gitRevision.getCommit(),
-								gitRevision.getRepositoryOwner(),
 								gitRevision.getRepository(),
 								gitRevision.getCommit()))
 				.replace("{{COMMIT_AUTHOR}}", gitRevision.getCommitAuthor())
 				.replace("{{NAME}}", terraformAnalysis.getPackageName())
-				.replace(
-						"{{REPOSITORY_OWNER}}",
-						gitRevision.getRepositoryOwner())
 				.replace("{{REPOSITORY}}", gitRevision.getRepository())
 				.replace(
 						"{{REVISION}}",
 						hasRevision
 								? String.format(
-										"%s: [%s](https://github.com/%s/%s/tree/%s%s)\n",
+										"%s: [%s](https://github.com/%s/tree/%s%s)\n",
 										hasTag ? "Tag" : "Branch",
 										hasTag ? gitRevision.getTag()
 												: gitRevision.getBranch(),
-										gitRevision.getRepositoryOwner(),
 										gitRevision.getRepository(),
 										hasTag ? gitRevision.getTag()
 												: gitRevision.getBranch(),

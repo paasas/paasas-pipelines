@@ -21,7 +21,6 @@ public class GitRevisionEntity {
 	String commitAuthor;
 	String path;
 	String repository;
-	String repositoryOwner;
 	String tag;
 
 	public GitRevision to() {
@@ -31,7 +30,6 @@ public class GitRevisionEntity {
 				.commitAuthor(commitAuthor)
 				.path(path)
 				.repository(repository)
-				.repositoryOwner(repositoryOwner)
 				.tag(tag)
 				.build();
 	}
@@ -43,7 +41,6 @@ public class GitRevisionEntity {
 				.commitAuthor(gitRevision.getCommitAuthor())
 				.path(gitRevision.getPath())
 				.repository(gitRevision.getRepository())
-				.repositoryOwner(gitRevision.getRepositoryOwner())
 				.tag(gitRevision.getTag())
 				.build();
 	}

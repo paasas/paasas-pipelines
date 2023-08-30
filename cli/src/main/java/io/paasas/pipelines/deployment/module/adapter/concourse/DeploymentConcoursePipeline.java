@@ -425,6 +425,20 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		var mappings = new TreeMap<>(Map.of("src", "firebase-src"));
 
+		var deployParamms = new TreeMap<>(Map.of(
+				"GCP_PROJECT_ID", manifest.getProject(),
+				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", serviceAccount,
+				"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath()),
+				"FIREBASE_CONFIG", blankIfNull(firebaseApp.getConfig()),
+				"MANIFEST_PATH", deploymentManifestPath));
+
+		if (firebaseApp.getGithubRepository() != null && !firebaseApp.getGithubRepository().isBlank()) {
+			deployParamms.putAll(Map.of(
+					"GITHUB_REPOSITORY", firebaseApp.getGithubRepository(),
+					"PIPELINES_SERVER", configuration.getPipelinesServer(),
+					"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername()));
+		}
+
 		var streamBuilder = Stream.<Job>builder().add(Job.builder()
 				.name("deploy-firebase")
 				.plan(List.of(
@@ -449,11 +463,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.file(CI_SRC_RESOURCE + "/.concourse/tasks/firebase-deploy/firebase-deploy.yaml")
 								.inputMapping(mappings)
 								.outputMapping(mappings)
-								.params(new TreeMap<>(Map.of(
-										"GCP_PROJECT_ID", manifest.getProject(),
-										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", serviceAccount,
-										"FIREBASE_APP_PATH", blankIfNull(firebaseApp.getGit().getPath()),
-										"FIREBASE_CONFIG", blankIfNull(firebaseApp.getConfig()))))
+								.params(deployParamms)
 								.build()))
 				.build());
 
@@ -826,6 +836,18 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	Stream<Job> updateCloudRunJobs(DeploymentManifest manifest, String deploymentManifestPath) {
 		var apps = manifest.getApps() != null ? manifest.getApps() : List.<App>of();
 
+		var cloudRunParams = new TreeMap<>(Map.of(
+				"MANIFEST_PATH", deploymentManifestPath,
+				"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
+						"terraform@%s.iam.gserviceaccount.com",
+						manifest.getProject())));
+
+		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
+			cloudRunParams.putAll(Map.of(
+					"PIPELINES_SERVER", configuration.getPipelinesServer(),
+					"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername()));
+		}
+
 		var cloudRunJob = Job.builder()
 				.name("update-cloud-run")
 				.plan(List.of(
@@ -844,11 +866,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.file(CI_SRC_RESOURCE + "/.concourse/tasks/cloudrun/cloudrun-deploy.yaml")
 								.inputMapping(new TreeMap<>(Map.of(
 										"src", "manifest-src")))
-								.params(new TreeMap<>(Map.of(
-										"MANIFEST_PATH", deploymentManifestPath,
-										"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
-												"terraform@%s.iam.gserviceaccount.com",
-												manifest.getProject()))))
+								.params(cloudRunParams)
 								.build()))
 				.onSuccess(teamsSuccessNotification())
 				.onFailure(teamsFailureNotification())

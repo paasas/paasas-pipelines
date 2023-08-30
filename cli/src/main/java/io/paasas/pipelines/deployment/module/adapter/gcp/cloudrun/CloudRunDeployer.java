@@ -11,6 +11,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestTemplate;
+
 import com.google.api.gax.longrunning.OperationFuture;
 import com.google.cloud.run.v2.CloudSqlInstance;
 import com.google.cloud.run.v2.Container;
@@ -38,21 +41,40 @@ import com.google.cloud.run.v2.VpcAccess;
 import com.google.cloud.run.v2.VpcAccess.VpcEgress;
 import com.google.cloud.secretmanager.v1.SecretName;
 
+import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.cli.domain.ports.backend.Deployer;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.deployment.domain.model.app.App;
 import io.paasas.pipelines.deployment.domain.model.app.SecretVolume;
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
+import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDeployment;
 import io.paasas.pipelines.deployment.module.adapter.gcp.GcpCredentials;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CloudRunDeployer implements Deployer {
-	GcpConfiguration configuration;
+	ConcourseConfiguration configuration;
+	GcpConfiguration gcpConfiguration;
 	Consumer<String> logger;
+	RestTemplate restTemplate;
+
+	public CloudRunDeployer(
+			ConcourseConfiguration configuration,
+			GcpConfiguration gcpConfiguration,
+			Consumer<String> logger) {
+		this.configuration = configuration;
+		this.gcpConfiguration = gcpConfiguration;
+		this.logger = logger;
+
+		this.restTemplate = new RestTemplateBuilder()
+				.rootUri(configuration.getPipelinesServer())
+				.basicAuthentication(
+						configuration.getPipelinesServerUsername(),
+						configuration.getPipelinesServerPassword())
+				.build();
+	}
 
 	Container container(App app, DeploymentManifest deploymentManifest) {
 		return Container.newBuilder()
@@ -93,7 +115,7 @@ public class CloudRunDeployer implements Deployer {
 			var apps = deploymentManifest.getApps() != null ? deploymentManifest.getApps() : List.<App>of();
 
 			var client = ServicesClient.create(ServicesSettings.newBuilder()
-					.setCredentialsProvider(GcpCredentials.credentialProviders(configuration))
+					.setCredentialsProvider(GcpCredentials.credentialProviders(gcpConfiguration))
 					.build());
 
 			var listServicesResponse = client.listServices(
@@ -116,21 +138,31 @@ public class CloudRunDeployer implements Deployer {
 					.map(serviceToDelete -> deleteService(serviceToDelete, client, deploymentManifest));
 
 			// Service to create
-			var createOperations = apps.stream()
+			var appsToCreate = apps.stream()
 					.filter(app -> existingServicesByName.keySet().stream()
 							.noneMatch(existingServiceName -> app.getName().equals(existingServiceName)))
+					.toList();
+
+			var createOperations = appsToCreate.stream()
 					.map(app -> createApp(app, client, deploymentManifest));
 
 			// Service to update
-			var updateOperations = apps.stream()
+			var appsToUpdate = apps.stream()
 					.filter(app -> existingServicesByName.keySet().stream()
 							.anyMatch(existingServiceName -> app.getName().endsWith(existingServiceName)))
-					.map(app -> updateApp(app, client, deploymentManifest));
+					.toList();
+
+			var updateOperations = appsToUpdate.stream().map(app -> updateApp(app, client, deploymentManifest));
 
 			Stream.concat(
 					deleteOperations,
 					Stream.concat(createOperations, updateOperations))
 					.forEach(this::get);
+
+			if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
+				Stream.concat(appsToCreate.stream(), appsToUpdate.stream())
+						.forEach(app -> registerAppDeployment(app, deploymentManifest));
+			}
 
 			logger.accept("Deployment update succeeded");
 		} catch (IOException e) {
@@ -313,10 +345,10 @@ public class CloudRunDeployer implements Deployer {
 				.putLabels("platform", deploymentManifest.getProject())
 				.setTemplate(revisionTemplate(app, deploymentManifest));
 
-		if(app.getIngressTraffic() != null) {
+		if (app.getIngressTraffic() != null) {
 			builder.setIngress(app.getIngressTraffic());
 		}
-		
+
 		return builder;
 	}
 
@@ -336,5 +368,24 @@ public class CloudRunDeployer implements Deployer {
 						.setName(serviceName)
 						.build())
 				.build());
+	}
+
+	private void registerAppDeployment(App app, DeploymentManifest deploymentManifest) {
+		restTemplate.postForEntity(
+				"/api/ci/deployment/cloud-run",
+				RegisterCloudRunDeployment.builder()
+						.app(app)
+						.image(app.getImage())
+						.jobInfo(JobInfo.builder()
+								.build(configuration.getJobInfo().getBuild())
+								.job(configuration.getJobInfo().getJob())
+								.pipeline(configuration.getJobInfo().getPipeline())
+								.projectId(deploymentManifest.getProject())
+								.team(configuration.getJobInfo().getTeam())
+								.url(configuration.getJobInfo().getUrl())
+								.build())
+						.tag(app.getTag())
+						.build(),
+				Void.class);
 	}
 }

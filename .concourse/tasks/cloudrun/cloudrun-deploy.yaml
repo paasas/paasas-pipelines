@@ -4,17 +4,22 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: paasas/paasas-pipelines
-    tag: latest
+    repository: paasas/paasas-pipelines-cli
+    tag: pipelines-server
 
 inputs:
+- name: build-metadata
 - name: ci-src
 - name: src
 
 params:
+  GITHUB_REPOSITORY: 
   MANIFEST_PATH: 
   PIPELINES_GCP_CREDENTIALSJSON: ((gcp.credentials))
   PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: 
+  PIPELINES_SERVER: 
+  PIPELINES_SERVER_USERNAME: 
+  PIPELINES_SERVER_PASSWORD: ((pipelines.password))
 
 run:
   path: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.sh

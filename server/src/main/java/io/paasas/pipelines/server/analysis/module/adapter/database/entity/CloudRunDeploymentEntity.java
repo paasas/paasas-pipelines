@@ -3,8 +3,8 @@ package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.paasas.pipelines.deployment.domain.model.app.App;
+import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunDeployment;
-import io.paasas.pipelines.server.analysis.domain.model.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.module.adapter.database.DatabaseObjectMapper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;

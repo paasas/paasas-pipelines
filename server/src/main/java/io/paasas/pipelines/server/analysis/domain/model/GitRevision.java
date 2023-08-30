@@ -12,7 +12,6 @@ public class GitRevision {
 	String commit;
 	String commitAuthor;
 	String path;
-	String repositoryOwner;
 	String repository;
 	String tag;
 }

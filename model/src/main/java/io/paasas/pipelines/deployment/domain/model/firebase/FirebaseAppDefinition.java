@@ -11,6 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 public class FirebaseAppDefinition {
 	String config;
 	GitWatcher git;
+	String githubRepository;
 	Npm npm;
 	GitWatcher tests;
 }

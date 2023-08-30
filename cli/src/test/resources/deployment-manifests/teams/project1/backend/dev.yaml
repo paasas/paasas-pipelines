@@ -95,6 +95,7 @@ firebaseApp:
     path: firebase-app
     # branch: firebase-app
     tag: my-tag
+  githubRepository: teleport-java-client/paas-moe-le-cloud
   npm:
     command: env-cmd -f .env npm run build
     installArgs: --legacy-peer-deps
