@@ -1,5 +1,7 @@
 package io.paasas.pipelines.server.analysis.domain;
 
+import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -7,7 +9,6 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
@@ -104,12 +105,10 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				.commitAuthor(request.getCommitAuthor())
 				.cloudRun(artifactAnalysisDomain.cloudRunAnalysis(deploymentManifest))
 				.firebase(artifactAnalysisDomain.firebaseAppAnalysis(deploymentManifest).orElse(null))
-				.manifest(request.getManifest())
+				.manifest(new String(Base64.getDecoder().decode(request.getManifestBase64().getBytes())))
 				.projectId(request.getProject())
 				.pullRequestNumber(request.getPullRequestNumber())
 				.repository(request.getRepository())
-				.repositoryOwner(request.getRepositoryOwner())
-				.requester(request.getRequester())
 				.terraform(artifactAnalysisDomain.terraformAnalysis(deploymentManifest))
 				.build();
 
@@ -122,8 +121,9 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 	DeploymentManifest readDeploymentManifest(RefreshPullRequestAnalysisRequest request) {
 		try {
-			return YAML_MAPPER.readValue(request.getManifest(), DeploymentManifest.class);
-		} catch (JsonProcessingException e) {
+			return YAML_MAPPER.readValue(Base64.getDecoder().decode(request.getManifestBase64().getBytes()),
+					DeploymentManifest.class);
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -131,7 +131,6 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	void publishAnalysisToGithub(PullRequestAnalysis pullRequestAnalysis) {
 		pullRequestRepository.createPullRequestComment(
 				pullRequestAnalysis.getPullRequestNumber(),
-				pullRequestAnalysis.getRepositoryOwner(),
 				pullRequestAnalysis.getRepository(),
 				CreatePullRequestComment.builder()
 						.body(generatePullRequestReviewBody(pullRequestAnalysis))
@@ -165,12 +164,18 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	}
 
 	static String cloudRunServices(List<CloudRunAnalysis> cloudRun) {
-		return cloudRun.stream()
-				.map(DefaultPullRequestAnalysisDomain::cloudRunServices)
+		var cloudRunServices = cloudRun.stream()
+				.flatMap(DefaultPullRequestAnalysisDomain::cloudRunServices)
 				.collect(Collectors.joining("\n"));
+
+		return !cloudRunServices.isBlank() ? cloudRunServices : "No cloud run deployment found";
 	}
 
-	static String cloudRunServices(CloudRunAnalysis cloudRunAnalysis) {
+	static Stream<String> cloudRunServices(CloudRunAnalysis cloudRunAnalysis) {
+		if (cloudRunAnalysis.getDeployments() == null || cloudRunAnalysis.getDeployments().isEmpty()) {
+			return Stream.empty();
+		}
+
 		var latestDeployment = cloudRunAnalysis.getDeployments().stream()
 				.sorted((deployment1, deployment2) -> deployment1.getDeploymentInfo().getTimestamp()
 						.compareTo(deployment2.getDeploymentInfo().getTimestamp()))
@@ -180,11 +185,12 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 								"expected at least one deployment for cloud run service %s",
 								cloudRunAnalysis.getServiceName())));
 
-		return CLOUD_RUN_SERVICE_TEMPLATE
-				.replace("{{SERVICE_NAME}}", cloudRunAnalysis.getServiceName())
-				.replace("{{IMAGE}}", latestDeployment.getImage())
-				.replace("{{TAG}}", latestDeployment.getTag())
-				.replace("{{DEPLOYMENTS}}", cloudRunDeployments(cloudRunAnalysis));
+		return Stream.of(
+				CLOUD_RUN_SERVICE_TEMPLATE
+						.replace("{{SERVICE_NAME}}", cloudRunAnalysis.getServiceName())
+						.replace("{{IMAGE}}", latestDeployment.getImage())
+						.replace("{{TAG}}", latestDeployment.getTag())
+						.replace("{{DEPLOYMENTS}}", cloudRunDeployments(cloudRunAnalysis)));
 	}
 
 	static String cloudRunDeployments(CloudRunAnalysis cloudRunAnalysis) {
@@ -206,7 +212,9 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	}
 
 	static Optional<String> firebaseApp(PullRequestAnalysis pullRequestAnalysis) {
-		if (pullRequestAnalysis.getFirebase() == null) {
+		if (pullRequestAnalysis.getFirebase() == null
+				|| pullRequestAnalysis.getFirebase().getDeployments() == null
+				|| pullRequestAnalysis.getFirebase().getDeployments().isEmpty()) {
 			return Optional.empty();
 		}
 
@@ -282,12 +290,16 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 	static String terraform(List<TerraformAnalysis> terraform) {
 		return terraform.stream()
-				.map(DefaultPullRequestAnalysisDomain::terraform)
+				.flatMap(DefaultPullRequestAnalysisDomain::terraform)
 				.collect(Collectors.joining("\n"));
 	}
 
-	static String terraform(TerraformAnalysis terraformAnalysis) {
+	static Stream<String> terraform(TerraformAnalysis terraformAnalysis) {
 		log.info("Computing latest git revision from {}", terraformAnalysis.getDeployments());
+
+		if (terraformAnalysis.getDeployments() == null || terraformAnalysis.getDeployments().isEmpty()) {
+			return Stream.empty();
+		}
 
 		var gitRevision = terraformAnalysis.getDeployments().stream()
 				.sorted((deployment1, deployment2) -> deployment1.getDeploymentInfo().getTimestamp()
@@ -302,40 +314,41 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		var hasTag = isNotBlank(gitRevision.getTag());
 		var hasRevision = hasTag || isNotBlank(gitRevision.getBranch());
 
-		return TERRAFORM_ENTRY_TEMPLATE
-				.replace(
-						"{{COMMIT}}",
-						String.format(
-								"[%s](https://github.com/%s/commit/%s)",
-								gitRevision.getCommit(),
-								gitRevision.getRepository(),
-								gitRevision.getCommit()))
-				.replace("{{COMMIT_AUTHOR}}", gitRevision.getCommitAuthor())
-				.replace("{{NAME}}", terraformAnalysis.getPackageName())
-				.replace("{{REPOSITORY}}", gitRevision.getRepository())
-				.replace(
-						"{{REVISION}}",
-						hasRevision
-								? String.format(
-										"%s: [%s](https://github.com/%s/tree/%s%s)\n",
-										hasTag ? "Tag" : "Branch",
-										hasTag ? gitRevision.getTag()
-												: gitRevision.getBranch(),
+		return Stream.of(
+				TERRAFORM_ENTRY_TEMPLATE
+						.replace(
+								"{{COMMIT}}",
+								String.format(
+										"[%s](https://github.com/%s/commit/%s)",
+										gitRevision.getCommit(),
 										gitRevision.getRepository(),
-										hasTag ? gitRevision.getTag()
-												: gitRevision.getBranch(),
-										Optional.ofNullable(gitRevision.getPath())
-												.map(path -> "/" + path).orElse(""))
+										gitRevision.getCommit()))
+						.replace("{{COMMIT_AUTHOR}}", gitRevision.getCommitAuthor())
+						.replace("{{NAME}}", terraformAnalysis.getPackageName())
+						.replace("{{REPOSITORY}}", gitRevision.getRepository())
+						.replace(
+								"{{REVISION}}",
+								hasRevision
+										? String.format(
+												"%s: [%s](https://github.com/%s/tree/%s%s)\n",
+												hasTag ? "Tag" : "Branch",
+												hasTag ? gitRevision.getTag()
+														: gitRevision.getBranch(),
+												gitRevision.getRepository(),
+												hasTag ? gitRevision.getTag()
+														: gitRevision.getBranch(),
+												Optional.ofNullable(gitRevision.getPath())
+														.map(path -> "/" + path).orElse(""))
 
-								: "")
-				.replace(
-						"{{DEPLOYMENTS}}",
-						Optional
-								.ofNullable(terraformAnalysis.getDeployments())
-								.map(deployments -> deployments.stream()
-										.map(DefaultPullRequestAnalysisDomain::terraformDeployment)
-										.collect(Collectors.joining("\n")))
-								.orElse("*No deployment recorded*"));
+										: "")
+						.replace(
+								"{{DEPLOYMENTS}}",
+								Optional
+										.ofNullable(terraformAnalysis.getDeployments())
+										.map(deployments -> deployments.stream()
+												.map(DefaultPullRequestAnalysisDomain::terraformDeployment)
+												.collect(Collectors.joining("\n")))
+										.orElse("*No deployment recorded*")));
 	}
 
 	static String terraformDeployments(TerraformAnalysis terraformAnalysis) {

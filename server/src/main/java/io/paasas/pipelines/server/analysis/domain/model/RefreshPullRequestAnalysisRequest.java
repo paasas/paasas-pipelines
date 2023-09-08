@@ -10,10 +10,8 @@ import lombok.extern.jackson.Jacksonized;
 public class RefreshPullRequestAnalysisRequest {
 	String commit;
 	String commitAuthor;
-	String manifest;
-	String requester;
+	String manifestBase64;
 	String repository;
-	String repositoryOwner;
 	String project;
 	int pullRequestNumber;
 }

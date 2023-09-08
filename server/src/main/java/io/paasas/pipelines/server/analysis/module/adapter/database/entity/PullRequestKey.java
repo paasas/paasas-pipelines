@@ -17,7 +17,6 @@ import lombok.experimental.FieldDefaults;
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PullRequestKey implements Serializable {
-	String owner;
 	String repository;
 	int number;
 }

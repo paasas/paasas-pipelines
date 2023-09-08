@@ -46,7 +46,7 @@ public abstract class ConcoursePipelineTest {
 				.deploymentTerraformBackendPrefix("terraform/deployments/")
 				.gcrCredentialsJsonSecretName("googleCredentials")
 				.githubEmail("dlavoie@live.ca")
-				.githubRepository("daniellavoie/infra-as-code-demo")
+				.githubRepository("daniellavoie/deployment-as-code-demo")
 				.githubUsername("daniellavoie")
 				.pipelinesServer("http://localhost:8080")
 				.pipelinesServerUsername("ci")

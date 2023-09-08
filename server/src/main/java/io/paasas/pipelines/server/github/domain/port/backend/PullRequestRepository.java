@@ -7,9 +7,8 @@ import io.paasas.pipelines.server.github.module.adapter.model.pull.CreatePullReq
 public interface PullRequestRepository {
 	void createPullRequestComment(
 			int pullNumber,
-			String owner,
 			String repository,
 			CreatePullRequestComment request);
 
-	List<Object> listPullRequestsReviewComments(int pullNumber, String owner, String repository);
+	List<Object> listPullRequestsReviewComments(int pullNumber, String repository);
 }

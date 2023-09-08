@@ -36,7 +36,6 @@ public class PullRequestAnalysisEntity {
 
 	String projectId;
 	int pullRequestNumber;
-	String requester;
 
 	public PullRequestAnalysis to(
 			List<CloudRunAnalysis> cloudRun,
@@ -50,7 +49,6 @@ public class PullRequestAnalysisEntity {
 				.manifest(manifest)
 				.projectId(projectId)
 				.pullRequestNumber(pullRequestNumber)
-				.requester(requester)
 				.terraform(terraform)
 				.build();
 	}
@@ -61,12 +59,10 @@ public class PullRequestAnalysisEntity {
 				.commitAuthor(pullRequestAnalysis.getCommitAuthor())
 				.key(PullRequestKey.builder()
 						.number(pullRequestAnalysis.getPullRequestNumber())
-						.owner(pullRequestAnalysis.getRepositoryOwner())
 						.repository(pullRequestAnalysis.getRepository())
 						.build())
 				.manifest(pullRequestAnalysis.getManifest())
 				.projectId(pullRequestAnalysis.getProjectId())
-				.requester(pullRequestAnalysis.getRequester())
 				.build();
 	}
 }

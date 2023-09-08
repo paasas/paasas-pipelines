@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: paasas/ci
+    tag: latest
+
+inputs:
+- name: ci-src
+- name: manifest-src
+- name: pr
+
+params:  
+  GCP_PROJECT_ID: 
+  GITHUB_REPOSITORY: 
+  MANIFEST_PATH: 
+  PIPELINES_SERVER: 
+  PIPELINES_SERVER_USERNAME: 
+  PIPELINES_SERVER_PASSWORD: ((pipelines.password))
+   
+run:
+  path: ci-src/.concourse/tasks/analyze-pull-request/analyze-pull-request.sh
