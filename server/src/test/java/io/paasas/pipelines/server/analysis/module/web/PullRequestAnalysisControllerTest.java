@@ -1,5 +1,6 @@
 package io.paasas.pipelines.server.analysis.module.web;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,7 +94,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 				.bodyValue(RefreshPullRequestAnalysisRequest.builder()
 						.commit("73c4918ea6f537795701927a4940b95e479dd10e")
 						.commitAuthor("daniellavoie")
-						.manifest("""
+						.manifestBase64(new String(Base64.getEncoder().encode("""
 								project: my-project
 								region: northamerica-northeast1
 								apps:
@@ -117,17 +118,15 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 								    tag: 1.1.0
 								    path: terraform-path
 								  vars:
-								    my-var: my-value""")
+								    my-var: my-value""".getBytes())))
 						.project("my-tf-package")
 						.pullRequestNumber(2)
-						.repository("paasas-pipelines")
-						.repositoryOwner("paasas")
-						.requester("daniellavoie")
+						.repository("paasas/paasas-pipelines")
 						.build())
 				.exchange()
 				.expectStatus()
 				.is2xxSuccessful();
 
-		pullRequestRepository.listPullRequestsReviewComments(2, "paasas", "paasas-pipelines");
+		pullRequestRepository.listPullRequestsReviewComments(2, "paasas/paasas-pipelines");
 	}
 }

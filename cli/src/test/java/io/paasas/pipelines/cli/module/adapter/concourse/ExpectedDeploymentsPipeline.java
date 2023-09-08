@@ -19,9 +19,20 @@ public abstract class ExpectedDeploymentsPipeline {
 			  source:
 			    repository: swce/metadata-resource
 			    tag: latest
+			- name: pull-request
+			  type: docker-image
+			  source:
+			    repository: teliaoss/github-pr-resource
 			resources:
 			- name: build-metadata
 			  type: build-metadata
+			- name: pr
+			  type: pull-request
+			  source:
+			    access_token: ((github.userAccessToken))
+			    repository: daniellavoie/deployment-as-code-demo
+			    paths:
+			    - {{manifest-path}}
 			- name: ci-src
 			  type: git
 			  source:
@@ -153,6 +164,20 @@ public abstract class ExpectedDeploymentsPipeline {
 			    private_key: ((git.ssh-private-key))
 			    branch: gh-pages
 			jobs:
+			- name: analyze-pull-request
+			  plan:
+			  - in_parallel:
+			    - get: pr
+			      trigger: true
+			    - get: ci-src
+			    - get: manifest-src
+			  - task: analyze-pull-request
+			    file: ci-src/.concourse/tasks/analyze-pull-request/analyze-pull-request.yaml
+			    params:
+			      GITHUB_REPOSITORY: daniellavoie/deployment-as-code-demo
+			      MANIFEST_PATH: {{manifest-path}}
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci
 			- name: update-cloud-run
 			  plan:
 			  - in_parallel:

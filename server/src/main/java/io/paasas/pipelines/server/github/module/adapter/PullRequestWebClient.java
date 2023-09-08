@@ -20,28 +20,25 @@ public class PullRequestWebClient implements PullRequestRepository {
 	@Override
 	public void createPullRequestComment(
 			int pullNumber,
-			String owner,
 			String repository,
 			CreatePullRequestComment request) {
 		restTemplate.postForObject(
-				"/repos/{owner}/{repository}/issues/{pullNumber}/comments",
+				"/repos/{repository}/issues/{pullNumber}/comments",
 				request,
 				Void.class,
-				owner,
 				repository,
 				pullNumber);
 	}
 
 	@Override
-	public List<Object> listPullRequestsReviewComments(int pullNumber, String owner, String repository) {
+	public List<Object> listPullRequestsReviewComments(int pullNumber, String repository) {
 		return restTemplate.exchange(
-				"/repos/{owner}/{repository}/issues/{pullNumber}/comments",
+				"/repos/{repository}/issues/{pullNumber}/comments",
 				HttpMethod.GET,
 				null,
 				new ParameterizedTypeReference<List<Object>>() {
 
 				},
-				owner,
 				repository,
 				pullNumber)
 				.getBody();

@@ -31,6 +31,7 @@ import io.paasas.pipelines.util.concourse.model.Pipeline;
 import io.paasas.pipelines.util.concourse.model.Resource;
 import io.paasas.pipelines.util.concourse.model.ResourceType;
 import io.paasas.pipelines.util.concourse.model.resource.GitSource;
+import io.paasas.pipelines.util.concourse.model.resource.PullRequestSource;
 import io.paasas.pipelines.util.concourse.model.resource.RegistryImageSource;
 import io.paasas.pipelines.util.concourse.model.step.Get;
 import io.paasas.pipelines.util.concourse.model.step.InParallel;
@@ -52,6 +53,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 	private static final String BUILD_METADATA = "build-metadata";
 	private static final String CI_SRC_RESOURCE = "ci-src";
+	private static final String PULL_REQUEST = "pr";
 
 	GcpConfiguration gcpConfiguration;
 
@@ -59,6 +61,27 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		super(configuration);
 
 		this.gcpConfiguration = gcpConfiguration;
+	}
+
+	private Job analyzePullRequestJob(String deploymentManifestPath) {
+		return Job.builder()
+				.name("analyze-pull-request")
+				.plan(List.of(
+						inParallel(List.of(
+								getWithTrigger(PULL_REQUEST),
+								get(CI_SRC_RESOURCE),
+								get("manifest-src"))),
+						Task.builder()
+								.task("analyze-pull-request")
+								.file(CI_SRC_RESOURCE
+										+ "/.concourse/tasks/analyze-pull-request/analyze-pull-request.yaml")
+								.params(new TreeMap<>(Map.of(
+										"GITHUB_REPOSITORY", configuration.getGithubRepository(),
+										"MANIFEST_PATH", deploymentManifestPath,
+										"PIPELINES_SERVER", configuration.getPipelinesServer(),
+										"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername())))
+								.build()))
+				.build();
 	}
 
 	Stream<Resource<?>> appResources(App app) {
@@ -121,12 +144,23 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		return value != null ? value : "";
 	}
 
-	Stream<Resource<?>> commonResources(DeploymentManifest manifest) {
+	Stream<Resource<?>> commonResources(DeploymentManifest manifest, String deploymentManifestPath) {
 		var builder = Stream.<Resource<?>>builder().add(
-				Resource.builder()
+				Resource
+						.builder()
 						.name(BUILD_METADATA)
 						.type(CommonResourceTypes.BUILD_METADATA_TYPE)
 						.build())
+				.add(
+						Resource.builder()
+								.name(PULL_REQUEST)
+								.type(CommonResourceTypes.GITHUB_PULL_REQUEST_TYPE)
+								.source(PullRequestSource.builder()
+										.accessToken("((github.userAccessToken))")
+										.repository(configuration.getGithubRepository())
+										.paths(List.of(deploymentManifestPath))
+										.build())
+								.build())
 				.add(
 						Resource.builder()
 								.name(CI_SRC_RESOURCE)
@@ -239,15 +273,6 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Stream<Resource<?>> composerFlexTemplatesResources(ComposerConfig composerConfig) {
-		if (composerConfig.getDags() == null || composerConfig.getDags().getFlexTemplates() == null) {
-			return Stream.empty();
-		}
-
-		return composerConfig.getDags().getFlexTemplates().stream()
-				.map(this::composerFlexTemplatesResource);
-	}
-
 	Resource<?> composerFlexTemplatesResource(FlexTemplate flexTemplate) {
 		if (flexTemplate == null) {
 			throw new IllegalArgumentException("undefined flex template");
@@ -295,6 +320,15 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										: null)
 						.build())
 				.build();
+	}
+
+	Stream<Resource<?>> composerFlexTemplatesResources(ComposerConfig composerConfig) {
+		if (composerConfig.getDags() == null || composerConfig.getDags().getFlexTemplates() == null) {
+			return Stream.empty();
+		}
+
+		return composerConfig.getDags().getFlexTemplates().stream()
+				.map(this::composerFlexTemplatesResource);
 	}
 
 	Stream<Job> composerJobs(
@@ -560,7 +594,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			DeploymentManifest manifest,
 			String target,
 			String deploymentManifestPath) {
-		var streamBuilder = Stream.<Job>builder();
+		var streamBuilder = Stream.<Job>builder()
+				.add(analyzePullRequestJob(deploymentManifestPath));
 
 		updateCloudRunJobs(manifest, deploymentManifestPath)
 				.forEach(streamBuilder::add);
@@ -634,7 +669,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	List<Resource<?>> resources(DeploymentManifest manifest, String deploymentManifestPath) {
 		return Stream
 				.concat(
-						commonResources(manifest),
+						commonResources(manifest, deploymentManifestPath),
 						deploymentResources(manifest, deploymentManifestPath))
 				.toList();
 	}
@@ -647,9 +682,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			builder.add(CommonResourceTypes.METADATA);
 		}
 
-		builder.add(CommonResourceTypes.BUILD_METADATA);
-
-		return builder.build().toList();
+		return builder
+				.add(CommonResourceTypes.BUILD_METADATA)
+				.add(CommonResourceTypes.GITHUB_PULL_REQUEST)
+				.build().toList();
 	}
 
 	Job terraformApplyJob(

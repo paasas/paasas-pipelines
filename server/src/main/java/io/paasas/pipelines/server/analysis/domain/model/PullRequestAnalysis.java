@@ -16,7 +16,6 @@ public class PullRequestAnalysis {
 	FirebaseAppAnalysis firebase;
 	String manifest;
 	String projectId;
-	String repositoryOwner;
 	String repository;
 	int pullRequestNumber;
 	String requester;

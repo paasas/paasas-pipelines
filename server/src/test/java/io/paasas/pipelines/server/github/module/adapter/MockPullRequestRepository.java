@@ -13,15 +13,14 @@ public class MockPullRequestRepository implements PullRequestRepository {
 	@Override
 	public void createPullRequestComment(
 			int pullNumber,
-			String owner,
 			String repository,
 			CreatePullRequestComment request) {
-		REVIEW_BODIES.put(String.format("%s/%s/%d", owner, repository, pullNumber), request.getBody());
+		REVIEW_BODIES.put(String.format("%s/%d", repository, pullNumber), request.getBody());
 	}
 
 	@Override
-	public List<Object> listPullRequestsReviewComments(int pullNumber, String owner, String repository) {
-		return List.of(REVIEW_BODIES.get(String.format("%s/%s/%d", owner, repository, pullNumber)));
+	public List<Object> listPullRequestsReviewComments(int pullNumber, String repository) {
+		return List.of(REVIEW_BODIES.get(String.format("%s/%d", repository, pullNumber)));
 	}
 
 }

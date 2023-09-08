@@ -7,6 +7,7 @@ public final class CommonResourceTypes {
 	public final static String BUILD_METADATA_TYPE = "build-metadata";
 	public final static String GCS_RESOURCE_TYPE = "gcs";
 	public static final String GIT_RESOURCE_TYPE = "git";
+	public static final String GITHUB_PULL_REQUEST_TYPE = "pull-request";
 	public static final String METADATA_RESOURCE_TYPE = "metadata";
 	public static final String REGISTRY_IMAGE_RESOURCE_TYPE = "registry-image";
 	public final static String TEAMS_NOTIFICATION_RESOURCE_TYPE = "teams-notification";
@@ -25,6 +26,14 @@ public final class CommonResourceTypes {
 			.source(ResourceTypeSource.builder()
 					.repository("frodenas/gcs-resource")
 					.tag("latest")
+					.build())
+			.type("docker-image")
+			.build();
+
+	public static final ResourceType GITHUB_PULL_REQUEST = ResourceType.builder()
+			.name(GITHUB_PULL_REQUEST_TYPE)
+			.source(ResourceTypeSource.builder()
+					.repository("teliaoss/github-pr-resource")
 					.build())
 			.type("docker-image")
 			.build();
