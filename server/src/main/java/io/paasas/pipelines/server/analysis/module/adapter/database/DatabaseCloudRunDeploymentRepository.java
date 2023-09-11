@@ -10,6 +10,7 @@ import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDe
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunDeploymentRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.CloudRunDeploymentEntity;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -29,6 +30,7 @@ public class DatabaseCloudRunDeploymentRepository implements CloudRunDeploymentR
 	}
 
 	@Override
+	@Transactional
 	public void registerDeployment(RegisterCloudRunDeployment registerCloudRunDeployment) {
 		var latestDeployment = repository.findByDeploymentInfoProjectIdAndApp(
 				registerCloudRunDeployment.getJobInfo().getProjectId(),
