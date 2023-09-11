@@ -160,6 +160,9 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 				"PIPELINES_CONCOURSE_PLATFORMPATHPREFIX", configuration.getPlatformPathPrefix())));
 
 		deploymentUpdateParams.putAll(new TreeMap<>(Map.of(
+				"PIPELINES_CONCOURSE_PIPELINESSERVER", configuration.getPipelinesServer(),
+				"PIPELINES_CONCOURSE_PIPELINESSERVERPASSWORD", "((pipelines-server.security-ci-password))",
+				"PIPELINES_CONCOURSE_PIPELINESSERVERUSERNAME", configuration.getPipelinesServerUsername(),
 				"PIPELINES_CONCOURSE_PLATFORMSRCBRANCH", configuration.getPlatformSrcBranch(),
 				"PIPELINES_CONCOURSE_PLATFORMSRCURI", configuration.getPlatformSrcUri(),
 				"PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX", configuration.getPlatformTerraformBackendPrefix(),

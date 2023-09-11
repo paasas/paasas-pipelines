@@ -262,6 +262,9 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_GITHUBEMAIL: dlavoie@live.ca
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/deployment-as-code-demo
 			      PIPELINES_CONCOURSE_GITHUBUSERNAME: daniellavoie
+			      PIPELINES_CONCOURSE_PIPELINESSERVER: http://localhost:8080
+			      PIPELINES_CONCOURSE_PIPELINESSERVERPASSWORD: ((pipelines-server.security-ci-password))
+			      PIPELINES_CONCOURSE_PIPELINESSERVERUSERNAME: ci
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
 			      PIPELINES_CONCOURSE_PLATFORMSRCURI: git@github.com:daniellavoie/infra-as-code-demo.git
@@ -404,6 +407,9 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_GITHUBEMAIL: dlavoie@live.ca
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/deployment-as-code-demo
 			      PIPELINES_CONCOURSE_GITHUBUSERNAME: daniellavoie
+			      PIPELINES_CONCOURSE_PIPELINESSERVER: http://localhost:8080
+			      PIPELINES_CONCOURSE_PIPELINESSERVERPASSWORD: ((pipelines-server.security-ci-password))
+			      PIPELINES_CONCOURSE_PIPELINESSERVERUSERNAME: ci
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
 			      PIPELINES_CONCOURSE_PLATFORMSRCURI: git@github.com:daniellavoie/infra-as-code-demo.git
@@ -546,6 +552,9 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_GITHUBEMAIL: dlavoie@live.ca
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/deployment-as-code-demo
 			      PIPELINES_CONCOURSE_GITHUBUSERNAME: daniellavoie
+			      PIPELINES_CONCOURSE_PIPELINESSERVER: http://localhost:8080
+			      PIPELINES_CONCOURSE_PIPELINESSERVERPASSWORD: ((pipelines-server.security-ci-password))
+			      PIPELINES_CONCOURSE_PIPELINESSERVERUSERNAME: ci
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
 			      PIPELINES_CONCOURSE_PLATFORMSRCURI: git@github.com:daniellavoie/infra-as-code-demo.git
@@ -688,6 +697,9 @@ public abstract class ExpectedPlatformsPipeline {
 			      PIPELINES_CONCOURSE_GITHUBEMAIL: dlavoie@live.ca
 			      PIPELINES_CONCOURSE_GITHUBREPOSITORY: daniellavoie/deployment-as-code-demo
 			      PIPELINES_CONCOURSE_GITHUBUSERNAME: daniellavoie
+			      PIPELINES_CONCOURSE_PIPELINESSERVER: http://localhost:8080
+			      PIPELINES_CONCOURSE_PIPELINESSERVERPASSWORD: ((pipelines-server.security-ci-password))
+			      PIPELINES_CONCOURSE_PIPELINESSERVERUSERNAME: ci
 			      PIPELINES_CONCOURSE_PLATFORMPATHPREFIX: teams/
 			      PIPELINES_CONCOURSE_PLATFORMSRCBRANCH: v2
 			      PIPELINES_CONCOURSE_PLATFORMSRCURI: git@github.com:daniellavoie/infra-as-code-demo.git
