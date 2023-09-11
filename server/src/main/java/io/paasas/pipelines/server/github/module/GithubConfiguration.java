@@ -18,15 +18,11 @@ public class GithubConfiguration {
 	@NotEmpty
 	String apiVersion;
 
-	@NotEmpty
 	String appId;
 
 	@NotEmpty
 	String baseUrl;
 
-	@NotEmpty
 	String installationId;
-
-	@NotEmpty
 	String privateKeyBase64;
 }

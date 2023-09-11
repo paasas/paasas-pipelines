@@ -32,6 +32,10 @@ public class GithubWebClientConfig {
 	class RepositoryConfig {
 		@Bean
 		public RestTemplate githubRestTemplate(GithubConfiguration githubConfiguration) {
+			assertNotBlank(githubConfiguration.getAppId(), "app-id");
+			assertNotBlank(githubConfiguration.getInstallationId(), "installation-id");
+			assertNotBlank(githubConfiguration.getPrivateKeyBase64(), "private-key-base64");
+			
 			var messageConverter = new MappingJackson2HttpMessageConverter();
 			messageConverter.setObjectMapper(new ObjectMapper()
 					.findAndRegisterModules()
@@ -49,6 +53,13 @@ public class GithubWebClientConfig {
 		public PullRequestRepository pullRequestRepository(RestTemplate githubRestTemplate) {
 			return new PullRequestWebClient(githubRestTemplate);
 		}
+	}
+	
+	private void assertNotBlank(String value, String property) {
+		if(value == null || value.isBlank()) {
+			throw new IllegalStateException("expected a value for property pipelines.github." + property);
+		}
+		
 	}
 
 	static void configureCodecs(ClientCodecConfigurer configurer) {
