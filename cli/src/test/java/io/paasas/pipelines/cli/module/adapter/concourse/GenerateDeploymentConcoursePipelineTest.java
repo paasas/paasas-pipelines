@@ -66,7 +66,6 @@ public class GenerateDeploymentConcoursePipelineTest extends ConcoursePipelineTe
 
 		Assertions.assertEquals("", ERROR_OUTPUT.getOutput());
 
-		// /var/folders/s6/qy1ckdwn26scltx5j4_0__xr0000gn/T/fe2a785e-97a4-45aa-add5-f9b44d5ec400/project1/backend/dev-composer-variables/composer-1.json
 		Assertions.assertEquals(
 				ExpectedDeploymentsPipeline.PIPELINE
 						.replace("{{manifest-path}}", manifestPath)

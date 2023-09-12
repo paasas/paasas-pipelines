@@ -703,6 +703,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		var terraformParams = new TreeMap<>(Map.of(
 				"GCP_PROJECT_ID", manifest.getProject(),
+				"GITHUB_REPOSITORY", configuration.getGithubRepository(),
 				"MANIFEST_PATH", deploymentManifestPath,
 				"PIPELINES_SERVER", configuration.getPipelinesServer(),
 				"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername(),
