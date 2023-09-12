@@ -20,7 +20,6 @@ import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
-import io.paasas.pipelines.server.analysis.domain.port.api.ArtifactAnalysisDomain;
 import io.paasas.pipelines.server.analysis.domain.port.api.PullRequestAnalysisDomain;
 import io.paasas.pipelines.server.analysis.domain.port.backend.PullRequestAnalysisRepository;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
@@ -92,31 +91,12 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 	private static final ObjectMapper YAML_MAPPER = new ObjectMapper(YAMLFactory.builder().build());
 
-	ArtifactAnalysisDomain artifactAnalysisDomain;
 	PullRequestRepository pullRequestRepository;
 	PullRequestAnalysisRepository repository;
 
 	@Override
 	public void refresh(RefreshPullRequestAnalysisRequest request) {
-		var deploymentManifest = readDeploymentManifest(request);
-
-		var pullRequestAnalysis = PullRequestAnalysis.builder()
-				.commit(request.getCommit())
-				.commitAuthor(request.getCommitAuthor())
-				.cloudRun(artifactAnalysisDomain.cloudRunAnalysis(deploymentManifest))
-				.firebase(artifactAnalysisDomain.firebaseAppAnalysis(deploymentManifest).orElse(null))
-				.manifest(new String(Base64.getDecoder().decode(request.getManifestBase64().getBytes())))
-				.projectId(request.getProject())
-				.pullRequestNumber(request.getPullRequestNumber())
-				.repository(request.getRepository())
-				.terraform(artifactAnalysisDomain.terraformAnalysis(deploymentManifest))
-				.build();
-
-		log.info("Updating {}", pullRequestAnalysis);
-
-		repository.save(pullRequestAnalysis);
-
-		publishAnalysisToGithub(pullRequestAnalysis);
+		publishAnalysisToGithub(repository.refresh(readDeploymentManifest(request), request));
 	}
 
 	DeploymentManifest readDeploymentManifest(RefreshPullRequestAnalysisRequest request) {
