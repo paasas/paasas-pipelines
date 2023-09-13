@@ -5,10 +5,10 @@ import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppDeplo
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeployment;
 
 public interface DeploymentDomain {
-	void registerCloudRunDeployment(RegisterCloudRunDeployment registerCloudRunDeployment);
+	void registerCloudRunDeployment(RegisterCloudRunDeployment request);
 
-	void registerFirebaseAppDeployment(RegisterFirebaseAppDeployment registerFirebaseAppDeployment);
+	void registerFirebaseAppDeployment(RegisterFirebaseAppDeployment request);
 
-	void registerTerraformDeployment(RegisterTerraformDeployment registerTerraformDeployment);
+	void registerTerraformDeployment(RegisterTerraformDeployment request);
 
 }

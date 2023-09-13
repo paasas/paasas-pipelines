@@ -24,24 +24,24 @@ public class DefaultDeploymentDomain implements DeploymentDomain {
 	TerraformDeploymentRepository terraformDeploymentRepository;
 
 	@Override
-	public void registerCloudRunDeployment(RegisterCloudRunDeployment registerCloudRunDeployment) {
-		log.info("Registering {}", registerCloudRunDeployment);
-		
-		cloudRunDeploymentRepository.registerDeployment(registerCloudRunDeployment);
+	public void registerCloudRunDeployment(RegisterCloudRunDeployment request) {
+		log.info("Registering {}", request);
+
+		cloudRunDeploymentRepository.registerDeployment(request);
 	}
 
 	@Override
-	public void registerFirebaseAppDeployment(RegisterFirebaseAppDeployment registerFirebaseAppDeployment) {
-		log.info("Registering {}", registerFirebaseAppDeployment);
-		
-		firebaseAppDeploymentRepository.registerDeployment(registerFirebaseAppDeployment);
+	public void registerFirebaseAppDeployment(RegisterFirebaseAppDeployment request) {
+		log.info("Registering {}", request);
+
+		firebaseAppDeploymentRepository.registerDeployment(request);
 	}
 
 	@Override
-	public void registerTerraformDeployment(RegisterTerraformDeployment registerTerraformDeployment) {
-		log.info("Registering {}", registerTerraformDeployment);
-		
-		terraformDeploymentRepository.registerDeployment(registerTerraformDeployment);
+	public void registerTerraformDeployment(RegisterTerraformDeployment request) {
+		log.info("Registering {}", request);
+
+		terraformDeploymentRepository.registerDeployment(request);
 	}
 
 }

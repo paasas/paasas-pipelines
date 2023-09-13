@@ -1,8 +1,6 @@
 package io.paasas.pipelines.server.analysis.domain.model;
 
-import java.util.List;
-
-import io.paasas.pipelines.deployment.domain.model.firebase.Npm;
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -10,10 +8,9 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder(toBuilder = true)
-public class FirebaseAppDeployment {
-	String config;
-	DeploymentInfo deploymentInfo;
+public class RegisterFirebaseAppTestReport {
+	JobInfo jobInfo;
 	GitRevision gitRevision;
-	Npm npm;
-	List<TestReport> testReports;
+	String reportUrl;
+	GitRevision testGitRevision;
 }

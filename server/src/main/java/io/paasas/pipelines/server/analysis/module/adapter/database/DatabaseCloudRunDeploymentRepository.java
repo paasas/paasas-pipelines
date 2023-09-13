@@ -10,6 +10,7 @@ import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDe
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunDeploymentRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.CloudRunDeploymentEntity;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.CloudRunTestReportEntity;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,31 +21,41 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DatabaseCloudRunDeploymentRepository implements CloudRunDeploymentRepository {
 	CloudRunDeploymentJpaRepository repository;
+	CloudRunTestReportJpaRepository testReportRepository;
 
 	@Override
 	public List<CloudRunDeployment> findByImageAndTag(String image, String tag) {
 		return repository.findByImageAndTag(image, tag)
 				.stream()
-				.map(CloudRunDeploymentEntity::to)
+				.map(this::to)
 				.toList();
 	}
 
 	@Override
 	@Transactional
 	public void registerDeployment(RegisterCloudRunDeployment registerCloudRunDeployment) {
-		var latestDeployment = repository.findByDeploymentInfoProjectIdAndApp(
-				registerCloudRunDeployment.getJobInfo().getProjectId(),
-				registerCloudRunDeployment.getApp().getName(),
-				PageRequest.of(0, 1, Direction.DESC, "deploymentInfo.timestamp"))
+		var latestDeployment = repository
+				.findByDeploymentInfoProjectIdAndApp(
+						registerCloudRunDeployment.getJobInfo().getProjectId(),
+						registerCloudRunDeployment.getApp().getName(),
+						PageRequest.of(0, 1, Direction.DESC, "deploymentInfo.timestamp"))
 				.stream()
 				.findFirst();
 
 		if (latestDeployment.isPresent()
-				&& latestDeployment.get().to().getApp().equals(registerCloudRunDeployment.getApp())) {
+				&& to(latestDeployment.get()).getApp().equals(registerCloudRunDeployment.getApp())) {
 			return;
 		}
 
 		repository.save(CloudRunDeploymentEntity.from(registerCloudRunDeployment));
+	}
+
+	private CloudRunDeployment to(CloudRunDeploymentEntity deployment) {
+		return deployment.to(
+				testReportRepository.findByImageAndTag(deployment.getImage(), deployment.getTag())
+						.stream()
+						.map(CloudRunTestReportEntity::to)
+						.toList());
 	}
 
 }

@@ -77,7 +77,8 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 
 	@Override
 	@Transactional
-	public PullRequestAnalysis refresh(DeploymentManifest deploymentManifest,
+	public PullRequestAnalysis refresh(
+			DeploymentManifest deploymentManifest,
 			RefreshPullRequestAnalysisRequest request) {
 		var pullRequestAnalysis = PullRequestAnalysis.builder()
 				.commit(request.getCommit())

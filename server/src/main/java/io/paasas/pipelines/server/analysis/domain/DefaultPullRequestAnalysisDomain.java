@@ -95,8 +95,12 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	PullRequestAnalysisRepository repository;
 
 	@Override
-	public void refresh(RefreshPullRequestAnalysisRequest request) {
-		publishAnalysisToGithub(repository.refresh(readDeploymentManifest(request), request));
+	public PullRequestAnalysis refresh(RefreshPullRequestAnalysisRequest request) {
+		var pullRequestAnalysis = repository.refresh(readDeploymentManifest(request), request);
+
+		publishAnalysisToGithub(pullRequestAnalysis);
+
+		return pullRequestAnalysis;
 	}
 
 	DeploymentManifest readDeploymentManifest(RefreshPullRequestAnalysisRequest request) {

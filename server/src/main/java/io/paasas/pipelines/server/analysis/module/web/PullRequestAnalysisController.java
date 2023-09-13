@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
 import io.paasas.pipelines.server.analysis.domain.port.api.PullRequestAnalysisDomain;
 import lombok.AccessLevel;
@@ -19,7 +20,7 @@ public class PullRequestAnalysisController {
 	PullRequestAnalysisDomain pullRequestAnalysisDomain;
 
 	@PostMapping
-	public void refresh(@RequestBody RefreshPullRequestAnalysisRequest request) {
-		pullRequestAnalysisDomain.refresh(request);
+	public PullRequestAnalysis refresh(@RequestBody RefreshPullRequestAnalysisRequest request) {
+		return pullRequestAnalysisDomain.refresh(request);
 	}
 }

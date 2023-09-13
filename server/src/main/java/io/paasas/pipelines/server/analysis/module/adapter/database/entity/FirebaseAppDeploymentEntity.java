@@ -1,10 +1,13 @@
 package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.paasas.pipelines.deployment.domain.model.firebase.Npm;
 import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 import io.paasas.pipelines.server.analysis.module.adapter.database.DatabaseObjectMapper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -42,13 +45,14 @@ public class FirebaseAppDeploymentEntity {
 	@Column(length = 16_777_216)
 	String npm;
 
-	public FirebaseAppDeployment to() {
+	public FirebaseAppDeployment to(List<TestReport> testReports) {
 		try {
 			return FirebaseAppDeployment.builder()
 					.config(config)
 					.deploymentInfo(deploymentInfo.to(key))
 					.gitRevision(gitRevision.to())
 					.npm(DatabaseObjectMapper.OBJECT_MAPPER.readValue(npm, Npm.class))
+					.testReports(testReports)
 					.build();
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);

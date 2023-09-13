@@ -8,7 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder(toBuilder = true)
 public class TestReport {
-	GitRevision gitRevision;
+	String projectId;
+	String buildUrl;
 	String reportUrl;
-	String jobUrl;
 }
