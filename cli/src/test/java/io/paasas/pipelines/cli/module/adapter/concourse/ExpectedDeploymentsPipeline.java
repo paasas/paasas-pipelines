@@ -170,7 +170,6 @@ public abstract class ExpectedDeploymentsPipeline {
 			    - get: pr
 			      trigger: true
 			    - get: ci-src
-			    - get: manifest-src
 			  - task: analyze-pull-request
 			    file: ci-src/.concourse/tasks/analyze-pull-request/analyze-pull-request.yaml
 			    params:

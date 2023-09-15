@@ -69,8 +69,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.plan(List.of(
 						inParallel(List.of(
 								getWithTrigger(PULL_REQUEST),
-								get(CI_SRC_RESOURCE),
-								get("manifest-src"))),
+								get(CI_SRC_RESOURCE))),
 						Task.builder()
 								.task("analyze-pull-request")
 								.file(CI_SRC_RESOURCE
