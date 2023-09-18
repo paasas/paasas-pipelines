@@ -167,6 +167,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: analyze-pull-request
 			  plan:
 			  - in_parallel:
+			    - get: build-metadata
 			    - get: pr
 			      trigger: true
 			    - get: ci-src
@@ -208,17 +209,18 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: test-demo-webapp
 			  plan:
 			  - in_parallel:
+			    - get: build-metadata
 			    - get: ci-src
-			    - put: metadata
 			    - get: manifest-src
 			      passed:
 			      - update-cloud-run
 			      trigger: true
+			    - put: metadata
 			    - get: demo-webapp-tests-src
 			      trigger: true
 			    - get: demo-webapp-test-reports-src
 			  - task: test-demo-webapp
-			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
+			    file: ci-src/.concourse/tasks/maven-test/maven-cloud-run-test.yaml
 			    params:
 			      APP_ID: demo-webapp
 			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
@@ -230,6 +232,9 @@ public abstract class ExpectedDeploymentsPipeline {
 			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci
+			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-cloud-run-tests
 			    input_mapping:
 			      src: demo-webapp-tests-src
 			      test-reports-src: demo-webapp-test-reports-src
@@ -483,19 +488,24 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: test-firebase-app
 			  plan:
 			  - in_parallel:
+			    - get: build-metadata
 			    - get: ci-src
-			    - put: metadata
+			    - get: firebase-src
+			      passed:
+			      - deploy-firebase
 			    - get: manifest-src
 			      passed:
 			      - deploy-firebase
 			      trigger: true
+			    - put: metadata
 			    - get: firebase-app-tests-src
 			      trigger: true
 			    - get: firebase-app-test-reports-src
 			  - task: test-firebase-app
-			    file: ci-src/.concourse/tasks/maven-test/maven-test.yaml
+			    file: ci-src/.concourse/tasks/maven-test/maven-firebase-test.yaml
 			    params:
 			      APP_ID: firebase-app
+			      GITHUB_REPOSITORY: teleport-java-client/paas-moe-le-cloud
 			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
 			      GIT_USER_EMAIL: dlavoie@live.ca
 			      GIT_USER_NAME: daniellavoie
@@ -505,6 +515,9 @@ public abstract class ExpectedDeploymentsPipeline {
 			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci
+			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-tests
 			    input_mapping:
 			      src: firebase-app-tests-src
 			      test-reports-src: firebase-app-test-reports-src

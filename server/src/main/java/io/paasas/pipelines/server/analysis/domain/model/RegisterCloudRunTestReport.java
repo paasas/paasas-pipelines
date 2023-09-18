@@ -15,4 +15,5 @@ public class RegisterCloudRunTestReport {
 	String image;
 	String reportUrl;
 	String tag;
+	GitRevision testGitRevision;
 }

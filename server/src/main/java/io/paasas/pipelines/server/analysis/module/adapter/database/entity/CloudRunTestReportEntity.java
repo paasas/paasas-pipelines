@@ -22,12 +22,15 @@ public class CloudRunTestReportEntity {
 	@EmbeddedId
 	DeploymentKey key;
 
+	String image;
+	String reportUrl;	
+	String tag;
+	
+	@Embedded
+	TestGitRevisionEntity testGitRevision;
+	
 	@Embedded
 	DeploymentInfoEntity testInfo;
-
-	String image;
-	String reportUrl;
-	String tag;
 
 	public TestReport to() {
 		return TestReport.builder()
@@ -43,6 +46,7 @@ public class CloudRunTestReportEntity {
 				.key(DeploymentKey.from(request.getJobInfo()))
 				.reportUrl(request.getReportUrl())
 				.tag(request.getTag())
+				.testGitRevision(TestGitRevisionEntity.from(request.getTestGitRevision()))
 				.testInfo(DeploymentInfoEntity.from(request.getJobInfo()))
 				.build();
 	}

@@ -22,6 +22,7 @@ import io.paasas.pipelines.deployment.domain.model.app.App;
 import io.paasas.pipelines.deployment.domain.model.app.RegistryType;
 import io.paasas.pipelines.deployment.domain.model.composer.ComposerConfig;
 import io.paasas.pipelines.deployment.domain.model.composer.FlexTemplate;
+import io.paasas.pipelines.deployment.domain.model.firebase.FirebaseAppDefinition;
 import io.paasas.pipelines.platform.domain.model.TargetConfig;
 import io.paasas.pipelines.util.concourse.CommonResourceTypes;
 import io.paasas.pipelines.util.concourse.ConcoursePipeline;
@@ -68,6 +69,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.name("analyze-pull-request")
 				.plan(List.of(
 						inParallel(List.of(
+								get(BUILD_METADATA),
 								getWithTrigger(PULL_REQUEST),
 								get(CI_SRC_RESOURCE))),
 						Task.builder()
@@ -407,6 +409,65 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						&& manifest.getApps().stream().filter(app -> app.getTests() != null).findAny().isPresent());
 	}
 
+	Map<String, String> testJobCommonParams(
+			GitWatcher tests,
+			String appName,
+			DeploymentManifest deploymentManifest,
+			String deploymentManifestPath) {
+		var params = new TreeMap<>(Map.of(
+				"APP_ID", appName,
+				"GIT_PRIVATE_KEY", "((git.ssh-private-key))",
+				"GIT_USER_EMAIL", configuration.getGithubEmail(),
+				"GIT_USER_NAME", configuration.getGithubUsername(),
+				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+						"terraform@%s.iam.gserviceaccount.com",
+						deploymentManifest.getProject()),
+				"GOOGLE_PROJECT_ID", deploymentManifest.getProject(),
+				"MANIFEST_PATH", deploymentManifestPath,
+				"MVN_REPOSITORY_USERNAME", configuration.getGithubUsername(),
+				"MVN_REPOSITORY_PASSWORD", "((github.userAccessToken))",
+				"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
+						"terraform@%s.iam.gserviceaccount.com",
+						deploymentManifest.getProject())));
+
+		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
+			params.putAll(Map.of(
+					"PIPELINES_SERVER", configuration.getPipelinesServer(),
+					"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername(),
+					"TEST_GITHUB_REPOSITORY", tests.getUri()
+							.replace("git@github.com:", "")
+							.replace(".git", "")));
+		}
+
+		return params;
+	}
+
+	Job cloudRunTestJob(
+			App app,
+			String passed,
+			DeploymentManifest deploymentManifest,
+			String deploymentManifestPath) {
+		return testJob(
+				app.getName(),
+				CI_SRC_RESOURCE + "/.concourse/tasks/maven-test/maven-cloud-run-test.yaml",
+				testJobCommonParams(
+						app.getTests(),
+						app.getName(),
+						deploymentManifest,
+						deploymentManifestPath),
+				List.of(
+						get(BUILD_METADATA),
+						get(CI_SRC_RESOURCE),
+						Get.builder()
+								.get("manifest-src")
+								.passed(List.of(passed))
+								.trigger(true)
+								.build(),
+						put("metadata"),
+						getWithTrigger(app.getName() + "-tests-src"),
+						get(app.getName() + "-test-reports-src")));
+	}
+
 	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest, String deploymentManifestPath) {
 		var streamBuilder = Stream.<Resource<?>>builder()
 				.add(manifestResource(deploymentManifestPath));
@@ -501,10 +562,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build());
 
 		if (manifest.getFirebaseApp().getTests() != null) {
-			streamBuilder.add(testJob(
-					manifest.getFirebaseApp().getTests(),
+			streamBuilder.add(firebaseTestJob(
+					manifest.getFirebaseApp(),
 					"deploy-firebase",
-					"firebase-app",
 					manifest,
 					deploymentManifestPath));
 		}
@@ -787,46 +847,54 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Job testJob(
-			GitWatcher tests,
+	Job firebaseTestJob(
+			FirebaseAppDefinition firebaseApp,
 			String passed,
-			String appName,
 			DeploymentManifest deploymentManifest,
 			String deploymentManifestPath) {
+		var appName = "firebase-app";
+
+		var params = testJobCommonParams(firebaseApp.getTests(), appName, deploymentManifest, deploymentManifestPath);
+
+		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
+			params.put("GITHUB_REPOSITORY", firebaseApp.getGit().getUri()
+					.replace("git@github.com:", "")
+					.replace(".git", ""));
+		}
+
+		return testJob(
+				appName,
+				CI_SRC_RESOURCE + "/.concourse/tasks/maven-test/maven-firebase-test.yaml",
+				params,
+				List.of(
+						get(BUILD_METADATA),
+						get(CI_SRC_RESOURCE),
+						Get.builder()
+								.get("firebase-src")
+								.passed(List.of(passed))
+								.build(),
+						Get.builder()
+								.get("manifest-src")
+								.passed(List.of(passed))
+								.trigger(true)
+								.build(),
+						put("metadata"),
+						getWithTrigger(appName + "-tests-src"),
+						get(appName + "-test-reports-src")));
+	}
+
+	Job testJob(String appName, String taskFile, Map<String, String> params, List<Step> parallelSteps) {
 		return Job.builder()
 				.name("test-" + appName)
 				.plan(List.of(
-						inParallel(List.of(
-								get(CI_SRC_RESOURCE),
-								put("metadata"),
-								Get.builder()
-										.get("manifest-src")
-										.passed(List.of(passed))
-										.trigger(true)
-										.build(),
-								getWithTrigger(appName + "-tests-src"),
-								get(appName + "-test-reports-src"))),
+						inParallel(parallelSteps),
 						Task.builder()
 								.task("test-" + appName)
-								.file(CI_SRC_RESOURCE + "/.concourse/tasks/maven-test/maven-test.yaml")
+								.file(taskFile)
 								.inputMapping(new TreeMap<>(Map.of(
 										"src", appName + "-tests-src",
 										"test-reports-src", appName + "-test-reports-src")))
-								.params(new TreeMap<>(Map.of(
-										"APP_ID", appName,
-										"GIT_PRIVATE_KEY", "((git.ssh-private-key))",
-										"GIT_USER_EMAIL", configuration.getGithubEmail(),
-										"GIT_USER_NAME", configuration.getGithubUsername(),
-										"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
-												"terraform@%s.iam.gserviceaccount.com",
-												deploymentManifest.getProject()),
-										"GOOGLE_PROJECT_ID", deploymentManifest.getProject(),
-										"MANIFEST_PATH", deploymentManifestPath,
-										"MVN_REPOSITORY_USERNAME", configuration.getGithubUsername(),
-										"MVN_REPOSITORY_PASSWORD", "((github.userAccessToken))",
-										"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
-												"terraform@%s.iam.gserviceaccount.com",
-												deploymentManifest.getProject()))))
+								.params(params)
 								.build()))
 				.build();
 	}
@@ -914,10 +982,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		apps.stream()
 				.filter(app -> app.getTests() != null)
-				.map(app -> testJob(
-						app.getTests(),
+				.map(app -> cloudRunTestJob(
+						app,
 						"update-cloud-run",
-						app.getName(),
 						manifest,
 						deploymentManifestPath))
 				.forEach(jobBuilder::add);
