@@ -2,9 +2,11 @@ package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 
 import io.paasas.pipelines.server.analysis.domain.model.RegisterCloudRunTestReport;
 import io.paasas.pipelines.server.analysis.domain.model.TestReport;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Lob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +25,11 @@ public class CloudRunTestReportEntity {
 	DeploymentKey key;
 
 	String image;
+
+	@Lob
+	@Column(length = 16_777_216)
 	String reportUrl;
+	
 	String tag;
 
 	@Embedded

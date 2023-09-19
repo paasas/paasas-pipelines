@@ -218,7 +218,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 	static String testReport(TestReport testReport) {
 		return String.format(
-				"* **%s - %s - #%s** - [Job](%s) - [Report](%s)",
+				"* **%s - %s** - [Build %s](%s) - [Tests report](%s)",
 				testReport.getTimestamp(),
 				testReport.getProjectId(),
 				testReport.getBuildName(),

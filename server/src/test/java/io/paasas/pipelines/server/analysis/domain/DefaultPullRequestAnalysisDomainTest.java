@@ -40,7 +40,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 			##### Tests
 
-			* **{{TEST_TIMESTAMP_1}} - my-google-project - #1** - [Job](http://some-super-duper-test-url-1) - [Report](http://some-super-duper-test-report-url-1)
+			* **{{TEST_TIMESTAMP_1}} - my-google-project** - [Build 1](http://some-super-duper-test-url-1) - [Tests report](http://some-super-duper-test-report-url-1)
 
 			##### Past deployments
 
@@ -57,7 +57,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 			#### Tests
 
-			* **{{TEST_TIMESTAMP_2}} - my-google-project - #2** - [Job](http://some-super-duper-test-url-2) - [Report](http://some-super-duper-test-report-url-2)
+			* **{{TEST_TIMESTAMP_2}} - my-google-project** - [Build 2](http://some-super-duper-test-url-2) - [Tests report](http://some-super-duper-test-report-url-2)
 
 			#### Past deployments
 
