@@ -37,9 +37,9 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 			Image: **my-image**
 			Tag: **1.0.0**
-			
+
 			##### Tests
-			
+
 			* **{{TEST_TIMESTAMP_1}} - my-google-project - #1** - [Job](http://some-super-duper-test-url-1) - [Report](http://some-super-duper-test-report-url-1)
 
 			##### Past deployments
@@ -56,7 +56,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 			Repository: [my-test-org/my-test-repository](https://github.com/my-test-org/my-test-repository)
 
 			#### Tests
-			
+
 			* **{{TEST_TIMESTAMP_2}} - my-google-project - #2** - [Job](http://some-super-duper-test-url-2) - [Report](http://some-super-duper-test-report-url-2)
 
 			#### Past deployments
@@ -87,7 +87,6 @@ public class DefaultPullRequestAnalysisDomainTest {
 	void assertTemplate() {
 		var pullRequestReview = PullRequestAnalysis.builder()
 				.cloudRun(List.of(CloudRunAnalysis.builder()
-						.serviceName("test-app")
 						.deployments(List.of(CloudRunDeployment.builder()
 								.deploymentInfo(DeploymentInfo.builder()
 										.url("http://some-super-duper-job-url")
@@ -96,13 +95,14 @@ public class DefaultPullRequestAnalysisDomainTest {
 										.build())
 								.image("my-image")
 								.tag("1.0.0")
-								.testReports(List.of(TestReport.builder()
-										.buildName("1")
-										.buildUrl("http://some-super-duper-test-url-1")
-										.projectId("my-google-project")
-										.reportUrl("http://some-super-duper-test-report-url-1")
-										.timestamp(TEST_TIMESTAMP_1)
-										.build()))
+								.build()))
+						.serviceName("test-app")
+						.testReports(List.of(TestReport.builder()
+								.buildName("1")
+								.buildUrl("http://some-super-duper-test-url-1")
+								.projectId("my-google-project")
+								.reportUrl("http://some-super-duper-test-report-url-1")
+								.timestamp(TEST_TIMESTAMP_1)
 								.build()))
 						.build()))
 				.firebase(FirebaseAppAnalysis.builder()

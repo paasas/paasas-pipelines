@@ -20,6 +20,7 @@ import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysisJobIn
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunDeploymentRepository;
+import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunTestReportRepository;
 import io.paasas.pipelines.server.analysis.domain.port.backend.FirebaseAppDeploymentRepository;
 import io.paasas.pipelines.server.analysis.domain.port.backend.PullRequestAnalysisRepository;
 import io.paasas.pipelines.server.analysis.domain.port.backend.TerraformDeploymentRepository;
@@ -37,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysisRepository {
 	PullRequestAnalysisJpaRepository repository;
 	CloudRunDeploymentRepository cloudRunDeploymentRepository;
+	CloudRunTestReportRepository cloudRunTestReportRepository;
 	FirebaseAppDeploymentRepository firebaseAppDeploymentRepository;
 	TerraformDeploymentRepository terraformDeploymentRepository;
 
@@ -44,6 +46,7 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 		return CloudRunAnalysis.builder()
 				.deployments(cloudRunDeploymentRepository.findByImageAndTag(app.getImage(), app.getTag()))
 				.serviceName(app.getName())
+				.testReports(cloudRunTestReportRepository.findByImageAndTag(app.getImage(), app.getTag()))
 				.build();
 	}
 

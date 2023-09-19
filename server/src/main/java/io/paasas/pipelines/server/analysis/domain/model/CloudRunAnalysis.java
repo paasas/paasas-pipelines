@@ -12,4 +12,5 @@ import lombok.extern.jackson.Jacksonized;
 public class CloudRunAnalysis {
 	List<CloudRunDeployment> deployments;
 	String serviceName;
+	List<TestReport> testReports;
 }

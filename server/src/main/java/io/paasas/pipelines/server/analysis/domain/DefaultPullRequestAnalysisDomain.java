@@ -199,13 +199,11 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	}
 
 	static String cloudRunTests(CloudRunAnalysis cloudRunAnalysis) {
-		if (cloudRunAnalysis.getDeployments() == null || cloudRunAnalysis.getDeployments().isEmpty()) {
+		if (cloudRunAnalysis.getTestReports() == null || cloudRunAnalysis.getTestReports().isEmpty()) {
 			return "*No test recorded*";
 		}
 
-		return cloudRunAnalysis.getDeployments().stream()
-				.filter(cloudRunDeployment -> cloudRunDeployment.getTestReports() != null)
-				.flatMap(cloudRunDeployment -> cloudRunDeployment.getTestReports().stream())
+		return cloudRunAnalysis.getTestReports().stream()
 				.map(DefaultPullRequestAnalysisDomain::testReport)
 				.collect(Collectors.joining("\n\n"));
 	}

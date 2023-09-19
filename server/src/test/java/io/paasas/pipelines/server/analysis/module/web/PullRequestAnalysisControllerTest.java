@@ -204,7 +204,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 
 		Assertions.assertEquals(
 				1,
-				pullRequestAnalysis.getCloudRun().get(0).getDeployments().get(0).getTestReports().size());
+				pullRequestAnalysis.getCloudRun().get(0).getTestReports().size());
 
 		Assertions.assertEquals(
 				1,

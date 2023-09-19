@@ -1,13 +1,10 @@
 package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 
-import java.util.List;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.paasas.pipelines.deployment.domain.model.app.App;
 import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunDeployment;
-import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 import io.paasas.pipelines.server.analysis.module.adapter.database.DatabaseObjectMapper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -41,14 +38,13 @@ public class CloudRunDeploymentEntity {
 	String image;
 	String tag;
 
-	public CloudRunDeployment to(List<TestReport> testReports) {
+	public CloudRunDeployment to() {
 		try {
 			return CloudRunDeployment.builder()
 					.app(DatabaseObjectMapper.OBJECT_MAPPER.readValue(app, App.class))
 					.deploymentInfo(deploymentInfo.to(key))
 					.image(image)
 					.tag(tag)
-					.testReports(testReports)
 					.build();
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
