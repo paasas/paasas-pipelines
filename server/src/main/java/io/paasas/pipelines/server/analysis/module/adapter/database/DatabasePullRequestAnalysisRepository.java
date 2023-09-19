@@ -93,6 +93,7 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 						.pipeline(request.getJobInfo().getPipeline())
 						.team(request.getJobInfo().getTeam())
 						.timestamp(LocalDateTime.now())
+						.url(request.getJobInfo().getUrl())
 						.build())
 				.manifest(new String(Base64.getDecoder().decode(request.getManifestBase64().getBytes())))
 				.projectId(request.getJobInfo().getProjectId())
