@@ -64,7 +64,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		this.gcpConfiguration = gcpConfiguration;
 	}
 
-	private Job analyzePullRequestJob(String deploymentManifestPath) {
+	private Job analyzePullRequestJob(DeploymentManifest deploymentManifest, String deploymentManifestPath) {
 		return Job.builder()
 				.name("analyze-pull-request")
 				.plan(List.of(
@@ -77,6 +77,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.file(CI_SRC_RESOURCE
 										+ "/.concourse/tasks/analyze-pull-request/analyze-pull-request.yaml")
 								.params(new TreeMap<>(Map.of(
+										"GCP_PROJECT_ID", deploymentManifest.getProject(),
 										"GITHUB_REPOSITORY", configuration.getGithubRepository(),
 										"MANIFEST_PATH", deploymentManifestPath,
 										"PIPELINES_SERVER", configuration.getPipelinesServer(),
@@ -650,29 +651,29 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	private List<Job> jobs(
-			DeploymentManifest manifest,
+			DeploymentManifest deploymentManifest,
 			String target,
 			String deploymentManifestPath) {
 		var streamBuilder = Stream.<Job>builder()
-				.add(analyzePullRequestJob(deploymentManifestPath));
+				.add(analyzePullRequestJob(deploymentManifest, deploymentManifestPath));
 
-		updateCloudRunJobs(manifest, deploymentManifestPath)
+		updateCloudRunJobs(deploymentManifest, deploymentManifestPath)
 				.forEach(streamBuilder::add);
 
-		if (manifest.getTerraform() != null) {
-			manifest.getTerraform().stream()
-					.map(watcher -> terraformApplyJob(watcher, manifest, target, deploymentManifestPath))
+		if (deploymentManifest.getTerraform() != null) {
+			deploymentManifest.getTerraform().stream()
+					.map(watcher -> terraformApplyJob(watcher, deploymentManifest, target, deploymentManifestPath))
 					.forEach(streamBuilder::add);
 		}
 
-		if (manifest.getComposer() != null) {
-			manifest.getComposer().stream()
-					.flatMap(dags -> composerJobs(dags, manifest, deploymentManifestPath))
+		if (deploymentManifest.getComposer() != null) {
+			deploymentManifest.getComposer().stream()
+					.flatMap(dags -> composerJobs(dags, deploymentManifest, deploymentManifestPath))
 					.forEach(streamBuilder::add);
 		}
 
-		if (manifest.getFirebaseApp() != null) {
-			firebaseJobs(manifest, deploymentManifestPath).forEach(streamBuilder::add);
+		if (deploymentManifest.getFirebaseApp() != null) {
+			firebaseJobs(deploymentManifest, deploymentManifestPath).forEach(streamBuilder::add);
 		}
 
 		return streamBuilder.build().toList();

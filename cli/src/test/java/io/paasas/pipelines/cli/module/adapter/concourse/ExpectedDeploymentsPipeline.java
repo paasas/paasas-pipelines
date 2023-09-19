@@ -174,6 +174,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - task: analyze-pull-request
 			    file: ci-src/.concourse/tasks/analyze-pull-request/analyze-pull-request.yaml
 			    params:
+			      GCP_PROJECT_ID: control-plane-377914
 			      GITHUB_REPOSITORY: daniellavoie/deployment-as-code-demo
 			      MANIFEST_PATH: {{manifest-path}}
 			      PIPELINES_SERVER: http://localhost:8080
