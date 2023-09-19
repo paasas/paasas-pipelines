@@ -15,11 +15,13 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 import io.paasas.pipelines.server.analysis.domain.port.api.PullRequestAnalysisDomain;
 import io.paasas.pipelines.server.analysis.domain.port.backend.PullRequestAnalysisRepository;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
@@ -54,6 +56,10 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 			Image: **{{IMAGE}}**
 			Tag: **{{TAG}}**
 
+			##### Tests
+
+			{{TESTS}}
+
 			##### Past deployments
 
 			{{DEPLOYMENTS}}""";
@@ -66,6 +72,10 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 			Commit: {{COMMIT}}
 			Commit Author: [{{COMMIT_AUTHOR}}](https://github.com/{{COMMIT_AUTHOR}})
 			{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
+
+			#### Tests
+
+			{{TESTS}}
 
 			#### Past deployments
 
@@ -174,6 +184,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 						.replace("{{SERVICE_NAME}}", cloudRunAnalysis.getServiceName())
 						.replace("{{IMAGE}}", latestDeployment.getImage())
 						.replace("{{TAG}}", latestDeployment.getTag())
+						.replace("{{TESTS}}", cloudRunTests(cloudRunAnalysis))
 						.replace("{{DEPLOYMENTS}}", cloudRunDeployments(cloudRunAnalysis)));
 	}
 
@@ -187,12 +198,34 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				.collect(Collectors.joining("\n\n"));
 	}
 
+	static String cloudRunTests(CloudRunAnalysis cloudRunAnalysis) {
+		if (cloudRunAnalysis.getDeployments() == null || cloudRunAnalysis.getDeployments().isEmpty()) {
+			return "*No test recorded*";
+		}
+
+		return cloudRunAnalysis.getDeployments().stream()
+				.filter(cloudRunDeployment -> cloudRunDeployment.getTestReports() != null)
+				.flatMap(cloudRunDeployment -> cloudRunDeployment.getTestReports().stream())
+				.map(DefaultPullRequestAnalysisDomain::testReport)
+				.collect(Collectors.joining("\n\n"));
+	}
+
 	static String cloudRunDeployment(CloudRunDeployment deployment) {
 		return String.format(
 				"* [%s - %s](%s)",
 				deployment.getDeploymentInfo().getTimestamp(),
 				deployment.getDeploymentInfo().getProjectId(),
 				deployment.getDeploymentInfo().getUrl());
+	}
+
+	static String testReport(TestReport testReport) {
+		return String.format(
+				"* **%s - %s - #%s** - [Job](%s) - [Report](%s)",
+				testReport.getTimestamp(),
+				testReport.getProjectId(),
+				testReport.getBuildName(),
+				testReport.getBuildUrl(),
+				testReport.getReportUrl());
 	}
 
 	static Optional<String> firebaseApp(PullRequestAnalysis pullRequestAnalysis) {
@@ -238,6 +271,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 												.map(path -> "/" + path).orElse(""))
 
 								: "")
+				.replace("{{TESTS}}", firebaseAppTest(pullRequestAnalysis.getFirebase()))
 				.replace(
 						"{{DEPLOYMENTS}}",
 						Optional
@@ -254,6 +288,18 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				deployment.getDeploymentInfo().getTimestamp(),
 				deployment.getDeploymentInfo().getProjectId(),
 				deployment.getDeploymentInfo().getUrl());
+	}
+
+	static String firebaseAppTest(FirebaseAppAnalysis firebaseAppAnalysis) {
+		if (firebaseAppAnalysis.getDeployments() == null || firebaseAppAnalysis.getDeployments().isEmpty()) {
+			return "*No test recorded*";
+		}
+
+		return firebaseAppAnalysis.getDeployments().stream()
+				.filter(cloudRunDeployment -> cloudRunDeployment.getTestReports() != null)
+				.flatMap(cloudRunDeployment -> cloudRunDeployment.getTestReports().stream())
+				.map(DefaultPullRequestAnalysisDomain::testReport)
+				.collect(Collectors.joining("\n\n"));
 	}
 
 	static boolean isNotBlank(String value) {

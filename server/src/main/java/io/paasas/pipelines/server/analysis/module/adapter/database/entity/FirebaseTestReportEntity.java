@@ -35,9 +35,11 @@ public class FirebaseTestReportEntity {
 
 	public TestReport to() {
 		return TestReport.builder()
+				.buildName(key.getBuild())
 				.buildUrl(testInfo.getUrl())
 				.projectId(testInfo.getProjectId())
 				.reportUrl(reportUrl)
+				.timestamp(testInfo.getTimestamp())
 				.build();
 	}
 

@@ -15,11 +15,14 @@ import io.paasas.pipelines.server.analysis.domain.model.GitRevision;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 
 public class DefaultPullRequestAnalysisDomainTest {
 	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_1 = LocalDateTime.now();
 	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_2 = LocalDateTime.now().minusDays(1);
 	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_3 = LocalDateTime.now().minusDays(2);
+	private static final LocalDateTime TEST_TIMESTAMP_1 = LocalDateTime.now().minusDays(1);
+	private static final LocalDateTime TEST_TIMESTAMP_2 = LocalDateTime.now().minusDays(2);
 
 	private static final String EXPECTED_RESULT = """
 			# Pull Request Analysis
@@ -34,6 +37,10 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 			Image: **my-image**
 			Tag: **1.0.0**
+			
+			##### Tests
+			
+			* **{{TEST_TIMESTAMP_1}} - my-google-project - #1** - [Job](http://some-super-duper-test-url-1) - [Report](http://some-super-duper-test-report-url-1)
 
 			##### Past deployments
 
@@ -47,6 +54,10 @@ public class DefaultPullRequestAnalysisDomainTest {
 			Commit Author: [daniellavoie](https://github.com/daniellavoie)
 			Tag: [2.0.0](https://github.com/my-test-org/my-test-repository/tree/2.0.0)
 			Repository: [my-test-org/my-test-repository](https://github.com/my-test-org/my-test-repository)
+
+			#### Tests
+			
+			* **{{TEST_TIMESTAMP_2}} - my-google-project - #2** - [Job](http://some-super-duper-test-url-2) - [Report](http://some-super-duper-test-report-url-2)
 
 			#### Past deployments
 
@@ -68,7 +79,9 @@ public class DefaultPullRequestAnalysisDomainTest {
 			* [{{DEPLOYMENT_TIMESTAMP_3}} - my-terraform-google-project](http://another-super-terraform-job-url)"""
 			.replace("{{DEPLOYMENT_TIMESTAMP_1}}", DEPLOYMENT_TIMESTAMP_1.toString())
 			.replace("{{DEPLOYMENT_TIMESTAMP_2}}", DEPLOYMENT_TIMESTAMP_2.toString())
-			.replace("{{DEPLOYMENT_TIMESTAMP_3}}", DEPLOYMENT_TIMESTAMP_3.toString());
+			.replace("{{DEPLOYMENT_TIMESTAMP_3}}", DEPLOYMENT_TIMESTAMP_3.toString())
+			.replace("{{TEST_TIMESTAMP_1}}", TEST_TIMESTAMP_1.toString())
+			.replace("{{TEST_TIMESTAMP_2}}", TEST_TIMESTAMP_2.toString());
 
 	@Test
 	void assertTemplate() {
@@ -83,6 +96,13 @@ public class DefaultPullRequestAnalysisDomainTest {
 										.build())
 								.image("my-image")
 								.tag("1.0.0")
+								.testReports(List.of(TestReport.builder()
+										.buildName("1")
+										.buildUrl("http://some-super-duper-test-url-1")
+										.projectId("my-google-project")
+										.reportUrl("http://some-super-duper-test-report-url-1")
+										.timestamp(TEST_TIMESTAMP_1)
+										.build()))
 								.build()))
 						.build()))
 				.firebase(FirebaseAppAnalysis.builder()
@@ -98,6 +118,13 @@ public class DefaultPullRequestAnalysisDomainTest {
 										.repository("my-test-org/my-test-repository")
 										.tag("2.0.0")
 										.build())
+								.testReports(List.of(TestReport.builder()
+										.buildName("2")
+										.buildUrl("http://some-super-duper-test-url-2")
+										.projectId("my-google-project")
+										.reportUrl("http://some-super-duper-test-report-url-2")
+										.timestamp(TEST_TIMESTAMP_2)
+										.build()))
 								.build()))
 						.build())
 				.terraform(List.of(TerraformAnalysis.builder()
