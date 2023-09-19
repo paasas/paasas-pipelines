@@ -14,6 +14,7 @@ public class PullRequestAnalysis {
 	String commit;
 	String commitAuthor;
 	FirebaseAppAnalysis firebase;
+	PullRequestAnalysisJobInfo jobInfo;
 	String manifest;
 	String projectId;
 	String repository;

@@ -158,6 +158,14 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 				.bodyValue(RefreshPullRequestAnalysisRequest.builder()
 						.commit("73c4918ea6f537795701927a4940b95e479dd10e")
 						.commitAuthor("daniellavoie")
+						.jobInfo(JobInfo.builder()
+								.build("10")
+								.job("pr-analysis-job")
+								.pipeline("my-pipeline")
+								.projectId("my-test-project")
+								.team("my-team")
+								.url("https://my-build-url")
+								.build())
 						.manifestBase64(new String(Base64.getEncoder().encode("""
 								project: my-project
 								region: northamerica-northeast1

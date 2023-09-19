@@ -1,5 +1,6 @@
 package io.paasas.pipelines.server.analysis.module.adapter.database;
 
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import io.paasas.pipelines.server.analysis.domain.model.CloudRunAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.FindDeploymentRequest;
 import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
+import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysisJobInfo;
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunDeploymentRepository;
@@ -85,8 +87,15 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 				.commitAuthor(request.getCommitAuthor())
 				.cloudRun(cloudRunAnalysis(deploymentManifest))
 				.firebase(firebaseAppAnalysis(deploymentManifest).orElse(null))
+				.jobInfo(PullRequestAnalysisJobInfo.builder()
+						.build(request.getJobInfo().getBuild())
+						.job(request.getJobInfo().getJob())
+						.pipeline(request.getJobInfo().getPipeline())
+						.team(request.getJobInfo().getTeam())
+						.timestamp(LocalDateTime.now())
+						.build())
 				.manifest(new String(Base64.getDecoder().decode(request.getManifestBase64().getBytes())))
-				.projectId(request.getProject())
+				.projectId(request.getJobInfo().getProjectId())
 				.pullRequestNumber(request.getPullRequestNumber())
 				.repository(request.getRepository())
 				.terraform(terraformAnalysis(deploymentManifest))

@@ -1,5 +1,6 @@
 package io.paasas.pipelines.server.analysis.domain.model;
 
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -10,6 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 public class RefreshPullRequestAnalysisRequest {
 	String commit;
 	String commitAuthor;
+	JobInfo jobInfo;
 	String manifestBase64;
 	String repository;
 	String project;

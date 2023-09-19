@@ -7,6 +7,7 @@ import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
@@ -37,6 +38,9 @@ public class PullRequestAnalysisEntity {
 	String projectId;
 	int pullRequestNumber;
 
+	@Embedded
+	PullRequestAnalysisJobInfoEntity jobInfo;
+
 	public PullRequestAnalysis to(
 			List<CloudRunAnalysis> cloudRun,
 			FirebaseAppAnalysis firebase,
@@ -46,6 +50,7 @@ public class PullRequestAnalysisEntity {
 				.commitAuthor(commitAuthor)
 				.cloudRun(cloudRun)
 				.firebase(firebase)
+				.jobInfo(jobInfo.to())
 				.manifest(manifest)
 				.projectId(projectId)
 				.pullRequestNumber(pullRequestNumber)
@@ -61,6 +66,7 @@ public class PullRequestAnalysisEntity {
 						.number(pullRequestAnalysis.getPullRequestNumber())
 						.repository(pullRequestAnalysis.getRepository())
 						.build())
+				.jobInfo(PullRequestAnalysisJobInfoEntity.from(pullRequestAnalysis.getJobInfo()))
 				.manifest(pullRequestAnalysis.getManifest())
 				.projectId(pullRequestAnalysis.getProjectId())
 				.build();
