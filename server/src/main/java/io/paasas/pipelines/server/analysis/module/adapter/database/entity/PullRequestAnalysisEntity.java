@@ -36,7 +36,6 @@ public class PullRequestAnalysisEntity {
 	String manifest;
 
 	String projectId;
-	int pullRequestNumber;
 
 	@Embedded
 	PullRequestAnalysisJobInfoEntity jobInfo;
@@ -53,7 +52,7 @@ public class PullRequestAnalysisEntity {
 				.jobInfo(jobInfo.to())
 				.manifest(manifest)
 				.projectId(projectId)
-				.pullRequestNumber(pullRequestNumber)
+				.pullRequestNumber(key.getNumber())
 				.terraform(terraform)
 				.build();
 	}
