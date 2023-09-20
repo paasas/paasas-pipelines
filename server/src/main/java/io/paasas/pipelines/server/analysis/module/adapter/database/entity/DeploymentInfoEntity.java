@@ -6,7 +6,6 @@ import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
 import io.paasas.pipelines.server.analysis.domain.model.DeploymentInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Lob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,8 +23,7 @@ public class DeploymentInfoEntity {
 	String projectId;
 	LocalDateTime timestamp;
 
-	@Lob
-	@Column(length = 16_777_216)
+	@Column(length = 65535)
 	String url;
 
 	public DeploymentInfo to(DeploymentKey key) {

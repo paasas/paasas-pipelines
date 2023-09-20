@@ -26,8 +26,7 @@ public class PullRequestAnalysisJobInfoEntity {
 	String team;
 	LocalDateTime timestamp;
 
-	@Lob
-	@Column(length = 16_777_216)
+	@Column(length = 65535)
 	String url;
 
 	public PullRequestAnalysisJobInfo to() {

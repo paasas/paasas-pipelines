@@ -6,7 +6,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Lob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,8 +25,7 @@ public class CloudRunTestReportEntity {
 
 	String image;
 
-	@Lob
-	@Column(length = 16_777_216)
+	@Column(length = 65535)
 	String reportUrl;
 	
 	String tag;
