@@ -20,7 +20,6 @@ public class CommitStatusWebClient implements CommitStatusRepository {
 				"/repos/" + repository + "/statuses/{sha}",
 				request,
 				CommitStatus.class,
-				repository,
 				sha);
 	}
 }
