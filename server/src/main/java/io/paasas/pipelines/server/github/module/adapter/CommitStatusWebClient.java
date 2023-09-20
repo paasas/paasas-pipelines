@@ -17,7 +17,7 @@ public class CommitStatusWebClient implements CommitStatusRepository {
 	@Override
 	public CommitStatus createCommitStatus(String repository, String sha, CreateCommitStatus request) {
 		return restTemplate.postForObject(
-				"/repos/{repository}/statuses/{sha}",
+				"/repos/" + repository + "/statuses/{sha}",
 				request,
 				CommitStatus.class,
 				repository,
