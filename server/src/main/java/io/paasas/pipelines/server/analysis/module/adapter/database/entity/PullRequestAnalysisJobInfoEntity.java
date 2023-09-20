@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysisJobInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Lob;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

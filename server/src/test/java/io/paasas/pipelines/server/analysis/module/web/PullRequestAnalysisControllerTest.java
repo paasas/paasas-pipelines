@@ -168,6 +168,8 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 								.build())
 						.manifestBase64(new String(Base64.getEncoder().encode("""
 								project: my-project
+								labels:
+								- prod
 								region: northamerica-northeast1
 								apps:
 								- name: my-app

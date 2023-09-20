@@ -1,4 +1,4 @@
-package io.paasas.pipelines.server.github.module.adapter.model.pull;
+package io.paasas.pipelines.server.github.domain.model.pull;
 
 import lombok.Builder;
 import lombok.Value;

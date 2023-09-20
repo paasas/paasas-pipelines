@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
+import io.paasas.pipelines.deployment.domain.model.deployment.DeploymentLabel;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppAnalysis;
@@ -24,8 +25,11 @@ import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 import io.paasas.pipelines.server.analysis.domain.port.api.PullRequestAnalysisDomain;
 import io.paasas.pipelines.server.analysis.domain.port.backend.PullRequestAnalysisRepository;
+import io.paasas.pipelines.server.github.domain.model.commit.CommitState;
+import io.paasas.pipelines.server.github.domain.model.commit.CreateCommitStatus;
+import io.paasas.pipelines.server.github.domain.model.pull.CreatePullRequestComment;
+import io.paasas.pipelines.server.github.domain.port.backend.CommitStatusRepository;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
-import io.paasas.pipelines.server.github.module.adapter.model.pull.CreatePullRequestComment;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -101,14 +105,16 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 	private static final ObjectMapper YAML_MAPPER = new ObjectMapper(YAMLFactory.builder().build());
 
+	CommitStatusRepository commitStatusRepository;
 	PullRequestRepository pullRequestRepository;
 	PullRequestAnalysisRepository repository;
 
 	@Override
 	public PullRequestAnalysis refresh(RefreshPullRequestAnalysisRequest request) {
-		var pullRequestAnalysis = repository.refresh(readDeploymentManifest(request), request);
+		var deploymentManfiest = readDeploymentManifest(request);
+		var pullRequestAnalysis = repository.refresh(deploymentManfiest, request);
 
-		publishAnalysisToGithub(pullRequestAnalysis);
+		publishAnalysisToGithub(deploymentManfiest, pullRequestAnalysis);
 
 		return pullRequestAnalysis;
 	}
@@ -122,13 +128,75 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		}
 	}
 
-	void publishAnalysisToGithub(PullRequestAnalysis pullRequestAnalysis) {
+	void publishAnalysisToGithub(DeploymentManifest deploymentManifest, PullRequestAnalysis pullRequestAnalysis) {
 		pullRequestRepository.createPullRequestComment(
 				pullRequestAnalysis.getPullRequestNumber(),
 				pullRequestAnalysis.getRepository(),
 				CreatePullRequestComment.builder()
 						.body(generatePullRequestReviewBody(pullRequestAnalysis))
 						.build());
+
+		if (deploymentManifest.getLabels() != null && deploymentManifest.getLabels().contains(DeploymentLabel.PROD)) {
+			var undeployedArtifacts = Stream
+					.concat(
+							pullRequestAnalysis.getCloudRun().stream()
+									.filter(cloudRunAnalysis -> cloudRunAnalysis.getDeployments() == null
+											|| cloudRunAnalysis.getDeployments().isEmpty())
+									.map(CloudRunAnalysis::getServiceName),
+							Stream.concat(
+									Optional.of(pullRequestAnalysis.getFirebase())
+											.filter(firebaseAppAnalysis -> firebaseAppAnalysis.getDeployments() == null
+													|| firebaseAppAnalysis.getDeployments().isEmpty())
+											.map(firebaseAppAnlysis -> "firebase-app")
+											.stream(),
+									pullRequestAnalysis.getTerraform().stream()
+											.filter(terraformAnalysis -> terraformAnalysis.getDeployments() == null ||
+													terraformAnalysis.getDeployments().isEmpty())
+											.map(terraformAnalysis -> "terraform-"
+													+ terraformAnalysis.getPackageName())))
+					.toList();
+
+			var untestedArtifacts = Stream
+					.concat(
+							pullRequestAnalysis.getCloudRun().stream()
+									.filter(cloudRunAnalysis -> cloudRunAnalysis.getTestReports() == null
+											|| cloudRunAnalysis.getTestReports().isEmpty())
+									.map(CloudRunAnalysis::getServiceName),
+
+							Optional.of(pullRequestAnalysis.getFirebase())
+
+									// Report untested app if no deployment exists with a test report
+									.filter(firebaseAppAnalysis -> firebaseAppAnalysis.getDeployments() == null
+											|| firebaseAppAnalysis.getDeployments().stream()
+													.noneMatch(deployment -> !deployment.getTestReports().isEmpty()))
+									.map(firebaseAppAnlysis -> "firebase-app")
+									.stream())
+					.toList();
+
+			commitStatusRepository.createCommitStatus(
+					pullRequestAnalysis.getRepository(),
+					pullRequestAnalysis.getCommit(),
+					CreateCommitStatus.builder()
+							.context("compliance/deployments")
+							.description(undeployedArtifacts.isEmpty()
+									? "All artifacts have been deployed."
+									: "The following artifacts has not been deployed: "
+											+ undeployedArtifacts.stream().collect(Collectors.joining(", ")))
+							.state(undeployedArtifacts.isEmpty() ? CommitState.SUCCESS : CommitState.ERROR)
+							.build());
+
+			commitStatusRepository.createCommitStatus(
+					pullRequestAnalysis.getRepository(),
+					pullRequestAnalysis.getCommit(),
+					CreateCommitStatus.builder()
+							.context("compliance/testing")
+							.description(untestedArtifacts.isEmpty()
+									? "All artifacts have been tested."
+									: "The following artifacts has not been tested: "
+											+ untestedArtifacts.stream().collect(Collectors.joining(", ")))
+							.state(untestedArtifacts.isEmpty() ? CommitState.SUCCESS : CommitState.ERROR)
+							.build());
+		}
 	}
 
 	static String generatePullRequestReviewBody(PullRequestAnalysis pullRequestAnalysis) {

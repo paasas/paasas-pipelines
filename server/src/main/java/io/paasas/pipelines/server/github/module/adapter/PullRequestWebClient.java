@@ -6,8 +6,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 
+import io.paasas.pipelines.server.github.domain.model.pull.CreatePullRequestComment;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
-import io.paasas.pipelines.server.github.module.adapter.model.pull.CreatePullRequestComment;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;

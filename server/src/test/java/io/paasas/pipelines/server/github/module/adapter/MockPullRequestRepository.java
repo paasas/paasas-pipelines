@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.paasas.pipelines.server.github.domain.model.pull.CreatePullRequestComment;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
-import io.paasas.pipelines.server.github.module.adapter.model.pull.CreatePullRequestComment;
 
 public class MockPullRequestRepository implements PullRequestRepository {
 	public static final Map<String, String> REVIEW_BODIES = new HashMap<>();
