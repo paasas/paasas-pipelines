@@ -128,6 +128,10 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		}
 	}
 
+	private boolean isBlank(String value) {
+		return value == null || value.isBlank();
+	}
+
 	void publishAnalysisToGithub(DeploymentManifest deploymentManifest, PullRequestAnalysis pullRequestAnalysis) {
 		pullRequestRepository.createPullRequestComment(
 				pullRequestAnalysis.getPullRequestNumber(),
@@ -136,7 +140,9 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 						.body(generatePullRequestReviewBody(pullRequestAnalysis))
 						.build());
 
-		if (deploymentManifest.getLabels() != null && deploymentManifest.getLabels().contains(DeploymentLabel.PROD)) {
+		if (deploymentManifest.getLabels() != null
+				&& (deploymentManifest.getLabels().contains(DeploymentLabel.ACCP)
+						|| deploymentManifest.getLabels().contains(DeploymentLabel.PROD))) {
 			var undeployedArtifacts = Stream
 					.concat(
 							pullRequestAnalysis.getCloudRun().stream()
@@ -144,7 +150,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 											|| cloudRunAnalysis.getDeployments().isEmpty())
 									.map(CloudRunAnalysis::getServiceName),
 							Stream.concat(
-									Optional.of(pullRequestAnalysis.getFirebase())
+									Optional.ofNullable(pullRequestAnalysis.getFirebase())
 											.filter(firebaseAppAnalysis -> firebaseAppAnalysis.getDeployments() == null
 													|| firebaseAppAnalysis.getDeployments().isEmpty())
 											.map(firebaseAppAnlysis -> "firebase-app")
@@ -163,7 +169,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 											|| cloudRunAnalysis.getTestReports().isEmpty())
 									.map(CloudRunAnalysis::getServiceName),
 
-							Optional.of(pullRequestAnalysis.getFirebase())
+							Optional.ofNullable(pullRequestAnalysis.getFirebase())
 
 									// Report untested app if no deployment exists with a test report
 									.filter(firebaseAppAnalysis -> firebaseAppAnalysis.getDeployments() == null
@@ -173,6 +179,25 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 									.stream())
 					.toList();
 
+			var untaggedArtifacts = Stream
+					.concat(
+							Optional.ofNullable(deploymentManifest.getFirebaseApp())
+									.filter(firebaseApp -> isBlank(firebaseApp.getGit().getTag()))
+									.map(firebaseApp -> "firebase-app")
+									.stream(),
+							Stream.concat(
+									deploymentManifest.getTerraform().stream()
+											.filter(terraform -> isBlank(terraform.getGit().getTag()))
+											.map(terraform -> "terraform-" + terraform.getName()),
+									Optional.ofNullable(deploymentManifest.getComposer())
+											.stream()
+											.flatMap(List::stream)
+											.filter(composerConfig -> composerConfig.getDags() != null)
+											.filter(composerConfig -> isBlank(
+													composerConfig.getDags().getGit().getTag()))
+											.map(composerConfig -> composerConfig.getName() + "-dags")))
+					.toList();
+
 			commitStatusRepository.createCommitStatus(
 					pullRequestAnalysis.getRepository(),
 					pullRequestAnalysis.getCommit(),
@@ -180,7 +205,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 							.context("compliance/deployments")
 							.description(undeployedArtifacts.isEmpty()
 									? "All artifacts have been deployed."
-									: "The following artifacts has not been deployed: "
+									: "Missing deployments for: "
 											+ undeployedArtifacts.stream().collect(Collectors.joining(", ")))
 							.state(undeployedArtifacts.isEmpty() ? CommitState.SUCCESS : CommitState.ERROR)
 							.build());
@@ -192,9 +217,21 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 							.context("compliance/testing")
 							.description(untestedArtifacts.isEmpty()
 									? "All artifacts have been tested."
-									: "The following artifacts has not been tested: "
+									: "Untested artifacts: "
 											+ untestedArtifacts.stream().collect(Collectors.joining(", ")))
 							.state(untestedArtifacts.isEmpty() ? CommitState.SUCCESS : CommitState.ERROR)
+							.build());
+
+			commitStatusRepository.createCommitStatus(
+					pullRequestAnalysis.getRepository(),
+					pullRequestAnalysis.getCommit(),
+					CreateCommitStatus.builder()
+							.context("compliance/tagging")
+							.description(untaggedArtifacts.isEmpty()
+									? "All artifacts are tagged."
+									: "Untagged artifacts: "
+											+ untaggedArtifacts.stream().collect(Collectors.joining(", ")))
+							.state(untaggedArtifacts.isEmpty() ? CommitState.SUCCESS : CommitState.ERROR)
 							.build());
 		}
 	}
