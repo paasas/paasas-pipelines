@@ -154,12 +154,13 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 				"PIPELINES_CONCOURSE_DEPLOYMENTSRCURI", configuration.getDeploymentSrcUri(),
 				"PIPELINES_CONCOURSE_DEPLOYMENTTERRAFORMBACKENDPREFIX",
 				configuration.getDeploymentTerraformBackendPrefix(),
+				"PIPELINES_CONCOURSE_GITHUBDEPLOYMENTREPOSITORY", configuration.getGithubDeploymentRepository(),
 				"PIPELINES_CONCOURSE_GITHUBEMAIL", configuration.getGithubEmail(),
-				"PIPELINES_CONCOURSE_GITHUBREPOSITORY", configuration.getGithubRepository(),
-				"PIPELINES_CONCOURSE_GITHUBUSERNAME", configuration.getGithubUsername(),
-				"PIPELINES_CONCOURSE_PLATFORMPATHPREFIX", configuration.getPlatformPathPrefix())));
+				"PIPELINES_CONCOURSE_GITHUBPLATFORMREPOSITORY", configuration.getGithubPlatformRepository(),
+				"PIPELINES_CONCOURSE_GITHUBUSERNAME", configuration.getGithubUsername())));
 
 		deploymentUpdateParams.putAll(new TreeMap<>(Map.of(
+				"PIPELINES_CONCOURSE_PLATFORMPATHPREFIX", configuration.getPlatformPathPrefix(),
 				"PIPELINES_CONCOURSE_PIPELINESSERVER", configuration.getPipelinesServer(),
 				"PIPELINES_CONCOURSE_PIPELINESSERVERPASSWORD", "((pipelines-server.security-ci-password))",
 				"PIPELINES_CONCOURSE_PIPELINESSERVERUSERNAME", configuration.getPipelinesServerUsername(),
@@ -168,8 +169,9 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 				"PIPELINES_CONCOURSE_PLATFORMTERRAFORMBACKENDPREFIX", configuration.getPlatformTerraformBackendPrefix(),
 				"PIPELINES_CONCOURSE_TERRAFORMBACKENDGCSBUCKET", configuration.getTerraformBackendGcsBucket(),
 				"PIPELINES_CONCOURSE_TERRAFORMSRCBRANCH", configuration.getTerraformSrcBranch(),
-				"PIPELINES_CONCOURSE_TERRAFORMSRCURI", configuration.getTerraformSrcUri(),
-				"TARGET", targetConfig.getName())));
+				"PIPELINES_CONCOURSE_TERRAFORMSRCURI", configuration.getTerraformSrcUri())));
+
+		deploymentUpdateParams.putAll(new TreeMap<>(Map.of("TARGET", targetConfig.getName())));
 
 		if (gcpConfiguration.getImpersonateServiceAccount() != null
 				&& !gcpConfiguration.getImpersonateServiceAccount().isBlank()) {
@@ -300,7 +302,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 						.type(PULL_REQUEST_RESOURCE_TYPE)
 						.source(PullRequestSource.builder()
 								.accessToken("((github.userAccessToken))")
-								.repository(configuration.getGithubRepository())
+								.repository(configuration.getGithubPlatformRepository())
 								.paths(List.of(
 										targetConfig.getPlatformManifestPath(),
 										targetConfig.getTerraformExtensionsDirectory()))

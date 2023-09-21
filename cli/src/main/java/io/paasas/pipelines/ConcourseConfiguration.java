@@ -25,7 +25,10 @@ public class ConcourseConfiguration {
 	String githubEmail;
 	
 	@NotEmpty
-	String githubRepository;
+	String githubDeploymentRepository;
+	
+	@NotEmpty
+	String githubPlatformRepository;
 
 	
 	@NotEmpty

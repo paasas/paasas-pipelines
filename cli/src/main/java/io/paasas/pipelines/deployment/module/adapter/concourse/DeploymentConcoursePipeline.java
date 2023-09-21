@@ -78,7 +78,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										+ "/.concourse/tasks/analyze-pull-request/analyze-pull-request.yaml")
 								.params(new TreeMap<>(Map.of(
 										"GCP_PROJECT_ID", deploymentManifest.getProject(),
-										"GITHUB_REPOSITORY", configuration.getGithubRepository(),
+										"GITHUB_REPOSITORY", configuration.getGithubDeploymentRepository(),
 										"MANIFEST_PATH", deploymentManifestPath,
 										"PIPELINES_SERVER", configuration.getPipelinesServer(),
 										"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername())))
@@ -159,7 +159,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.type(CommonResourceTypes.GITHUB_PULL_REQUEST_TYPE)
 								.source(PullRequestSource.builder()
 										.accessToken("((github.userAccessToken))")
-										.repository(configuration.getGithubRepository())
+										.repository(configuration.getGithubDeploymentRepository())
 										.paths(List.of(deploymentManifestPath))
 										.build())
 								.build())
@@ -763,7 +763,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		var terraformParams = new TreeMap<>(Map.of(
 				"GCP_PROJECT_ID", manifest.getProject(),
-				"GITHUB_REPOSITORY", configuration.getGithubRepository(),
+				"GITHUB_REPOSITORY", configuration.getGithubDeploymentRepository(),
 				"MANIFEST_PATH", deploymentManifestPath,
 				"PIPELINES_SERVER", configuration.getPipelinesServer(),
 				"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername(),
