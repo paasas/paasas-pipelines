@@ -192,6 +192,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/cloudrun/cloudrun-deploy.yaml
 			    params:
 			      MANIFEST_PATH: {{manifest-path}}
+			      PIPELINES_CONCOURSE_GITHUBDEPLOYMENTREPOSITORY: daniellavoie/deployment-as-code-demo
+			      PIPELINES_CONCOURSE_GITHUBPLATFORMREPOSITORY: daniellavoie/platform-as-code-demo
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      PIPELINES_SERVER: http://localhost:8080
 			      PIPELINES_SERVER_USERNAME: ci

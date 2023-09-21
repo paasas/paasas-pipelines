@@ -14,6 +14,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.deployment.domain.model.deployment.DeploymentLabel;
+import io.paasas.pipelines.deployment.domain.model.firebase.FirebaseAppDefinition;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppAnalysis;
@@ -132,6 +133,14 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		return value == null || value.isBlank();
 	}
 
+	private boolean hasNoDeployment(FirebaseAppAnalysis firebaseAppAnalysis) {
+		return firebaseAppAnalysis.getDeployments() == null || firebaseAppAnalysis.getDeployments().isEmpty();
+	}
+
+	private boolean isTagged(FirebaseAppDefinition firebaseApp) {
+		return !isBlank(firebaseApp.getGit().getTag());
+	}
+
 	void publishAnalysisToGithub(DeploymentManifest deploymentManifest, PullRequestAnalysis pullRequestAnalysis) {
 		pullRequestRepository.createPullRequestComment(
 				pullRequestAnalysis.getPullRequestNumber(),
@@ -151,8 +160,9 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 									.map(CloudRunAnalysis::getServiceName),
 							Stream.concat(
 									Optional.ofNullable(pullRequestAnalysis.getFirebase())
-											.filter(firebaseAppAnalysis -> firebaseAppAnalysis.getDeployments() == null
-													|| firebaseAppAnalysis.getDeployments().isEmpty())
+											.filter(firebaseAppAnalysis -> isTagged(
+													deploymentManifest.getFirebaseApp()))
+											.filter(this::hasNoDeployment)
 											.map(firebaseAppAnlysis -> "firebase-app")
 											.stream(),
 									pullRequestAnalysis.getTerraform().stream()

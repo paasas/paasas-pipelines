@@ -945,9 +945,12 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		var cloudRunParams = new TreeMap<>(Map.of(
 				"MANIFEST_PATH", deploymentManifestPath,
+				"PIPELINES_CONCOURSE_GITHUBDEPLOYMENTREPOSITORY", configuration.getGithubDeploymentRepository(),
+				"PIPELINES_CONCOURSE_GITHUBPLATFORMREPOSITORY", configuration.getGithubPlatformRepository(),
 				"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
 						"terraform@%s.iam.gserviceaccount.com",
-						manifest.getProject())));
+						manifest.getProject())
+				));
 
 		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
 			cloudRunParams.putAll(Map.of(
