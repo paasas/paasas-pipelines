@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDomain {
-	private static final String NO_DEPLOYMENT_WARNING = ":warning: **This artifact was never deployed and revision could not be inferred**";
+	private static final String NO_DEPLOYMENT_WARNING = ":warning: **This artifact was never deployed**\n\n";
 
 	private static final String REVIEW_TEMPLATE = """
 			# Pull Request Analysis
@@ -50,7 +50,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 			{{IMPACTED_ARTIFACTS}}""";
 
-	private static final String REVISION_TAG_WARNING = ":warning: **This artifact is not configured with a tag**";
+	private static final String REVISION_TAG_WARNING = ":warning: **This artifact is not configured with a tag**\n\n";
 
 	private static final String CLOUD_RUN_TEMPLATE = """
 			### Cloud Run services
@@ -60,7 +60,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	private static final String CLOUD_RUN_SERVICE_TEMPLATE = """
 			#### {{SERVICE_NAME}}
 
-			##### Revision
+			{{WARNINGS}}##### Revision
 
 			Image: **{{IMAGE}}**
 			Tag: **{{TAG}}**
@@ -71,15 +71,15 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 			##### Past deployments
 
-			{{DEPLOYMENTS}}""";
+			{{DEPLOYMENTS}}
+			""";
 
 	private static final String FIREBASE_TEMPLATE = """
 			### Firebase App
 
-			#### Revision
+			{{WARNINGS}}#### Revision
 
-			Commit: {{COMMIT}}
-			{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
+			{{COMMIT}}{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
 
 			#### Tests
 
@@ -97,18 +97,20 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	private static final String TERRAFORM_ENTRY_TEMPLATE = """
 			#### {{NAME}}
 
-			##### Revision
+			{{REVISION_WARNINGS}}##### Revision
 
-			{{REVISION_WARNINGS}}{{COMMIT_DETAILS}}{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
+			{{COMMIT_DETAILS}}{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
 
 			##### Past deployments
 
 			{{DEPLOYMENTS}}
 			""";
 
-	private static final String TERRAFORM_COMMIT_DETAILS = """
+	private static final String COMMIT_DETAILS = """
 			Commit: {{COMMIT}}
 			""";
+
+	private static final String UNTESTED_ARTIFACT = ":warning: **This artifact is untested**\n\n";
 
 	private static final ObjectMapper YAML_MAPPER = new ObjectMapper(YAMLFactory.builder().build());
 
@@ -259,15 +261,17 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 						"{{IMPACTED_ARTIFACTS}}",
 						Stream
 								.of(
-										cloudRunServices(pullRequestAnalysis),
-										firebaseApp(pullRequestAnalysis),
+										cloudRunServices(deploymentManifest, pullRequestAnalysis),
+										firebaseApp(deploymentManifest, pullRequestAnalysis),
 										terraform(deploymentManifest, pullRequestAnalysis))
 								.filter(Optional::isPresent)
 								.map(Optional::get)
-								.collect(Collectors.joining("\n\n")));
+								.collect(Collectors.joining("\n")));
 	}
 
-	static Optional<String> cloudRunServices(PullRequestAnalysis pullRequestAnalysis) {
+	static Optional<String> cloudRunServices(
+			DeploymentManifest deploymentManifest,
+			PullRequestAnalysis pullRequestAnalysis) {
 		if (pullRequestAnalysis.getCloudRun() == null || pullRequestAnalysis.getCloudRun().isEmpty()) {
 			return Optional.empty();
 		}
@@ -275,59 +279,61 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		return Optional.of(CLOUD_RUN_TEMPLATE
 				.replace("{{CLOUD_RUN_SERVICES}}",
 						Optional.ofNullable(pullRequestAnalysis.getCloudRun())
-								.map(DefaultPullRequestAnalysisDomain::cloudRunServices)
+								.map(cloudRun -> cloudRunServices(deploymentManifest, cloudRun))
 								.orElse("")));
 	}
 
-	static String cloudRunServices(List<CloudRunAnalysis> cloudRun) {
+	static String cloudRunServices(DeploymentManifest deploymentManifest, List<CloudRunAnalysis> cloudRun) {
 		var cloudRunServices = cloudRun.stream()
-				.flatMap(DefaultPullRequestAnalysisDomain::cloudRunServices)
+				.flatMap(cloudRunAnalysis -> cloudRunServices(deploymentManifest, cloudRunAnalysis))
 				.collect(Collectors.joining("\n"));
 
 		return !cloudRunServices.isBlank() ? cloudRunServices : "No cloud run deployment found";
 	}
 
-	static Stream<String> cloudRunServices(CloudRunAnalysis cloudRunAnalysis) {
-		if (cloudRunAnalysis.getDeployments() == null || cloudRunAnalysis.getDeployments().isEmpty()) {
-			return Stream.empty();
-		}
+	static Stream<String> cloudRunServices(DeploymentManifest deploymentManifest, CloudRunAnalysis cloudRunAnalysis) {
+		var app = deploymentManifest.getApps().stream()
+				.filter(manifestApp -> cloudRunAnalysis.getServiceName().equals(manifestApp.getName())).findFirst()
+				.orElseThrow();
 
-		var latestDeployment = cloudRunAnalysis.getDeployments().stream()
-				.sorted((deployment1, deployment2) -> deployment1.getDeploymentInfo().getTimestamp()
-						.compareTo(deployment2.getDeploymentInfo().getTimestamp()))
-				.reduce((deployment1, deployment2) -> deployment2)
-				.orElseThrow(() -> new IllegalStateException(
-						String.format(
-								"expected at least one deployment for cloud run service %s",
-								cloudRunAnalysis.getServiceName())));
+		var warnings = Stream.<Stream<String>>of(
+				cloudRunAnalysis.getTestReports() == null || cloudRunAnalysis.getTestReports().isEmpty()
+						? Stream.of(UNTESTED_ARTIFACT)
+						: Stream.empty(),
+				cloudRunAnalysis.getDeployments() == null || cloudRunAnalysis.getDeployments().isEmpty()
+						? Stream.of(NO_DEPLOYMENT_WARNING)
+						: Stream.empty())
+				.flatMap(stream -> stream)
+				.collect(Collectors.joining());
 
 		return Stream.of(
 				CLOUD_RUN_SERVICE_TEMPLATE
+						.replace("{{WARNINGS}}", warnings)
 						.replace("{{SERVICE_NAME}}", cloudRunAnalysis.getServiceName())
-						.replace("{{IMAGE}}", latestDeployment.getImage())
-						.replace("{{TAG}}", latestDeployment.getTag())
+						.replace("{{IMAGE}}", app.getImage())
+						.replace("{{TAG}}", app.getTag())
 						.replace("{{TESTS}}", cloudRunTests(cloudRunAnalysis))
 						.replace("{{DEPLOYMENTS}}", cloudRunDeployments(cloudRunAnalysis)));
 	}
 
 	static String cloudRunDeployments(CloudRunAnalysis cloudRunAnalysis) {
 		if (cloudRunAnalysis.getDeployments() == null || cloudRunAnalysis.getDeployments().isEmpty()) {
-			return "*No deployment recorded*";
+			return "* *No deployment recorded*";
 		}
 
 		return cloudRunAnalysis.getDeployments().stream()
 				.map(DefaultPullRequestAnalysisDomain::cloudRunDeployment)
-				.collect(Collectors.joining("\n\n"));
+				.collect(Collectors.joining("\n"));
 	}
 
 	static String cloudRunTests(CloudRunAnalysis cloudRunAnalysis) {
 		if (cloudRunAnalysis.getTestReports() == null || cloudRunAnalysis.getTestReports().isEmpty()) {
-			return "*No test recorded*";
+			return "* *No test recorded*";
 		}
 
 		return cloudRunAnalysis.getTestReports().stream()
 				.map(DefaultPullRequestAnalysisDomain::testReport)
-				.collect(Collectors.joining("\n\n"));
+				.collect(Collectors.joining("\n"));
 	}
 
 	static String cloudRunDeployment(CloudRunDeployment deployment) {
@@ -348,45 +354,69 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				testReport.getReportUrl());
 	}
 
-	static Optional<String> firebaseApp(PullRequestAnalysis pullRequestAnalysis) {
-		if (pullRequestAnalysis.getFirebase() == null
-				|| pullRequestAnalysis.getFirebase().getDeployments() == null
-				|| pullRequestAnalysis.getFirebase().getDeployments().isEmpty()) {
-			return Optional.empty();
-		}
-
+	static Optional<String> firebaseApp(
+			DeploymentManifest deploymentManifest,
+			PullRequestAnalysis pullRequestAnalysis) {
 		var gitRevision = pullRequestAnalysis.getFirebase().getDeployments().stream()
 				.sorted((deployment1, deployment2) -> deployment1.getDeploymentInfo().getTimestamp()
 						.compareTo(deployment2.getDeploymentInfo().getTimestamp()))
 				.reduce((deployment1, deployment2) -> deployment2)
 				.map(FirebaseAppDeployment::getGitRevision)
-				.orElseThrow(() -> new IllegalStateException(
-						"expected at least one deployment for firebase app"));
+				.orElse(null);
 
-		var hasTag = isNotBlank(gitRevision.getTag());
-		var hasRevision = hasTag || isNotBlank(gitRevision.getBranch());
+		var hasTag = isNotBlank(deploymentManifest.getFirebaseApp().getGit().getTag());
+		var hasRevision = hasTag || isNotBlank(deploymentManifest.getFirebaseApp().getGit().getBranch());
+
+		var githubRepository = deploymentManifest.getFirebaseApp().getGit().getUri()
+				.replace("git@github.com:", "")
+				.replace(".git", "");
+
+		var commitDetails = gitRevision != null
+				? COMMIT_DETAILS
+						.replace(
+								"{{COMMIT}}",
+								String.format(
+										"[%s](https://github.com/%s/commit/%s)",
+										gitRevision.getCommit(),
+										githubRepository,
+										gitRevision.getCommit()))
+				: "";
+
+		var warnings = Stream
+				.<Stream<String>>of(
+						pullRequestAnalysis.getFirebase().getDeployments() == null
+								|| pullRequestAnalysis.getFirebase().getDeployments().isEmpty()
+								|| pullRequestAnalysis.getFirebase().getDeployments().stream()
+										.filter(deployment -> deployment.getTestReports() == null
+												|| deployment.getTestReports().isEmpty())
+										.findAny()
+										.isPresent()
+												? Stream.of(UNTESTED_ARTIFACT)
+												: Stream.empty(),
+						pullRequestAnalysis.getFirebase().getDeployments() == null
+								|| pullRequestAnalysis.getFirebase().getDeployments().isEmpty()
+										? Stream.of(NO_DEPLOYMENT_WARNING)
+										: Stream.empty(),
+						!hasTag ? Stream.of(REVISION_TAG_WARNING) : Stream.empty())
+				.flatMap(stream -> stream)
+				.collect(Collectors.joining());
 
 		return Optional.of(FIREBASE_TEMPLATE
-				.replace(
-						"{{COMMIT}}",
-						String.format(
-								"[%s](https://github.com/%s/commit/%s)",
-								gitRevision.getCommit(),
-								gitRevision.getRepository(),
-								gitRevision.getCommit()))
-				.replace("{{REPOSITORY}}", gitRevision.getRepository())
+				.replace("{{WARNINGS}}", warnings)
+				.replace("{{COMMIT}}", commitDetails)
+				.replace("{{REPOSITORY}}", githubRepository)
 				.replace(
 						"{{REVISION}}",
 						hasRevision
 								? String.format(
 										"%s: [%s](https://github.com/%s/tree/%s%s)\n",
 										hasTag ? "Tag" : "Branch",
-										hasTag ? gitRevision.getTag()
-												: gitRevision.getBranch(),
-										gitRevision.getRepository(),
-										hasTag ? gitRevision.getTag()
-												: gitRevision.getBranch(),
-										Optional.ofNullable(gitRevision.getPath())
+										hasTag ? deploymentManifest.getFirebaseApp().getGit().getTag()
+												: deploymentManifest.getFirebaseApp().getGit().getBranch(),
+										githubRepository,
+										hasTag ? deploymentManifest.getFirebaseApp().getGit().getTag()
+												: deploymentManifest.getFirebaseApp().getGit().getBranch(),
+										Optional.ofNullable(deploymentManifest.getFirebaseApp().getGit().getPath())
 												.map(path -> "/" + path).orElse(""))
 
 								: "")
@@ -395,10 +425,12 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 						"{{DEPLOYMENTS}}",
 						Optional
 								.ofNullable(pullRequestAnalysis.getFirebase().getDeployments())
+								.filter(deployments -> !deployments.isEmpty())
 								.map(deployments -> deployments.stream()
 										.map(DefaultPullRequestAnalysisDomain::firebaseAppDeployment)
 										.collect(Collectors.joining("\n")))
-								.orElse("*No deployment recorded*")));
+								.orElse("* *No deployment recorded*")))
+				.map(firebase -> firebase + "\n");
 	}
 
 	static String firebaseAppDeployment(FirebaseAppDeployment deployment) {
@@ -411,7 +443,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 	static String firebaseAppTest(FirebaseAppAnalysis firebaseAppAnalysis) {
 		if (firebaseAppAnalysis.getDeployments() == null || firebaseAppAnalysis.getDeployments().isEmpty()) {
-			return "*No test recorded*";
+			return "* *No test recorded*";
 		}
 
 		return firebaseAppAnalysis.getDeployments().stream()
@@ -464,7 +496,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		var hasRevision = hasTag || isNotBlank(terraformWatcher.getGit().getBranch());
 
 		var commitDetails = gitRevision != null
-				? TERRAFORM_COMMIT_DETAILS
+				? COMMIT_DETAILS
 						.replace(
 								"{{COMMIT}}",
 								String.format(
@@ -482,13 +514,13 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 						terraformAnalysis.getDeployments().isEmpty() ? Stream.of(NO_DEPLOYMENT_WARNING)
 								: Stream.empty())
 				.flatMap(stream -> stream)
-				.collect(Collectors.joining("\n\n"));
+				.collect(Collectors.joining());
 
 		var githubRepository = terraformWatcher.getGit().getUri().replace("git@github.com:", "").replace(".git", "");
 
 		return Stream.of(
 				TERRAFORM_ENTRY_TEMPLATE
-						.replace("{{REVISION_WARNINGS}}", !revisionWarnings.isBlank() ? revisionWarnings + "\n\n" : "")
+						.replace("{{REVISION_WARNINGS}}", !revisionWarnings.isBlank() ? revisionWarnings : "")
 						.replace("{{COMMIT_DETAILS}}", commitDetails)
 						.replace("{{NAME}}", terraformAnalysis.getPackageName())
 						.replace("{{REPOSITORY}}", githubRepository)

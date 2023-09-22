@@ -527,9 +527,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				"FIREBASE_CONFIG", blankIfNull(firebaseApp.getConfig()),
 				"MANIFEST_PATH", deploymentManifestPath));
 
-		if (firebaseApp.getGithubRepository() != null && !firebaseApp.getGithubRepository().isBlank()) {
+		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
 			deployParamms.putAll(Map.of(
-					"GITHUB_REPOSITORY", firebaseApp.getGithubRepository(),
+					"GITHUB_REPOSITORY", firebaseApp.getGit().getUri()
+							.replace("git@github.com:", "")
+							.replace(".git", ""),
 					"PIPELINES_SERVER", configuration.getPipelinesServer(),
 					"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername()));
 		}
