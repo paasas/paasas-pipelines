@@ -775,12 +775,13 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						"terraform@%s.iam.gserviceaccount.com",
 						manifest.getProject())));
 
-		if (watcher.getGithubRepository() != null && !watcher.getGithubRepository().isBlank() &&
-				configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank() &&
+		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank() &&
 				configuration.getPipelinesServerUsername() != null
 				&& !configuration.getPipelinesServerUsername().isBlank()) {
 			terraformParams.putAll(Map.of(
-					"GITHUB_REPOSITORY", watcher.getGithubRepository(),
+					"GITHUB_REPOSITORY", watcher.getGit().getUri()
+							.replace("git@github.com:", "")
+							.replace(".git", ""),
 					"PIPELINES_SERVER", configuration.getPipelinesServer(),
 					"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername()));
 		}
@@ -949,8 +950,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				"PIPELINES_CONCOURSE_GITHUBPLATFORMREPOSITORY", configuration.getGithubPlatformRepository(),
 				"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
 						"terraform@%s.iam.gserviceaccount.com",
-						manifest.getProject())
-				));
+						manifest.getProject())));
 
 		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
 			cloudRunParams.putAll(Map.of(

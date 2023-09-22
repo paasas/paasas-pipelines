@@ -191,6 +191,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 								    uri: git@github.com:paasas/terraform-repository.git
 								    tag: 1.1.0
 								    path: terraform-path
+								  githubRepository: 
 								  vars:
 								    my-var: my-value""".getBytes())))
 						.project("my-tf-package")

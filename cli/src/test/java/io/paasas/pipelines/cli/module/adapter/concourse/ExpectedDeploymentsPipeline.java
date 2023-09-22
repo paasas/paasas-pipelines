@@ -254,7 +254,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml
 			    params:
 			      GCP_PROJECT_ID: control-plane-377914
-			      GITHUB_REPOSITORY: daniellavoie/deployment-as-code-demo
+			      GITHUB_REPOSITORY: teleport-java-client/paas-moe-le-cloud
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      MANIFEST_PATH: {{manifest-path}}
 			      PIPELINES_SERVER: http://localhost:8080

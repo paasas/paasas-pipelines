@@ -41,12 +41,16 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDomain {
+	private static final String NO_DEPLOYMENT_WARNING = ":warning: **This artifact was never deployed and revision could not be inferred**";
+
 	private static final String REVIEW_TEMPLATE = """
 			# Pull Request Analysis
 
 			## Artifacts
 
 			{{IMPACTED_ARTIFACTS}}""";
+
+	private static final String REVISION_TAG_WARNING = ":warning: **This artifact is not configured with a tag**";
 
 	private static final String CLOUD_RUN_TEMPLATE = """
 			### Cloud Run services
@@ -75,7 +79,6 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 			#### Revision
 
 			Commit: {{COMMIT}}
-			Commit Author: [{{COMMIT_AUTHOR}}](https://github.com/{{COMMIT_AUTHOR}})
 			{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
 
 			#### Tests
@@ -96,13 +99,16 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 			##### Revision
 
-			Commit: {{COMMIT}}
-			Commit Author: [{{COMMIT_AUTHOR}}](https://github.com/{{COMMIT_AUTHOR}})
-			{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
+			{{REVISION_WARNINGS}}{{COMMIT_DETAILS}}{{REVISION}}Repository: [{{REPOSITORY}}](https://github.com/{{REPOSITORY}})
 
 			##### Past deployments
 
-			{{DEPLOYMENTS}}""";
+			{{DEPLOYMENTS}}
+			""";
+
+	private static final String TERRAFORM_COMMIT_DETAILS = """
+			Commit: {{COMMIT}}
+			""";
 
 	private static final ObjectMapper YAML_MAPPER = new ObjectMapper(YAMLFactory.builder().build());
 
@@ -146,66 +152,65 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				pullRequestAnalysis.getPullRequestNumber(),
 				pullRequestAnalysis.getRepository(),
 				CreatePullRequestComment.builder()
-						.body(generatePullRequestReviewBody(pullRequestAnalysis))
+						.body(generatePullRequestReviewBody(deploymentManifest, pullRequestAnalysis))
 						.build());
 
 		if (deploymentManifest.getLabels() != null
 				&& (deploymentManifest.getLabels().contains(DeploymentLabel.ACCP)
 						|| deploymentManifest.getLabels().contains(DeploymentLabel.PROD))) {
-			var undeployedArtifacts = Stream
-					.concat(
-							pullRequestAnalysis.getCloudRun().stream()
-									.filter(cloudRunAnalysis -> cloudRunAnalysis.getDeployments() == null
-											|| cloudRunAnalysis.getDeployments().isEmpty())
-									.map(CloudRunAnalysis::getServiceName),
-							Stream.concat(
-									Optional.ofNullable(pullRequestAnalysis.getFirebase())
-											.filter(firebaseAppAnalysis -> isTagged(
-													deploymentManifest.getFirebaseApp()))
-											.filter(this::hasNoDeployment)
-											.map(firebaseAppAnlysis -> "firebase-app")
-											.stream(),
-									pullRequestAnalysis.getTerraform().stream()
-											.filter(terraformAnalysis -> terraformAnalysis.getDeployments() == null ||
-													terraformAnalysis.getDeployments().isEmpty())
-											.map(terraformAnalysis -> "terraform-"
-													+ terraformAnalysis.getPackageName())))
+
+			var undeployedArtifacts = Stream.of(
+					pullRequestAnalysis.getCloudRun().stream()
+							.filter(cloudRunAnalysis -> cloudRunAnalysis.getDeployments() == null
+									|| cloudRunAnalysis.getDeployments().isEmpty())
+							.map(CloudRunAnalysis::getServiceName),
+					Optional.ofNullable(pullRequestAnalysis.getFirebase())
+							.filter(firebaseAppAnalysis -> isTagged(
+									deploymentManifest.getFirebaseApp()))
+							.filter(this::hasNoDeployment)
+							.map(firebaseAppAnlysis -> "firebase-app")
+							.stream(),
+					pullRequestAnalysis.getTerraform().stream()
+							.filter(terraformAnalysis -> terraformAnalysis.getDeployments() == null ||
+									terraformAnalysis.getDeployments().isEmpty())
+							.map(terraformAnalysis -> "terraform-"
+									+ terraformAnalysis.getPackageName()))
+					.flatMap(stream -> stream)
 					.toList();
 
-			var untestedArtifacts = Stream
-					.concat(
-							pullRequestAnalysis.getCloudRun().stream()
-									.filter(cloudRunAnalysis -> cloudRunAnalysis.getTestReports() == null
-											|| cloudRunAnalysis.getTestReports().isEmpty())
-									.map(CloudRunAnalysis::getServiceName),
+			var untestedArtifacts = Stream.of(
+					pullRequestAnalysis.getCloudRun().stream()
+							.filter(cloudRunAnalysis -> cloudRunAnalysis.getTestReports() == null
+									|| cloudRunAnalysis.getTestReports().isEmpty())
+							.map(CloudRunAnalysis::getServiceName),
 
-							Optional.ofNullable(pullRequestAnalysis.getFirebase())
+					Optional.ofNullable(pullRequestAnalysis.getFirebase())
 
-									// Report untested app if no deployment exists with a test report
-									.filter(firebaseAppAnalysis -> firebaseAppAnalysis.getDeployments() == null
-											|| firebaseAppAnalysis.getDeployments().stream()
-													.noneMatch(deployment -> !deployment.getTestReports().isEmpty()))
-									.map(firebaseAppAnlysis -> "firebase-app")
-									.stream())
+							// Report untested app if no deployment exists with a test report
+							.filter(firebaseAppAnalysis -> firebaseAppAnalysis.getDeployments() == null
+									|| firebaseAppAnalysis.getDeployments().stream()
+											.noneMatch(deployment -> !deployment.getTestReports().isEmpty()))
+							.map(firebaseAppAnlysis -> "firebase-app")
+							.stream())
+					.flatMap(stream -> stream)
 					.toList();
 
-			var untaggedArtifacts = Stream
-					.concat(
-							Optional.ofNullable(deploymentManifest.getFirebaseApp())
-									.filter(firebaseApp -> isBlank(firebaseApp.getGit().getTag()))
-									.map(firebaseApp -> "firebase-app")
-									.stream(),
-							Stream.concat(
-									deploymentManifest.getTerraform().stream()
-											.filter(terraform -> isBlank(terraform.getGit().getTag()))
-											.map(terraform -> "terraform-" + terraform.getName()),
-									Optional.ofNullable(deploymentManifest.getComposer())
-											.stream()
-											.flatMap(List::stream)
-											.filter(composerConfig -> composerConfig.getDags() != null)
-											.filter(composerConfig -> isBlank(
-													composerConfig.getDags().getGit().getTag()))
-											.map(composerConfig -> composerConfig.getName() + "-dags")))
+			var untaggedArtifacts = Stream.of(
+					Optional.ofNullable(deploymentManifest.getFirebaseApp())
+							.filter(firebaseApp -> isBlank(firebaseApp.getGit().getTag()))
+							.map(firebaseApp -> "firebase-app")
+							.stream(),
+					deploymentManifest.getTerraform().stream()
+							.filter(terraform -> isBlank(terraform.getGit().getTag()))
+							.map(terraform -> "terraform-" + terraform.getName()),
+					Optional.ofNullable(deploymentManifest.getComposer())
+							.stream()
+							.flatMap(List::stream)
+							.filter(composerConfig -> composerConfig.getDags() != null)
+							.filter(composerConfig -> isBlank(
+									composerConfig.getDags().getGit().getTag()))
+							.map(composerConfig -> composerConfig.getName() + "-dags"))
+					.flatMap(stream -> stream)
 					.toList();
 
 			commitStatusRepository.createCommitStatus(
@@ -246,7 +251,9 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		}
 	}
 
-	static String generatePullRequestReviewBody(PullRequestAnalysis pullRequestAnalysis) {
+	static String generatePullRequestReviewBody(
+			DeploymentManifest deploymentManifest,
+			PullRequestAnalysis pullRequestAnalysis) {
 		return REVIEW_TEMPLATE
 				.replace(
 						"{{IMPACTED_ARTIFACTS}}",
@@ -254,7 +261,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 								.of(
 										cloudRunServices(pullRequestAnalysis),
 										firebaseApp(pullRequestAnalysis),
-										terraform(pullRequestAnalysis))
+										terraform(deploymentManifest, pullRequestAnalysis))
 								.filter(Optional::isPresent)
 								.map(Optional::get)
 								.collect(Collectors.joining("\n\n")));
@@ -367,7 +374,6 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 								gitRevision.getCommit(),
 								gitRevision.getRepository(),
 								gitRevision.getCommit()))
-				.replace("{{COMMIT_AUTHOR}}", gitRevision.getCommitAuthor())
 				.replace("{{REPOSITORY}}", gitRevision.getRepository())
 				.replace(
 						"{{REVISION}}",
@@ -419,7 +425,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		return value != null && !value.isBlank();
 	}
 
-	static Optional<String> terraform(PullRequestAnalysis pullRequestAnalysis) {
+	static Optional<String> terraform(DeploymentManifest deploymentManifest, PullRequestAnalysis pullRequestAnalysis) {
 		if (pullRequestAnalysis.getTerraform() == null || pullRequestAnalysis.getTerraform().isEmpty()) {
 			return Optional.empty();
 		}
@@ -427,60 +433,79 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 		return Optional.of(TERRAFORM_TEMPLATE
 				.replace("{{TERRAFORM_PACKAGES}}",
 						Optional.ofNullable(pullRequestAnalysis.getTerraform())
-								.map(DefaultPullRequestAnalysisDomain::terraform)
+								.map(terraform -> DefaultPullRequestAnalysisDomain.terraform(
+										deploymentManifest,
+										terraform))
 								.orElse("")));
 	}
 
-	static String terraform(List<TerraformAnalysis> terraform) {
+	static String terraform(DeploymentManifest deploymentManifest, List<TerraformAnalysis> terraform) {
 		return terraform.stream()
-				.flatMap(DefaultPullRequestAnalysisDomain::terraform)
+				.flatMap(terraformAnalysis -> DefaultPullRequestAnalysisDomain.terraform(deploymentManifest,
+						terraformAnalysis))
 				.collect(Collectors.joining("\n"));
 	}
 
-	static Stream<String> terraform(TerraformAnalysis terraformAnalysis) {
+	static Stream<String> terraform(DeploymentManifest deploymentManifest, TerraformAnalysis terraformAnalysis) {
 		log.info("Computing latest git revision from {}", terraformAnalysis.getDeployments());
 
-		if (terraformAnalysis.getDeployments() == null || terraformAnalysis.getDeployments().isEmpty()) {
-			return Stream.empty();
-		}
+		var terraformWatcher = deploymentManifest.getTerraform().stream()
+				.filter(watcher -> watcher.getName().equals(terraformAnalysis.getPackageName()))
+				.findFirst().orElseThrow();
 
 		var gitRevision = terraformAnalysis.getDeployments().stream()
 				.sorted((deployment1, deployment2) -> deployment1.getDeploymentInfo().getTimestamp()
 						.compareTo(deployment2.getDeploymentInfo().getTimestamp()))
 				.reduce((deployment1, deployment2) -> deployment2)
 				.map(TerraformDeployment::getGitRevision)
-				.orElseThrow(() -> new IllegalStateException(
-						String.format(
-								"expected at least one deployment for terraform package %s",
-								terraformAnalysis.getPackageName())));
+				.orElse(null);
 
-		var hasTag = isNotBlank(gitRevision.getTag());
-		var hasRevision = hasTag || isNotBlank(gitRevision.getBranch());
+		var hasTag = isNotBlank(terraformWatcher.getGit().getTag());
+		var hasRevision = hasTag || isNotBlank(terraformWatcher.getGit().getBranch());
 
-		return Stream.of(
-				TERRAFORM_ENTRY_TEMPLATE
+		var commitDetails = gitRevision != null
+				? TERRAFORM_COMMIT_DETAILS
 						.replace(
 								"{{COMMIT}}",
 								String.format(
 										"[%s](https://github.com/%s/commit/%s)",
 										gitRevision.getCommit(),
-										gitRevision.getRepository(),
+										terraformWatcher.getGit().getUri()
+												.replace("git@github.com:", "")
+												.replace(".git", ""),
 										gitRevision.getCommit()))
-						.replace("{{COMMIT_AUTHOR}}", gitRevision.getCommitAuthor())
+				: "";
+
+		var revisionWarnings = Stream
+				.<Stream<String>>of(
+						!hasTag ? Stream.of(REVISION_TAG_WARNING) : Stream.empty(),
+						terraformAnalysis.getDeployments().isEmpty() ? Stream.of(NO_DEPLOYMENT_WARNING)
+								: Stream.empty())
+				.flatMap(stream -> stream)
+				.collect(Collectors.joining("\n\n"));
+
+		var githubRepository = terraformWatcher.getGit().getUri().replace("git@github.com:", "").replace(".git", "");
+
+		return Stream.of(
+				TERRAFORM_ENTRY_TEMPLATE
+						.replace("{{REVISION_WARNINGS}}", !revisionWarnings.isBlank() ? revisionWarnings + "\n\n" : "")
+						.replace("{{COMMIT_DETAILS}}", commitDetails)
 						.replace("{{NAME}}", terraformAnalysis.getPackageName())
-						.replace("{{REPOSITORY}}", gitRevision.getRepository())
+						.replace("{{REPOSITORY}}", githubRepository)
 						.replace(
 								"{{REVISION}}",
 								hasRevision
 										? String.format(
 												"%s: [%s](https://github.com/%s/tree/%s%s)\n",
 												hasTag ? "Tag" : "Branch",
-												hasTag ? gitRevision.getTag()
-														: gitRevision.getBranch(),
-												gitRevision.getRepository(),
-												hasTag ? gitRevision.getTag()
-														: gitRevision.getBranch(),
-												Optional.ofNullable(gitRevision.getPath())
+												hasTag
+														? terraformWatcher.getGit().getTag()
+														: terraformWatcher.getGit().getBranch(),
+												githubRepository,
+												hasTag
+														? terraformWatcher.getGit().getTag()
+														: terraformWatcher.getGit().getBranch(),
+												Optional.ofNullable(terraformWatcher.getGit().getPath())
 														.map(path -> "/" + path).orElse(""))
 
 										: "")
@@ -488,10 +513,11 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 								"{{DEPLOYMENTS}}",
 								Optional
 										.ofNullable(terraformAnalysis.getDeployments())
+										.filter(deployments -> !deployments.isEmpty())
 										.map(deployments -> deployments.stream()
 												.map(DefaultPullRequestAnalysisDomain::terraformDeployment)
 												.collect(Collectors.joining("\n")))
-										.orElse("*No deployment recorded*")));
+										.orElse("* *No deployment recorded*")));
 	}
 
 	static String terraformDeployments(TerraformAnalysis terraformAnalysis) {
