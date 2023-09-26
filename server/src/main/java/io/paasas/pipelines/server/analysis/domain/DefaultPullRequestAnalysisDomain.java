@@ -1,6 +1,7 @@
 package io.paasas.pipelines.server.analysis.domain;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDomain {
+	private static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
 	private static final String NO_DEPLOYMENT_WARNING = ":warning: **This artifact was never deployed**\n\n";
 
 	private static final String REVIEW_TEMPLATE = """
@@ -339,15 +342,16 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	static String cloudRunDeployment(CloudRunDeployment deployment) {
 		return String.format(
 				"* [%s - %s](%s)",
-				deployment.getDeploymentInfo().getTimestamp(),
+				deployment.getDeploymentInfo().getTimestamp().format(DATETIME_FORMAT),
 				deployment.getDeploymentInfo().getProjectId(),
 				deployment.getDeploymentInfo().getUrl());
 	}
 
 	static String testReport(TestReport testReport) {
 		return String.format(
-				"* **%s - %s** - [Build %s](%s) - [Tests report](%s)",
-				testReport.getTimestamp(),
+				"* %s **%s - %s** - [Build %s](%s) - [Tests report](%s)",
+				testReport.isSuccessful() ? ":green_circle:" : ":red_circle:",
+				testReport.getTimestamp().format(DATETIME_FORMAT),
 				testReport.getProjectId(),
 				testReport.getBuildName(),
 				testReport.getBuildUrl(),
@@ -436,7 +440,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	static String firebaseAppDeployment(FirebaseAppDeployment deployment) {
 		return String.format(
 				"* [%s - %s](%s)",
-				deployment.getDeploymentInfo().getTimestamp(),
+				deployment.getDeploymentInfo().getTimestamp().format(DATETIME_FORMAT),
 				deployment.getDeploymentInfo().getProjectId(),
 				deployment.getDeploymentInfo().getUrl());
 	}
@@ -565,7 +569,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	static String terraformDeployment(TerraformDeployment deployment) {
 		return String.format(
 				"* [%s - %s](%s)",
-				deployment.getDeploymentInfo().getTimestamp(),
+				deployment.getDeploymentInfo().getTimestamp().format(DATETIME_FORMAT),
 				deployment.getDeploymentInfo().getProjectId(),
 				deployment.getDeploymentInfo().getUrl());
 	}

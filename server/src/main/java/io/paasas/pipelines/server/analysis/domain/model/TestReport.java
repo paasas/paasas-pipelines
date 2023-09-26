@@ -15,4 +15,5 @@ public class TestReport {
 	String buildUrl;
 	String reportUrl;
 	LocalDateTime timestamp;
+	boolean successful;
 }

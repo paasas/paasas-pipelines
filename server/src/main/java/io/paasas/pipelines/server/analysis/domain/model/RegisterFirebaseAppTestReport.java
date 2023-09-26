@@ -12,5 +12,6 @@ public class RegisterFirebaseAppTestReport {
 	JobInfo jobInfo;
 	GitRevision gitRevision;
 	String reportUrl;
+	boolean successful;
 	GitRevision testGitRevision;
 }

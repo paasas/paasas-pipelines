@@ -14,6 +14,7 @@ public class RegisterCloudRunTestReport {
 	JobInfo jobInfo;
 	String image;
 	String reportUrl;
+	boolean successful;
 	String tag;
 	GitRevision testGitRevision;
 }

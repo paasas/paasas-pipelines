@@ -27,7 +27,9 @@ public class CloudRunTestReportEntity {
 
 	@Column(length = 65535)
 	String reportUrl;
-	
+
+	boolean successful;
+
 	String tag;
 
 	@Embedded
@@ -42,6 +44,7 @@ public class CloudRunTestReportEntity {
 				.buildUrl(testInfo.getUrl())
 				.projectId(testInfo.getProjectId())
 				.reportUrl(reportUrl)
+				.successful(successful)
 				.timestamp(testInfo.getTimestamp())
 				.build();
 	}
@@ -51,6 +54,7 @@ public class CloudRunTestReportEntity {
 				.image(request.getImage())
 				.key(DeploymentKey.from(request.getJobInfo()))
 				.reportUrl(request.getReportUrl())
+				.successful(request.isSuccessful())
 				.tag(request.getTag())
 				.testGitRevision(TestGitRevisionEntity.from(request.getTestGitRevision()))
 				.testInfo(DeploymentInfoEntity.from(request.getJobInfo()))

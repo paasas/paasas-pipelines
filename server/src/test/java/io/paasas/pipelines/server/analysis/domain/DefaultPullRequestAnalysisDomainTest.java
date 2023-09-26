@@ -23,11 +23,12 @@ import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 
 public class DefaultPullRequestAnalysisDomainTest {
-	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_1 = LocalDateTime.now();
-	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_2 = LocalDateTime.now().minusDays(1);
-	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_3 = LocalDateTime.now().minusDays(2);
-	private static final LocalDateTime TEST_TIMESTAMP_1 = LocalDateTime.now().minusDays(1);
-	private static final LocalDateTime TEST_TIMESTAMP_2 = LocalDateTime.now().minusDays(2);
+	
+	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_1 = LocalDateTime.of(2023, 9, 24, 13, 42);
+	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_2 = LocalDateTime.of(2023, 9, 24, 13, 43);
+	private static final LocalDateTime DEPLOYMENT_TIMESTAMP_3 = LocalDateTime.of(2023, 9, 24, 13, 44);
+	private static final LocalDateTime TEST_TIMESTAMP_1 = LocalDateTime.of(2023, 9, 24, 13, 40);
+	private static final LocalDateTime TEST_TIMESTAMP_2 = LocalDateTime.of(2023, 9, 24, 13, 41);
 
 	@Test
 	void assertStandardTemplate() {
@@ -47,13 +48,13 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 				##### Tests
 
-				* **{{TEST_TIMESTAMP_1}} - my-google-project** - [Build 1](http://some-super-duper-test-url-1) - [Tests report](http://some-super-duper-test-report-url-1)
-				* **{{TEST_TIMESTAMP_2}} - my-google-project** - [Build 2](http://some-super-duper-test-url-2) - [Tests report](http://some-super-duper-test-report-url-2)
+				* :green_circle: **2023-09-24 13:40 - my-google-project** - [Build 1](http://some-super-duper-test-url-1) - [Tests report](http://some-super-duper-test-report-url-1)
+				* :red_circle: **2023-09-24 13:41 - my-google-project** - [Build 2](http://some-super-duper-test-url-2) - [Tests report](http://some-super-duper-test-report-url-2)
 
 				##### Past deployments
 
-				* [{{DEPLOYMENT_TIMESTAMP_1}} - my-google-project](http://some-super-duper-job-url)
-				* [{{DEPLOYMENT_TIMESTAMP_2}} - my-google-project](http://some-super-duper-job-url)
+				* [2023-09-24 13:42 - my-google-project](http://some-super-duper-job-url)
+				* [2023-09-24 13:43 - my-google-project](http://some-super-duper-job-url)
 
 				#### untested-app
 
@@ -70,7 +71,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 				##### Past deployments
 
-				* [{{DEPLOYMENT_TIMESTAMP_1}} - my-google-project](http://some-super-duper-job-url)
+				* [2023-09-24 13:42 - my-google-project](http://some-super-duper-job-url)
 
 				#### not-deployed-app
 
@@ -101,11 +102,11 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 				#### Tests
 
-				* **{{TEST_TIMESTAMP_2}} - my-google-project** - [Build 2](http://some-super-duper-test-url-2) - [Tests report](http://some-super-duper-test-report-url-2)
+				* :green_circle: **2023-09-24 13:41 - my-google-project** - [Build 2](http://some-super-duper-test-url-2) - [Tests report](http://some-super-duper-test-report-url-2)
 
 				#### Past deployments
 
-				* [{{DEPLOYMENT_TIMESTAMP_2}} - my-other-google-project](http://another-super-duper-job-url)
+				* [2023-09-24 13:43 - my-other-google-project](http://another-super-duper-job-url)
 
 				### Terraform packages
 
@@ -119,7 +120,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 				##### Past deployments
 
-				* [{{DEPLOYMENT_TIMESTAMP_3}} - my-terraform-google-project](http://another-super-terraform-job-url)
+				* [2023-09-24 13:44 - my-terraform-google-project](http://another-super-terraform-job-url)
 
 				#### terraform-2
 
@@ -133,7 +134,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 				##### Past deployments
 
-				* [{{DEPLOYMENT_TIMESTAMP_3}} - my-terraform-google-project](http://another-super-terraform-job-url)
+				* [2023-09-24 13:44 - my-terraform-google-project](http://another-super-terraform-job-url)
 
 				#### terraform-3
 
@@ -149,12 +150,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 				##### Past deployments
 
 				* *No deployment recorded*
-				"""
-				.replace("{{DEPLOYMENT_TIMESTAMP_1}}", DEPLOYMENT_TIMESTAMP_1.toString())
-				.replace("{{DEPLOYMENT_TIMESTAMP_2}}", DEPLOYMENT_TIMESTAMP_2.toString())
-				.replace("{{DEPLOYMENT_TIMESTAMP_3}}", DEPLOYMENT_TIMESTAMP_3.toString())
-				.replace("{{TEST_TIMESTAMP_1}}", TEST_TIMESTAMP_1.toString())
-				.replace("{{TEST_TIMESTAMP_2}}", TEST_TIMESTAMP_2.toString());
+				""";
 
 		var pullRequestReview = PullRequestAnalysis.builder()
 				.cloudRun(List.of(
@@ -185,6 +181,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 												.buildUrl("http://some-super-duper-test-url-1")
 												.projectId("my-google-project")
 												.reportUrl("http://some-super-duper-test-report-url-1")
+												.successful(true)
 												.timestamp(TEST_TIMESTAMP_1)
 												.build(),
 										TestReport.builder()
@@ -231,6 +228,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 										.buildUrl("http://some-super-duper-test-url-2")
 										.projectId("my-google-project")
 										.reportUrl("http://some-super-duper-test-report-url-2")
+										.successful(true)
 										.timestamp(TEST_TIMESTAMP_2)
 										.build()))
 								.build()))
