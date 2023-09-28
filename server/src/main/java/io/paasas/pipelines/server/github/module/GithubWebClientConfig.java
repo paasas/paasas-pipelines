@@ -15,8 +15,10 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
+import io.paasas.pipelines.server.github.domain.port.backend.AccessTokenRepository;
 import io.paasas.pipelines.server.github.domain.port.backend.CommitStatusRepository;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
+import io.paasas.pipelines.server.github.module.adapter.AccessTokenWebClient;
 import io.paasas.pipelines.server.github.module.adapter.CommitStatusWebClient;
 import io.paasas.pipelines.server.github.module.adapter.PullRequestWebClient;
 
@@ -33,7 +35,9 @@ public class GithubWebClientConfig {
 	@ConditionalOnProperty(name = "pipelines.github.enabled", havingValue = "true", matchIfMissing = false)
 	class RepositoryConfig {
 		@Bean
-		public RestTemplate githubRestTemplate(GithubConfiguration githubConfiguration) {
+		public RestTemplate githubRestTemplate(
+				AccessTokenRepository accessTokenRepository,
+				GithubConfiguration githubConfiguration) {
 			assertNotBlank(githubConfiguration.getAppId(), "app-id");
 			assertNotBlank(githubConfiguration.getInstallationId(), "installation-id");
 			assertNotBlank(githubConfiguration.getPrivateKeyBase64(), "private-key-base64");
@@ -47,8 +51,13 @@ public class GithubWebClientConfig {
 					.defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github+json")
 					.defaultHeader("X-GitHub-Api-Version", githubConfiguration.getApiVersion())
 					.messageConverters(messageConverter)
-					.interceptors(new GithubAuthenticationInterceptor(githubConfiguration))
+					.interceptors(new GithubAuthenticationInterceptor(accessTokenRepository))
 					.build();
+		}
+
+		@Bean
+		public AccessTokenRepository accessTokenRepository(GithubConfiguration githubConfiguration) {
+			return new AccessTokenWebClient(githubConfiguration);
 		}
 
 		@Bean
