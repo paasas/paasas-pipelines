@@ -465,7 +465,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.trigger(true)
 								.build(),
 						put("metadata"),
-						getWithTrigger(app.getName() + "-tests-src"),
+						get(app.getName() + "-tests-src"),
 						get(app.getName() + "-test-reports-src")));
 	}
 
@@ -883,7 +883,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.trigger(true)
 								.build(),
 						put("metadata"),
-						getWithTrigger(appName + "-tests-src"),
+						get(appName + "-tests-src"),
 						get(appName + "-test-reports-src")));
 	}
 

@@ -220,7 +220,6 @@ public abstract class ExpectedDeploymentsPipeline {
 			      trigger: true
 			    - put: metadata
 			    - get: demo-webapp-tests-src
-			      trigger: true
 			    - get: demo-webapp-test-reports-src
 			  - task: test-demo-webapp
 			    file: ci-src/.concourse/tasks/maven-test/maven-cloud-run-test.yaml
@@ -502,7 +501,6 @@ public abstract class ExpectedDeploymentsPipeline {
 			      trigger: true
 			    - put: metadata
 			    - get: firebase-app-tests-src
-			      trigger: true
 			    - get: firebase-app-test-reports-src
 			  - task: test-firebase-app
 			    file: ci-src/.concourse/tasks/maven-test/maven-firebase-test.yaml
