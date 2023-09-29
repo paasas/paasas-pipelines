@@ -25,6 +25,7 @@ import io.paasas.pipelines.server.analysis.domain.port.backend.FirebaseAppDeploy
 import io.paasas.pipelines.server.analysis.domain.port.backend.PullRequestAnalysisRepository;
 import io.paasas.pipelines.server.analysis.domain.port.backend.TerraformDeploymentRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestAnalysisEntity;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanExecutionEntity;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,7 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 	CloudRunTestReportRepository cloudRunTestReportRepository;
 	FirebaseAppDeploymentRepository firebaseAppDeploymentRepository;
 	TerraformDeploymentRepository terraformDeploymentRepository;
+	TerraformPlanExecutionJpaRepository terraformPlanExecutionRepository;
 
 	CloudRunAnalysis appAnalysis(App app) {
 		return CloudRunAnalysis.builder()
@@ -85,6 +87,8 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 	public PullRequestAnalysis refresh(
 			DeploymentManifest deploymentManifest,
 			RefreshPullRequestAnalysisRequest request) {
+		var terraformAnalyses = terraformAnalysis(deploymentManifest);
+
 		var pullRequestAnalysis = PullRequestAnalysis.builder()
 				.commit(request.getCommit())
 				.commitAuthor(request.getCommitAuthor())
@@ -102,14 +106,36 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 				.projectId(request.getJobInfo().getProjectId())
 				.pullRequestNumber(request.getPullRequestNumber())
 				.repository(request.getRepository())
-				.terraform(terraformAnalysis(deploymentManifest))
+				.terraform(terraformAnalyses)
 				.build();
 
 		log.info("Updating {}", pullRequestAnalysis);
 
-		repository.save(PullRequestAnalysisEntity.from(pullRequestAnalysis));
+		refreshTerraformPlanExecutions(
+				terraformAnalyses,
+				repository.save(PullRequestAnalysisEntity.from(pullRequestAnalysis)));
 
 		return pullRequestAnalysis;
+	}
+
+	private void refreshTerraformPlanExecutions(
+			List<TerraformAnalysis> terraformAnalyses,
+			PullRequestAnalysisEntity pullRequestAnalysis) {
+		// invalidates existing executions.
+		terraformPlanExecutionRepository
+				.deleteAll(terraformPlanExecutionRepository
+						.findByKeyPullRequestAnalysis(pullRequestAnalysis)
+						.stream()
+						.filter(execution -> !execution.getCommitId().equals(pullRequestAnalysis.getCommit()))
+						.toList());
+
+		// Create new executions
+		terraformPlanExecutionRepository.saveAll(
+				terraformAnalyses
+						.stream()
+						.map(terraformAnalysis -> TerraformPlanExecutionEntity
+								.create(terraformAnalysis.getPackageName(), pullRequestAnalysis))
+						.toList());
 	}
 
 	List<TerraformAnalysis> terraformAnalysis(DeploymentManifest deploymentManifest) {

@@ -18,7 +18,14 @@ import io.paasas.pipelines.server.analysis.domain.model.RegisterCloudRunTestRepo
 import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppTestReport;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlan;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformExecution;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformExecutionState;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformPlanExecution;
 import io.paasas.pipelines.server.analysis.module.adapter.database.PullRequestAnalysisJpaRepository;
+import io.paasas.pipelines.server.analysis.module.adapter.database.TerraformPlanExecutionJpaRepository;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestAnalysisEntity;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestKey;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
 
 public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
@@ -27,6 +34,9 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 
 	@Autowired
 	PullRequestAnalysisJpaRepository analysisRepository;
+
+	@Autowired
+	TerraformPlanExecutionJpaRepository terraformPlanExecutionRepository;
 
 	@Test
 	public void assertRefresh() {
@@ -186,12 +196,12 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 								    env: |
 								      ENV=development
 								terraform:
-								- name: my-package
+								- name: my-tf-package
 								  git:
 								    uri: git@github.com:paasas/terraform-repository.git
 								    tag: 1.1.0
 								    path: terraform-path
-								  githubRepository: 
+								  githubRepository:
 								  vars:
 								    my-var: my-value""".getBytes())))
 						.project("my-tf-package")
@@ -212,6 +222,89 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 		Assertions.assertEquals(
 				1,
 				pullRequestAnalysis.getFirebase().getDeployments().get(0).getTestReports().size());
+
+		var terraformPlanExecution = terraformPlanExecutionRepository
+				.findByKeyPullRequestAnalysis(PullRequestAnalysisEntity.builder()
+						.key(PullRequestKey.builder()
+								.number(2)
+								.repository("paasas/paasas-pipelines")
+								.build())
+						.build())
+				.stream()
+				.findFirst()
+				.orElseThrow()
+				.to();
+
+		Assertions.assertNotNull(terraformPlanExecution.getExecution().getCreateTimestamp());
+		Assertions.assertNotNull(terraformPlanExecution.getExecution().getUpdateTimestamp());
+
+		var expectedPlanExecution = TerraformPlanExecution.builder()
+				.commitId("73c4918ea6f537795701927a4940b95e479dd10e")
+				.execution(TerraformExecution.builder()
+						.createTimestamp(terraformPlanExecution.getExecution().getCreateTimestamp())
+						.packageName("my-tf-package")
+						.state(TerraformExecutionState.PENDING)
+						.updateTimestamp(terraformPlanExecution.getExecution().getUpdateTimestamp())
+						.build())
+				.build();
+
+		Assertions.assertEquals(
+				expectedPlanExecution,
+				terraformPlanExecution);
+
+		client.post()
+				.uri("/api/ci/deployment/terraform-plan")
+				.bodyValue(RegisterTerraformPlan.builder()
+						.jobInfo(JobInfo.builder()
+								.build("101")
+								.job("my-terraform-plan-job")
+								.pipeline("my-pipeline")
+								.projectId("my-test-project")
+								.team("my-team")
+								.url("https://my-terraform-plan-url")
+								.build())
+						.gitRevision(GitRevision.builder()
+								.branch("main")
+								.commit("73c4918ea6f537795701927a4940b95e479dd10e")
+								.commitAuthor("daniellavoie")
+								.path("manifest-path")
+								.repository("paasas/paasas-pipelines")
+								.build())
+						.packageName("my-tf-package")
+						.params(new HashMap<>(Map.of("my-var", "my-value")))
+						.pullRequestNumber(2)
+						.state(TerraformExecutionState.SUCCESS)
+						.build())
+				.exchange()
+				.expectStatus()
+				.is2xxSuccessful();
+
+		terraformPlanExecution = terraformPlanExecutionRepository
+				.findByKeyPullRequestAnalysis(PullRequestAnalysisEntity.builder()
+						.key(PullRequestKey.builder()
+								.number(2)
+								.repository("paasas/paasas-pipelines")
+								.build())
+						.build())
+				.stream()
+				.findFirst()
+				.orElseThrow()
+				.to();
+
+		Assertions.assertNotEquals(
+				expectedPlanExecution.getExecution().getUpdateTimestamp(),
+				terraformPlanExecution.getExecution().getUpdateTimestamp());
+
+		expectedPlanExecution = expectedPlanExecution.toBuilder()
+				.execution(expectedPlanExecution.getExecution().toBuilder()
+						.updateTimestamp(terraformPlanExecution.getExecution().getUpdateTimestamp())
+						.state(TerraformExecutionState.SUCCESS)
+						.build())
+				.build();
+
+		Assertions.assertEquals(
+				expectedPlanExecution,
+				terraformPlanExecution);
 
 		pullRequestRepository.listPullRequestsReviewComments(2, "paasas/paasas-pipelines");
 	}

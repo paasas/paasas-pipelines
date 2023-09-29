@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.paasas.pipelines.deployment.domain.model.deployment.RegisterCloudRunDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterFirebaseAppDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlan;
 import io.paasas.pipelines.server.analysis.domain.port.api.DeploymentDomain;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,19 +23,25 @@ public class DeploymentController {
 
 	@PostMapping("/cloud-run")
 	public void registerCloudRunDeployment(
-			@RequestBody RegisterCloudRunDeployment registerCloudRunDeployment) {
-		deploymentDomain.registerCloudRunDeployment(registerCloudRunDeployment);
+			@RequestBody RegisterCloudRunDeployment request) {
+		deploymentDomain.registerCloudRunDeployment(request);
 	}
 
 	@PostMapping("/firebase")
 	public void registerFirebaseAppDeployment(
-			@RequestBody RegisterFirebaseAppDeployment registerFirebaseAppDeployment) {
-		deploymentDomain.registerFirebaseAppDeployment(registerFirebaseAppDeployment);
+			@RequestBody RegisterFirebaseAppDeployment request) {
+		deploymentDomain.registerFirebaseAppDeployment(request);
 	}
 
 	@PostMapping("/terraform")
 	public void registerTerraformDeployment(
-			@RequestBody RegisterTerraformDeployment registerTerraformDeployment) {
-		deploymentDomain.registerTerraformDeployment(registerTerraformDeployment);
+			@RequestBody RegisterTerraformDeployment request) {
+		deploymentDomain.registerTerraformDeployment(request);
+	}
+
+	@PostMapping("/terraform-plan")
+	public void registerTerraformPlan(
+			@RequestBody RegisterTerraformPlan request) {
+		deploymentDomain.registerTerraformPlan(request);
 	}
 }
