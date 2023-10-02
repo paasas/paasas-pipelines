@@ -17,7 +17,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: cron
 			  type: docker-image
 			  source:
-			    repository: jpluscplusm/concourse-cron-resource
+			    repository: cftoolsmiths/cron-resource
 			- name: build-metadata
 			  type: docker-image
 			  source:
@@ -187,6 +187,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  type: cron
 			  source:
 			    expression: 0 1 * * *
+			    location: America/New_York
 			jobs:
 			- name: analyze-pull-request
 			  plan:

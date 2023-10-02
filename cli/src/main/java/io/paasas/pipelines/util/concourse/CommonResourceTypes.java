@@ -25,7 +25,7 @@ public final class CommonResourceTypes {
 	public static final ResourceType CRON = ResourceType.builder()
 			.name(CRON_RESOURCE_TYPE)
 			.source(ResourceTypeSource.builder()
-					.repository("jpluscplusm/concourse-cron-resource")
+					.repository("cftoolsmiths/cron-resource")
 					.build())
 			.type("docker-image")
 			.build();

@@ -1023,6 +1023,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 					.type(CommonResourceTypes.CRON_RESOURCE_TYPE)
 					.source(CronSource.builder()
 							.expression(tests.getCron())
+							.location("America/New_York")
 							.build())
 					.build());
 		}

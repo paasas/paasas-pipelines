@@ -13,4 +13,5 @@ import lombok.extern.jackson.Jacksonized;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CronSource {
 	String expression;
+	String location;
 }
