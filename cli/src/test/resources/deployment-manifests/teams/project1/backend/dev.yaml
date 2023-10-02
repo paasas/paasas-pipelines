@@ -107,6 +107,7 @@ firebaseApp:
     uri: git@github.com:teleport-java-client/my-tests.git
     path: firebase-app-tests
   - name: full
+    extraMavenOpts: full-test-suite
     uri: git@github.com:teleport-java-client/my-tests.git
     path: firebase-app-tests
     tag: my-test-tag

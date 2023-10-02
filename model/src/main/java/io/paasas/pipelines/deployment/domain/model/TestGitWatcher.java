@@ -7,8 +7,11 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder(toBuilder = true)
-public class GitWatcher {
+public class TestGitWatcher {
 	String branch;
+	String cron;
+	String extraMavenOpts;
+	String name;
 	String path;
 	String uri;
 	String tag;

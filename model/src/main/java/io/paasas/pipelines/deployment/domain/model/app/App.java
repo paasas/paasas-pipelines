@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.google.cloud.run.v2.IngressTraffic;
 
-import io.paasas.pipelines.deployment.domain.model.GitWatcher;
+import io.paasas.pipelines.deployment.domain.model.TestGitWatcher;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
@@ -30,6 +30,6 @@ public class App {
 	Probe startupProbe;
 	List<String> subdomains;
 	String tag;
-	List<GitWatcher> tests;
+	List<TestGitWatcher> tests;
 	String vpcAccessConnector;
 }

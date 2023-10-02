@@ -17,8 +17,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.paasas.pipelines.ConcourseConfiguration;
 import io.paasas.pipelines.GcpConfiguration;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
-import io.paasas.pipelines.deployment.domain.model.GitWatcher;
 import io.paasas.pipelines.deployment.domain.model.TerraformWatcher;
+import io.paasas.pipelines.deployment.domain.model.TestGitWatcher;
 import io.paasas.pipelines.deployment.domain.model.app.App;
 import io.paasas.pipelines.deployment.domain.model.app.RegistryType;
 import io.paasas.pipelines.deployment.domain.model.composer.ComposerConfig;
@@ -64,6 +64,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		super(configuration);
 
 		this.gcpConfiguration = gcpConfiguration;
+	}
+
+	private boolean isNotBlank(String value) {
+		return value != null && !value.isBlank();
 	}
 
 	private Job analyzePullRequestJob(DeploymentManifest deploymentManifest, String deploymentManifestPath) {
@@ -430,7 +434,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	Map<String, String> testJobCommonParams(
-			GitWatcher tests,
+			TestGitWatcher tests,
 			String appName,
 			DeploymentManifest deploymentManifest,
 			String deploymentManifestPath) {
@@ -459,11 +463,15 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 							.replace(".git", "")));
 		}
 
+		if (isNotBlank(tests.getExtraMavenOpts())) {
+			params.put("MVN_EXTRA_OPTS", tests.getExtraMavenOpts());
+		}
+
 		return params;
 	}
 
 	Job cloudRunTestJob(
-			GitWatcher tests,
+			TestGitWatcher tests,
 			App app,
 			String passed,
 			DeploymentManifest deploymentManifest,
@@ -893,7 +901,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	Job firebaseTestJob(
-			GitWatcher tests,
+			TestGitWatcher tests,
 			FirebaseAppDefinition firebaseApp,
 			String passed,
 			DeploymentManifest deploymentManifest,
@@ -947,7 +955,11 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				parralelResources);
 	}
 
-	Job testJob(String appName, String testsName, String taskFile, Map<String, String> params,
+	Job testJob(
+			String appName,
+			String testsName,
+			String taskFile,
+			Map<String, String> params,
 			List<Step> parallelSteps) {
 		return Job.builder()
 				.name(String.format("test-%s-%s", appName, testsName))
@@ -967,7 +979,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
-	Stream<Resource<?>> testResources(GitWatcher tests, String appName) {
+	Stream<Resource<?>> testResources(TestGitWatcher tests, String appName) {
 		if ((tests.getBranch() == null || tests.getBranch().isBlank()) &&
 				(tests.getTag() == null || tests.getTag().isBlank())) {
 			throw new IllegalArgumentException(

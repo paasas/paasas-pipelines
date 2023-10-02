@@ -575,6 +575,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
+			      MVN_EXTRA_OPTS: full-test-suite
 			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
