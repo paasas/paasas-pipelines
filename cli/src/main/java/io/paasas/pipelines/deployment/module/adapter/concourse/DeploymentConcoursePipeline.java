@@ -454,6 +454,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						"terraform@%s.iam.gserviceaccount.com",
 						deploymentManifest.getProject())));
 
+		params.putAll(Map.of("TEST_NAME", tests.getName()));
+
 		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
 			params.putAll(Map.of(
 					"PIPELINES_SERVER", configuration.getPipelinesServer(),

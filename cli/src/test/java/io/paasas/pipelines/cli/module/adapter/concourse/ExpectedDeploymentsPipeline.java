@@ -263,6 +263,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_SERVER: http://localhost:8080
 			      PIPELINES_SERVER_USERNAME: ci
 			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-cloud-run-tests
+			      TEST_NAME: main
 			    input_mapping:
 			      src: demo-webapp-tests-main-src
 			      test-reports-src: demo-webapp-test-main-reports-src
@@ -546,6 +547,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_SERVER: http://localhost:8080
 			      PIPELINES_SERVER_USERNAME: ci
 			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-tests
+			      TEST_NAME: smoke-tests
 			    input_mapping:
 			      src: firebase-app-tests-smoke-tests-src
 			      test-reports-src: firebase-app-test-smoke-tests-reports-src
@@ -583,6 +585,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_SERVER: http://localhost:8080
 			      PIPELINES_SERVER_USERNAME: ci
 			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-tests
+			      TEST_NAME: full
 			    input_mapping:
 			      src: firebase-app-tests-full-src
 			      test-reports-src: firebase-app-test-full-reports-src
