@@ -1,6 +1,7 @@
 package io.paasas.pipelines.deployment.module.adapter.concourse;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -31,6 +32,7 @@ import io.paasas.pipelines.util.concourse.model.Job;
 import io.paasas.pipelines.util.concourse.model.Pipeline;
 import io.paasas.pipelines.util.concourse.model.Resource;
 import io.paasas.pipelines.util.concourse.model.ResourceType;
+import io.paasas.pipelines.util.concourse.model.resource.CronSource;
 import io.paasas.pipelines.util.concourse.model.resource.GitSource;
 import io.paasas.pipelines.util.concourse.model.resource.PullRequestSource;
 import io.paasas.pipelines.util.concourse.model.resource.RegistryImageSource;
@@ -112,7 +114,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.build());
 
 		if (app.getTests() != null) {
-			testResources(app.getTests(), app.getName()).forEach(streamBuilder::add);
+			app.getTests().stream()
+					.flatMap(tests -> testResources(tests, app.getName()))
+					.forEach(streamBuilder::add);
 		}
 
 		return streamBuilder.build();
@@ -404,6 +408,21 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build();
 	}
 
+	boolean containsCron(DeploymentManifest manifest) {
+		// Checks if the firebase app has any cron configs in its tests.
+		return (manifest.getFirebaseApp() != null && manifest.getFirebaseApp().getTests() != null
+				&& manifest.getFirebaseApp().getTests().stream()
+						.filter(tests -> tests.getCron() != null && !tests.getCron().isBlank()).findAny().isPresent()
+
+				||
+
+				// Checks if any of the cloud run app has any cron configs in its tests.
+				manifest.getApps() != null && manifest.getApps().stream()
+						.filter(app -> app.getTests() != null)
+						.flatMap(app -> app.getTests().stream())
+						.filter(tests -> tests.getCron() != null && !tests.getCron().isBlank()).findAny().isPresent());
+	}
+
 	boolean containsTests(DeploymentManifest manifest) {
 		return (manifest.getFirebaseApp() != null && manifest.getFirebaseApp().getTests() != null) ||
 				(manifest.getApps() != null
@@ -444,29 +463,43 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	Job cloudRunTestJob(
+			GitWatcher tests,
 			App app,
 			String passed,
 			DeploymentManifest deploymentManifest,
 			String deploymentManifestPath) {
+
+		var testSrc = String.format("%s-tests-%s-src", app.getName(), tests.getName());
+
+		var hasCron = tests.getCron() != null && !tests.getCron().isBlank();
+
+		var manifestResource = hasCron
+				? Get.builder()
+						.get("manifest-src")
+						.passed(List.of(passed))
+						.build()
+				: Get.builder()
+						.get("manifest-src")
+						.passed(List.of(passed))
+						.trigger(true)
+						.build();
+
 		return testJob(
 				app.getName(),
+				tests.getName(),
 				CI_SRC_RESOURCE + "/.concourse/tasks/maven-test/maven-cloud-run-test.yaml",
 				testJobCommonParams(
-						app.getTests(),
+						tests,
 						app.getName(),
 						deploymentManifest,
 						deploymentManifestPath),
 				List.of(
 						get(BUILD_METADATA),
 						get(CI_SRC_RESOURCE),
-						Get.builder()
-								.get("manifest-src")
-								.passed(List.of(passed))
-								.trigger(true)
-								.build(),
+						manifestResource,
 						put("metadata"),
-						get(app.getName() + "-tests-src"),
-						get(app.getName() + "-test-reports-src")));
+						hasCron ? get(testSrc) : getWithTrigger(testSrc),
+						get(String.format("%s-test-%s-reports-src", app.getName(), tests.getName()))));
 	}
 
 	Stream<Resource<?>> deploymentResources(DeploymentManifest manifest, String deploymentManifestPath) {
@@ -565,11 +598,13 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build());
 
 		if (manifest.getFirebaseApp().getTests() != null) {
-			streamBuilder.add(firebaseTestJob(
-					manifest.getFirebaseApp(),
-					"deploy-firebase",
-					manifest,
-					deploymentManifestPath));
+			manifest.getFirebaseApp().getTests().stream()
+					.forEach(tests -> streamBuilder.add(firebaseTestJob(
+							tests,
+							manifest.getFirebaseApp(),
+							"deploy-firebase",
+							manifest,
+							deploymentManifestPath)));
 		}
 
 		return streamBuilder.build();
@@ -611,7 +646,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.build());
 
 		if (deploymentManifest.getFirebaseApp().getTests() != null) {
-			testResources(deploymentManifest.getFirebaseApp().getTests(), "firebase-app")
+			deploymentManifest.getFirebaseApp().getTests()
+					.stream()
+					.flatMap(tests -> testResources(tests, "firebase-app"))
 					.forEach(streamBuilder::add);
 		}
 
@@ -744,6 +781,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			builder.add(CommonResourceTypes.METADATA);
 		}
 
+		if (containsCron(manifest)) {
+			builder.add(CommonResourceTypes.CRON);
+		}
+
 		return builder
 				.add(CommonResourceTypes.BUILD_METADATA)
 				.add(CommonResourceTypes.GITHUB_PULL_REQUEST)
@@ -852,13 +893,14 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 	}
 
 	Job firebaseTestJob(
+			GitWatcher tests,
 			FirebaseAppDefinition firebaseApp,
 			String passed,
 			DeploymentManifest deploymentManifest,
 			String deploymentManifestPath) {
 		var appName = "firebase-app";
 
-		var params = testJobCommonParams(firebaseApp.getTests(), appName, deploymentManifest, deploymentManifestPath);
+		var params = testJobCommonParams(tests, appName, deploymentManifest, deploymentManifestPath);
 
 		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank()) {
 			params.put("GITHUB_REPOSITORY", firebaseApp.getGit().getUri()
@@ -866,38 +908,60 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 					.replace(".git", ""));
 		}
 
+		var testSrc = String.format("%s-tests-%s-src", appName, tests.getName());
+
+		var hasCron = tests.getCron() != null && !tests.getCron().isBlank();
+
+		var manifestResource = hasCron
+				? Get.builder()
+						.get("manifest-src")
+						.passed(List.of(passed))
+						.build()
+				: Get.builder()
+						.get("manifest-src")
+						.passed(List.of(passed))
+						.trigger(true)
+						.build();
+
+		var parralelResources = new ArrayList<>(List.of(
+				get(BUILD_METADATA),
+				get(CI_SRC_RESOURCE),
+				Get.builder()
+						.get("firebase-src")
+						.passed(List.of(passed))
+						.build(),
+				manifestResource,
+				put("metadata"),
+				hasCron ? get(testSrc) : getWithTrigger(testSrc),
+				get(String.format("%s-test-%s-reports-src", appName, tests.getName()))));
+
+		if (hasCron) {
+			parralelResources.add(getWithTrigger(String.format("%s-tests-%s-cron", appName, tests.getName())));
+		}
+
 		return testJob(
 				appName,
+				tests.getName(),
 				CI_SRC_RESOURCE + "/.concourse/tasks/maven-test/maven-firebase-test.yaml",
 				params,
-				List.of(
-						get(BUILD_METADATA),
-						get(CI_SRC_RESOURCE),
-						Get.builder()
-								.get("firebase-src")
-								.passed(List.of(passed))
-								.build(),
-						Get.builder()
-								.get("manifest-src")
-								.passed(List.of(passed))
-								.trigger(true)
-								.build(),
-						put("metadata"),
-						get(appName + "-tests-src"),
-						get(appName + "-test-reports-src")));
+				parralelResources);
 	}
 
-	Job testJob(String appName, String taskFile, Map<String, String> params, List<Step> parallelSteps) {
+	Job testJob(String appName, String testsName, String taskFile, Map<String, String> params,
+			List<Step> parallelSteps) {
 		return Job.builder()
-				.name("test-" + appName)
+				.name(String.format("test-%s-%s", appName, testsName))
 				.plan(List.of(
 						inParallel(parallelSteps),
 						Task.builder()
-								.task("test-" + appName)
+								.task(String.format("test-%s-%s", appName, testsName))
 								.file(taskFile)
 								.inputMapping(new TreeMap<>(Map.of(
-										"src", appName + "-tests-src",
-										"test-reports-src", appName + "-test-reports-src")))
+										"src", String.format("%s-tests-%s-src", appName, testsName),
+										"test-reports-src", String.format(
+												"%s-test-%s-reports-src",
+												appName,
+												testsName))))
 								.params(params)
 								.build()))
 				.build();
@@ -914,9 +978,9 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			throw new IllegalArgumentException("uri is required for test configuration of app " + appName);
 		}
 
-		return Stream.<Resource<?>>builder()
+		var streamBuilder = Stream.<Resource<?>>builder()
 				.add(Resource.builder()
-						.name(appName + "-tests-src")
+						.name(String.format("%s-tests-%s-src", appName, tests.getName()))
 						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
 						.source(GitSource.builder()
 								.branch(tests.getBranch() != null
@@ -924,7 +988,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 												? tests.getBranch()
 												: null)
 								.tagFilter(tests.getTag() != null && !tests.getTag().isBlank()
-										? tests.getBranch()
+										? tests.getTag()
 										: null)
 								.paths(tests.getPath() != null ? List.of(tests.getPath()) : null)
 								.privateKey("((git.ssh-private-key))")
@@ -932,15 +996,26 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.build())
 						.build())
 				.add(Resource.builder()
-						.name(appName + "-test-reports-src")
+						.name(String.format("%s-test-%s-reports-src", appName, tests.getName()))
 						.type(CommonResourceTypes.GIT_RESOURCE_TYPE)
 						.source(GitSource.builder()
 								.branch(configuration.getTestReportsBranch())
 								.privateKey("((git.ssh-private-key))")
 								.uri(tests.getUri())
 								.build())
-						.build())
-				.build();
+						.build());
+
+		if (tests.getCron() != null && !tests.getCron().isBlank()) {
+			streamBuilder.add(Resource.builder()
+					.name(String.format("%s-tests-%s-cron", appName, tests.getName()))
+					.type(CommonResourceTypes.CRON_RESOURCE_TYPE)
+					.source(CronSource.builder()
+							.expression(tests.getCron())
+							.build())
+					.build());
+		}
+
+		return streamBuilder.build();
 	}
 
 	Stream<Job> updateCloudRunJobs(DeploymentManifest manifest, String deploymentManifestPath) {
@@ -988,12 +1063,14 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 		apps.stream()
 				.filter(app -> app.getTests() != null)
-				.map(app -> cloudRunTestJob(
-						app,
-						"update-cloud-run",
-						manifest,
-						deploymentManifestPath))
-				.forEach(jobBuilder::add);
+				.forEach(app -> app.getTests().stream()
+						.map(tests -> cloudRunTestJob(
+								tests,
+								app,
+								"update-cloud-run",
+								manifest,
+								deploymentManifestPath))
+						.forEach(jobBuilder::add));
 
 		return jobBuilder.build();
 	}

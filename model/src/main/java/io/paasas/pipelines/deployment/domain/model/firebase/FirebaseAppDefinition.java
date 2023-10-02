@@ -1,5 +1,7 @@
 package io.paasas.pipelines.deployment.domain.model.firebase;
 
+import java.util.List;
+
 import io.paasas.pipelines.deployment.domain.model.GitWatcher;
 import lombok.Builder;
 import lombok.Value;
@@ -13,5 +15,5 @@ public class FirebaseAppDefinition {
 	GitWatcher git;
 	String githubRepository;
 	Npm npm;
-	GitWatcher tests;
+	List<GitWatcher> tests;
 }

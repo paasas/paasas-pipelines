@@ -27,9 +27,9 @@ apps:
     tcpSocket:
       port: 8080
   tests:
+  - name: main 
     uri: git@github.com:teleport-java-client/my-cloud-run-tests.git
     path: cloud-run-tests
-    # branch: firebase-app-tests
     tag: my-cloud-run-tests-tag
 composer:
 - name: composer-1
@@ -102,10 +102,15 @@ firebaseApp:
     env: |
       my-test-env: my-test-value
   tests:
+  - name: smoke-tests
+    branch: smoke-tests
     uri: git@github.com:teleport-java-client/my-tests.git
     path: firebase-app-tests
-    # branch: firebase-app-tests
+  - name: full
+    uri: git@github.com:teleport-java-client/my-tests.git
+    path: firebase-app-tests
     tag: my-test-tag
+    cron: 0 1 * * *
 terraform:
 - name: dataset-1
   git:

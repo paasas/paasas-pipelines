@@ -30,6 +30,6 @@ public class App {
 	Probe startupProbe;
 	List<String> subdomains;
 	String tag;
-	GitWatcher tests;
+	List<GitWatcher> tests;
 	String vpcAccessConnector;
 }

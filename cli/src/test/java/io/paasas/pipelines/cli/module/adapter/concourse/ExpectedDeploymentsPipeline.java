@@ -14,6 +14,10 @@ public abstract class ExpectedDeploymentsPipeline {
 			  source:
 			    repository: olhtbr/metadata-resource
 			    tag: 2.0.1
+			- name: cron
+			  type: docker-image
+			  source:
+			    repository: jpluscplusm/concourse-cron-resource
 			- name: build-metadata
 			  type: docker-image
 			  source:
@@ -62,14 +66,15 @@ public abstract class ExpectedDeploymentsPipeline {
 			    repository: gcr.io/cloudrun/container/hello
 			    tag: latest
 			    username: _json_key
-			- name: demo-webapp-tests-src
+			- name: demo-webapp-tests-main-src
 			  type: git
 			  source:
 			    uri: git@github.com:teleport-java-client/my-cloud-run-tests.git
 			    private_key: ((git.ssh-private-key))
 			    paths:
 			    - cloud-run-tests
-			- name: demo-webapp-test-reports-src
+			    tag_filter: my-cloud-run-tests-tag
+			- name: demo-webapp-test-main-reports-src
 			  type: git
 			  source:
 			    uri: git@github.com:teleport-java-client/my-cloud-run-tests.git
@@ -150,19 +155,38 @@ public abstract class ExpectedDeploymentsPipeline {
 			    paths:
 			    - firebase-app
 			    tag_filter: my-tag
-			- name: firebase-app-tests-src
+			- name: firebase-app-tests-smoke-tests-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/my-tests.git
+			    private_key: ((git.ssh-private-key))
+			    branch: smoke-tests
+			    paths:
+			    - firebase-app-tests
+			- name: firebase-app-test-smoke-tests-reports-src
+			  type: git
+			  source:
+			    uri: git@github.com:teleport-java-client/my-tests.git
+			    private_key: ((git.ssh-private-key))
+			    branch: gh-pages
+			- name: firebase-app-tests-full-src
 			  type: git
 			  source:
 			    uri: git@github.com:teleport-java-client/my-tests.git
 			    private_key: ((git.ssh-private-key))
 			    paths:
 			    - firebase-app-tests
-			- name: firebase-app-test-reports-src
+			    tag_filter: my-test-tag
+			- name: firebase-app-test-full-reports-src
 			  type: git
 			  source:
 			    uri: git@github.com:teleport-java-client/my-tests.git
 			    private_key: ((git.ssh-private-key))
 			    branch: gh-pages
+			- name: firebase-app-tests-full-cron
+			  type: cron
+			  source:
+			    expression: 0 1 * * *
 			jobs:
 			- name: analyze-pull-request
 			  plan:
@@ -209,7 +233,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: test-demo-webapp
+			- name: test-demo-webapp-main
 			  plan:
 			  - in_parallel:
 			    - get: build-metadata
@@ -219,9 +243,10 @@ public abstract class ExpectedDeploymentsPipeline {
 			      - update-cloud-run
 			      trigger: true
 			    - put: metadata
-			    - get: demo-webapp-tests-src
-			    - get: demo-webapp-test-reports-src
-			  - task: test-demo-webapp
+			    - get: demo-webapp-tests-main-src
+			      trigger: true
+			    - get: demo-webapp-test-main-reports-src
+			  - task: test-demo-webapp-main
 			    file: ci-src/.concourse/tasks/maven-test/maven-cloud-run-test.yaml
 			    params:
 			      APP_ID: demo-webapp
@@ -238,8 +263,8 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_SERVER_USERNAME: ci
 			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-cloud-run-tests
 			    input_mapping:
-			      src: demo-webapp-tests-src
-			      test-reports-src: demo-webapp-test-reports-src
+			      src: demo-webapp-tests-main-src
+			      test-reports-src: demo-webapp-test-main-reports-src
 			- name: terraform-apply-dataset-1
 			  plan:
 			  - in_parallel:
@@ -487,7 +512,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      src: firebase-src
 			    output_mapping:
 			      src: firebase-src
-			- name: test-firebase-app
+			- name: test-firebase-app-smoke-tests
 			  plan:
 			  - in_parallel:
 			    - get: build-metadata
@@ -500,9 +525,10 @@ public abstract class ExpectedDeploymentsPipeline {
 			      - deploy-firebase
 			      trigger: true
 			    - put: metadata
-			    - get: firebase-app-tests-src
-			    - get: firebase-app-test-reports-src
-			  - task: test-firebase-app
+			    - get: firebase-app-tests-smoke-tests-src
+			      trigger: true
+			    - get: firebase-app-test-smoke-tests-reports-src
+			  - task: test-firebase-app-smoke-tests
 			    file: ci-src/.concourse/tasks/maven-test/maven-firebase-test.yaml
 			    params:
 			      APP_ID: firebase-app
@@ -520,7 +546,43 @@ public abstract class ExpectedDeploymentsPipeline {
 			      PIPELINES_SERVER_USERNAME: ci
 			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-tests
 			    input_mapping:
-			      src: firebase-app-tests-src
-			      test-reports-src: firebase-app-test-reports-src
+			      src: firebase-app-tests-smoke-tests-src
+			      test-reports-src: firebase-app-test-smoke-tests-reports-src
+			- name: test-firebase-app-full
+			  plan:
+			  - in_parallel:
+			    - get: build-metadata
+			    - get: ci-src
+			    - get: firebase-src
+			      passed:
+			      - deploy-firebase
+			    - get: manifest-src
+			      passed:
+			      - deploy-firebase
+			    - put: metadata
+			    - get: firebase-app-tests-full-src
+			    - get: firebase-app-test-full-reports-src
+			    - get: firebase-app-tests-full-cron
+			      trigger: true
+			  - task: test-firebase-app-full
+			    file: ci-src/.concourse/tasks/maven-test/maven-firebase-test.yaml
+			    params:
+			      APP_ID: firebase-app
+			      GITHUB_REPOSITORY: teleport-java-client/paas-moe-le-cloud
+			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
+			      GIT_USER_EMAIL: dlavoie@live.ca
+			      GIT_USER_NAME: daniellavoie
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      GOOGLE_PROJECT_ID: control-plane-377914
+			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
+			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
+			      MVN_REPOSITORY_USERNAME: daniellavoie
+			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci
+			      TEST_GITHUB_REPOSITORY: teleport-java-client/my-tests
+			    input_mapping:
+			      src: firebase-app-tests-full-src
+			      test-reports-src: firebase-app-test-full-reports-src
 			      """;
 }

@@ -5,6 +5,7 @@ import io.paasas.pipelines.util.concourse.model.ResourceTypeSource;
 
 public final class CommonResourceTypes {
 	public final static String BUILD_METADATA_TYPE = "build-metadata";
+	public static final String CRON_RESOURCE_TYPE = "cron";
 	public final static String GCS_RESOURCE_TYPE = "gcs";
 	public static final String GIT_RESOURCE_TYPE = "git";
 	public static final String GITHUB_PULL_REQUEST_TYPE = "pull-request";
@@ -17,6 +18,14 @@ public final class CommonResourceTypes {
 			.source(ResourceTypeSource.builder()
 					.repository("swce/metadata-resource")
 					.tag("latest")
+					.build())
+			.type("docker-image")
+			.build();
+
+	public static final ResourceType CRON = ResourceType.builder()
+			.name(CRON_RESOURCE_TYPE)
+			.source(ResourceTypeSource.builder()
+					.repository("jpluscplusm/concourse-cron-resource")
 					.build())
 			.type("docker-image")
 			.build();

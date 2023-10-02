@@ -9,6 +9,8 @@ import lombok.extern.jackson.Jacksonized;
 @Builder(toBuilder = true)
 public class GitWatcher {
 	String branch;
+	String cron;
+	String name;
 	String path;
 	String uri;
 	String tag;
