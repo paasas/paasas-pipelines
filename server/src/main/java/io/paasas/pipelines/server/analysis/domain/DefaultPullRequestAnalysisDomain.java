@@ -361,8 +361,11 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	static Optional<String> firebaseApp(
 			DeploymentManifest deploymentManifest,
 			PullRequestAnalysis pullRequestAnalysis) {
-		var gitRevision = Optional.ofNullable(pullRequestAnalysis.getFirebase())
-				.map(FirebaseAppAnalysis::getDeployments)
+		if(pullRequestAnalysis.getFirebase() == null) {
+			return Optional.empty();
+		}
+		
+		var gitRevision = Optional.ofNullable(pullRequestAnalysis.getFirebase().getDeployments())
 				.orElseGet(() -> List.of())
 				.stream()
 				.sorted((deployment1, deployment2) -> deployment1.getDeploymentInfo().getTimestamp()
