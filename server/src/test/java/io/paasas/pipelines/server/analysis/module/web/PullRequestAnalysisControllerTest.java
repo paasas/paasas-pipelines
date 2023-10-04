@@ -24,8 +24,10 @@ import io.paasas.pipelines.server.analysis.domain.model.TerraformExecutionState;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformPlanExecution;
 import io.paasas.pipelines.server.analysis.module.adapter.database.PullRequestAnalysisJpaRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.TerraformPlanExecutionJpaRepository;
+import io.paasas.pipelines.server.analysis.module.adapter.database.TerraformPlanStatusJpaRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestAnalysisEntity;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestKey;
+import io.paasas.pipelines.server.github.domain.model.commit.CommitState;
 import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
 
 public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
@@ -37,6 +39,9 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 
 	@Autowired
 	TerraformPlanExecutionJpaRepository terraformPlanExecutionRepository;
+
+	@Autowired
+	TerraformPlanStatusJpaRepository terraformPlanStatusRepository;
 
 	@Test
 	public void assertRefresh() {
@@ -279,7 +284,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 				.expectStatus()
 				.is2xxSuccessful();
 
-		terraformPlanExecution = terraformPlanExecutionRepository
+		var terraformPlanExecutionEntity = terraformPlanExecutionRepository
 				.findByKeyPullRequestAnalysis(PullRequestAnalysisEntity.builder()
 						.key(PullRequestKey.builder()
 								.number(2)
@@ -288,8 +293,9 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 						.build())
 				.stream()
 				.findFirst()
-				.orElseThrow()
-				.to();
+				.orElseThrow();
+
+		terraformPlanExecution = terraformPlanExecutionEntity.to();
 
 		Assertions.assertNotEquals(
 				expectedPlanExecution.getExecution().getUpdateTimestamp(),
@@ -305,6 +311,10 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 		Assertions.assertEquals(
 				expectedPlanExecution,
 				terraformPlanExecution);
+
+		var terraformPlanStatus = terraformPlanStatusRepository.findById(terraformPlanExecutionEntity.getKey()).get();
+
+		Assertions.assertEquals(CommitState.SUCCESS, terraformPlanStatus.getCommitState());
 
 		pullRequestRepository.listPullRequestsReviewComments(2, "paasas/paasas-pipelines");
 	}

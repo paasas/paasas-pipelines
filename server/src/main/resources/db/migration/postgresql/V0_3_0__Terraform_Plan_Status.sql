@@ -1,0 +1,2 @@
+create table terraform_plan_status (pull_request_analysis_number integer not null, commit_state varchar(255) check (commit_state in ('ERROR','FAILURE','PENDING','SUCCESS')), package_name varchar(255) not null, pull_request_analysis_repository varchar(255) not null, primary key (pull_request_analysis_number, package_name, pull_request_analysis_repository));
+alter table if exists terraform_plan_status add constraint FKb25l65yk4dc57buagws6kqyoo foreign key (pull_request_analysis_number, pull_request_analysis_repository) references pull_request_analysis;

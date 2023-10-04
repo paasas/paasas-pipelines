@@ -10,10 +10,14 @@ import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeploym
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlan;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlanResult;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformExecutionState;
 import io.paasas.pipelines.server.analysis.domain.port.backend.TerraformDeploymentRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestKey;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformDeploymentEntity;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformExecutionKey;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanExecutionEntity;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanStatusEntity;
+import io.paasas.pipelines.server.github.domain.model.commit.CommitState;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,6 +31,7 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 	PullRequestAnalysisJpaRepository pullRequestAnalysisRepository;
 	TerraformDeploymentJpaRepository repository;
 	TerraformPlanExecutionJpaRepository terraformPlanExecutionRepository;
+	TerraformPlanStatusJpaRepository terraformPlanStatusRepository;
 
 	@Override
 	public List<TerraformDeployment> find(FindDeploymentRequest findRequest) {
@@ -74,7 +79,7 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 
 		var execution = optionalExecution.get();
 
-		terraformPlanExecutionRepository.save(
+		execution = terraformPlanExecutionRepository.save(
 				execution.toBuilder()
 						.execution(execution.getExecution().toBuilder()
 								.state(request.getState())
@@ -83,7 +88,78 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 						.build());
 
 		return RegisterTerraformPlanResult.builder()
+				.checkStatus(refreshTerraformPlanStatusCheck(execution))
 				.success(true)
 				.build();
+	}
+
+	private CommitState refreshTerraformPlanStatusCheck(TerraformPlanExecutionEntity execution) {
+		/**
+		 * This code could be called concurrently by mutiple terraform plan executions
+		 * and contains a race condition. Each refresh attempt could potentially not
+		 * confirm the other plan is completed given that both are updated at the same
+		 * time.
+		 * 
+		 * The primary key of the status entity will guarantee consistency in the
+		 * calculation of the status.
+		 * 
+		 * The status entity will always trigger an INSERT command and will throw a
+		 * constraint exception if it deletes a previous status and another refresh
+		 * occured at the same time. The constraint exception is catched and the status
+		 * is recomputed until no race condition occurs.
+		 */
+		var attempt = 0;
+
+		while (true) {
+			try {
+				terraformPlanStatusRepository.deleteById(execution.getKey());
+
+				var executions = terraformPlanExecutionRepository.findByKeyPullRequestAnalysis(
+						execution.getKey().getPullRequestAnalysis());
+
+				return terraformPlanStatusRepository
+						.save(TerraformPlanStatusEntity.builder()
+								.key(execution.getKey())
+								.commitState(computeCommitState(executions))
+								.build())
+						.getCommitState();
+			} catch (Throwable e) {
+				log.error("failed to persist terraform plan check status", e);
+
+				if (++attempt >= 5) {
+					throw new RuntimeException("failed to persist terraform plan check status after 5 attempts", e);
+				} else {
+					sleep();
+				}
+			}
+		}
+	}
+
+	CommitState computeCommitState(List<TerraformPlanExecutionEntity> executions) {
+		if (executions.stream()
+				.map(execution -> execution.getExecution().getState())
+				.filter(state -> state == TerraformExecutionState.FAILED)
+				.findAny()
+				.isPresent()) {
+			return CommitState.FAILURE;
+		}
+
+		if (executions.stream()
+				.map(execution -> execution.getExecution().getState())
+				.filter(state -> state == TerraformExecutionState.PENDING || state == TerraformExecutionState.RUNNING)
+				.findAny()
+				.isPresent()) {
+			return CommitState.PENDING;
+		}
+
+		return CommitState.SUCCESS;
+	}
+
+	private void sleep() {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
