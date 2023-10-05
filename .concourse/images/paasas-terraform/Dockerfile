@@ -4,4 +4,4 @@ FROM hashicorp/terraform:$TERRAFORM_VERSION
 
 RUN apk update
 
-RUN apk add yq curl
+RUN apk add jq yq curl
