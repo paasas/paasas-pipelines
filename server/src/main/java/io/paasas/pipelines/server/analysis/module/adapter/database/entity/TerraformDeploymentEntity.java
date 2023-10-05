@@ -12,7 +12,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
 import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +28,7 @@ import lombok.experimental.FieldDefaults;
 @Builder(toBuilder = true)
 @Entity(name = "TerraformDeployment")
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Table(indexes = @Index(columnList = "projectId,packageName"))
 public class TerraformDeploymentEntity {
 	@EmbeddedId
 	DeploymentKey key;

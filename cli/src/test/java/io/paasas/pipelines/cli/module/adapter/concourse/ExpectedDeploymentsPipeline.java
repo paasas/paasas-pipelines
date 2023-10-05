@@ -335,6 +335,78 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
+			- name: terraform-plan-dataset-1
+			  plan:
+			  - in_parallel:
+			    - get: build-metadata
+			    - get: ci-src
+			    - get: manifest-pr
+			      passed:
+			      - analyze-pull-request
+			      trigger: true
+			  - task: terraform-plan
+			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-pr-plan.yaml
+			    params:
+			      GCP_PROJECT_ID: control-plane-377914
+			      GITHUB_REPOSITORY: teleport-java-client/paas-moe-le-cloud
+			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
+			      GIT_USER_EMAIL: dlavoie@live.ca
+			      GIT_USER_NAME: daniellavoie
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      MANIFEST_PATH: {{manifest-path}}
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci 
+			      TERRAFORM_BACKEND_GCS_BUCKET: control-plane-377914
+			      TERRAFORM_GROUP_NAME: dataset-1
+			      TERRAFORM_PREFIX: project1-backend-dev-dataset-1
+			    input_mapping:
+			      manifest-src: manifest-pr
+			  on_success:
+			    put: teams
+			    params:
+			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
+			  on_failure:
+			    put: teams
+			    params:
+			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
+			- name: terraform-plan-dataset-2
+			  plan:
+			  - in_parallel:
+			    - get: build-metadata
+			    - get: ci-src
+			    - get: manifest-pr
+			      passed:
+			      - analyze-pull-request
+			      trigger: true
+			  - task: terraform-plan
+			    file: ci-src/.concourse/tasks/terraform-deployment/terraform-deployment-pr-plan.yaml
+			    params:
+			      GCP_PROJECT_ID: control-plane-377914
+			      GITHUB_REPOSITORY: teleport-java-client/paas-moe-le-cloud
+			      GIT_PRIVATE_KEY: ((git.ssh-private-key))
+			      GIT_USER_EMAIL: dlavoie@live.ca
+			      GIT_USER_NAME: daniellavoie
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      MANIFEST_PATH: {{manifest-path}}
+			      PIPELINES_SERVER: http://localhost:8080
+			      PIPELINES_SERVER_USERNAME: ci 
+			      TERRAFORM_BACKEND_GCS_BUCKET: control-plane-377914
+			      TERRAFORM_GROUP_NAME: dataset-2
+			      TERRAFORM_PREFIX: project1-backend-dev-dataset-2
+			    input_mapping:
+			      manifest-src: manifest-pr
+			  on_success:
+			    put: teams
+			    params:
+			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME completed successfully
+			  on_failure:
+			    put: teams
+			    params:
+			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
 			- name: update-composer-dags-composer-1
 			  plan:
 			  - in_parallel:

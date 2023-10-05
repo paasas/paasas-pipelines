@@ -5,6 +5,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
@@ -129,13 +130,23 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 						.filter(execution -> !execution.getCommitId().equals(pullRequestAnalysis.getCommit()))
 						.toList());
 
-		// Create new executions
+		// Create new executions only if the terraform resource has already been
+		// deployed on the environment
 		terraformPlanExecutionRepository.saveAll(
 				terraformAnalyses
 						.stream()
+						.filter(terraformAnalysis -> hasBeenDeployedPreviously(
+								terraformAnalysis,
+								pullRequestAnalysis.getProjectId()))
 						.map(terraformAnalysis -> TerraformPlanExecutionEntity
 								.create(terraformAnalysis.getPackageName(), pullRequestAnalysis))
 						.toList());
+	}
+
+	boolean hasBeenDeployedPreviously(TerraformAnalysis terraformAnalysis, String projectId) {
+		return terraformDeploymentRepository
+				.findByPackageNameAndProjectId(terraformAnalysis.getPackageName(), projectId, PageRequest.of(0, 1))
+				.hasContent();
 	}
 
 	List<TerraformAnalysis> terraformAnalysis(DeploymentManifest deploymentManifest) {

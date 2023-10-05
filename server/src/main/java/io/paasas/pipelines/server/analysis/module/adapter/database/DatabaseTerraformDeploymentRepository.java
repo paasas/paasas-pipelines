@@ -3,6 +3,8 @@ package io.paasas.pipelines.server.analysis.module.adapter.database;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import io.paasas.pipelines.server.analysis.domain.model.FindDeploymentRequest;
@@ -33,12 +35,83 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 	TerraformPlanExecutionJpaRepository terraformPlanExecutionRepository;
 	TerraformPlanStatusJpaRepository terraformPlanStatusRepository;
 
+	CommitState computeCommitState(List<TerraformPlanExecutionEntity> executions) {
+		if (executions.stream()
+				.map(execution -> execution.getExecution().getState())
+				.filter(state -> state == TerraformExecutionState.FAILED)
+				.findAny()
+				.isPresent()) {
+			return CommitState.FAILURE;
+		}
+
+		if (executions.stream()
+				.map(execution -> execution.getExecution().getState())
+				.filter(state -> state == TerraformExecutionState.PENDING || state == TerraformExecutionState.RUNNING)
+				.findAny()
+				.isPresent()) {
+			return CommitState.PENDING;
+		}
+
+		return CommitState.SUCCESS;
+	}
+
 	@Override
 	public List<TerraformDeployment> find(FindDeploymentRequest findRequest) {
 		return repository.find(findRequest.gitPath(), findRequest.gitUri(), findRequest.gitTag())
 				.stream()
 				.map(TerraformDeploymentEntity::to)
 				.toList();
+	}
+
+	@Override
+	public Page<TerraformDeployment> findByPackageNameAndProjectId(
+			String packageName,
+			String projectId,
+			Pageable pageable) {
+		return repository.findByPackageNameAndDeploymentInfoProjectId(packageName, projectId, pageable)
+				.map(TerraformDeploymentEntity::to);
+	}
+
+	private CommitState refreshTerraformPlanStatusCheck(TerraformPlanExecutionEntity execution) {
+		/**
+		 * This code could be called concurrently by mutiple terraform plan executions
+		 * and contains a race condition. Each refresh attempt could potentially not
+		 * confirm the other plan is completed given that both are updated at the same
+		 * time.
+		 * 
+		 * The primary key of the status entity will guarantee consistency in the
+		 * calculation of the status.
+		 * 
+		 * The status entity will always trigger an INSERT command and will throw a
+		 * constraint exception if it deletes a previous status and another refresh
+		 * occured at the same time. The constraint exception is catched and the status
+		 * is recomputed until no race condition occurs.
+		 */
+		var attempt = 0;
+
+		while (true) {
+			try {
+				terraformPlanStatusRepository.deleteById(execution.getKey());
+
+				var executions = terraformPlanExecutionRepository.findByKeyPullRequestAnalysis(
+						execution.getKey().getPullRequestAnalysis());
+
+				return terraformPlanStatusRepository
+						.save(TerraformPlanStatusEntity.builder()
+								.key(execution.getKey())
+								.commitState(computeCommitState(executions))
+								.build())
+						.getCommitState();
+			} catch (Throwable e) {
+				log.error("failed to persist terraform plan check status", e);
+
+				if (++attempt >= 5) {
+					throw new RuntimeException("failed to persist terraform plan check status after 5 attempts", e);
+				} else {
+					sleep();
+				}
+			}
+		}
 	}
 
 	@Override
@@ -91,68 +164,6 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 				.checkStatus(refreshTerraformPlanStatusCheck(execution))
 				.success(true)
 				.build();
-	}
-
-	private CommitState refreshTerraformPlanStatusCheck(TerraformPlanExecutionEntity execution) {
-		/**
-		 * This code could be called concurrently by mutiple terraform plan executions
-		 * and contains a race condition. Each refresh attempt could potentially not
-		 * confirm the other plan is completed given that both are updated at the same
-		 * time.
-		 * 
-		 * The primary key of the status entity will guarantee consistency in the
-		 * calculation of the status.
-		 * 
-		 * The status entity will always trigger an INSERT command and will throw a
-		 * constraint exception if it deletes a previous status and another refresh
-		 * occured at the same time. The constraint exception is catched and the status
-		 * is recomputed until no race condition occurs.
-		 */
-		var attempt = 0;
-
-		while (true) {
-			try {
-				terraformPlanStatusRepository.deleteById(execution.getKey());
-
-				var executions = terraformPlanExecutionRepository.findByKeyPullRequestAnalysis(
-						execution.getKey().getPullRequestAnalysis());
-
-				return terraformPlanStatusRepository
-						.save(TerraformPlanStatusEntity.builder()
-								.key(execution.getKey())
-								.commitState(computeCommitState(executions))
-								.build())
-						.getCommitState();
-			} catch (Throwable e) {
-				log.error("failed to persist terraform plan check status", e);
-
-				if (++attempt >= 5) {
-					throw new RuntimeException("failed to persist terraform plan check status after 5 attempts", e);
-				} else {
-					sleep();
-				}
-			}
-		}
-	}
-
-	CommitState computeCommitState(List<TerraformPlanExecutionEntity> executions) {
-		if (executions.stream()
-				.map(execution -> execution.getExecution().getState())
-				.filter(state -> state == TerraformExecutionState.FAILED)
-				.findAny()
-				.isPresent()) {
-			return CommitState.FAILURE;
-		}
-
-		if (executions.stream()
-				.map(execution -> execution.getExecution().getState())
-				.filter(state -> state == TerraformExecutionState.PENDING || state == TerraformExecutionState.RUNNING)
-				.findAny()
-				.isPresent()) {
-			return CommitState.PENDING;
-		}
-
-		return CommitState.SUCCESS;
 	}
 
 	private void sleep() {

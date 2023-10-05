@@ -2,6 +2,8 @@ package io.paasas.pipelines.server.analysis.module.adapter.database;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,4 +21,9 @@ public interface TerraformDeploymentJpaRepository extends JpaRepository<Terrafor
 				CONCAT('git@github.com:', gitRevision.repository, '.git') = :uri AND
 				gitRevision.tag = :tag""")
 	List<TerraformDeploymentEntity> find(String path, String uri, String tag);
+
+	Page<TerraformDeploymentEntity> findByPackageNameAndDeploymentInfoProjectId(
+			String packageName,
+			String projectId,
+			Pageable pageable);
 }

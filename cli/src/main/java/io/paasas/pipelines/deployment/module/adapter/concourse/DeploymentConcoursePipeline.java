@@ -713,6 +713,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			deploymentManifest.getTerraform().stream()
 					.map(watcher -> terraformApplyJob(watcher, deploymentManifest, target, deploymentManifestPath))
 					.forEach(streamBuilder::add);
+
+			deploymentManifest.getTerraform().stream()
+					.map(watcher -> terraformPlanJob(watcher, deploymentManifest, target, deploymentManifestPath))
+					.forEach(streamBuilder::add);
 		}
 
 		if (deploymentManifest.getComposer() != null) {
@@ -855,6 +859,71 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 										+ "/.concourse/tasks/terraform-deployment/terraform-deployment-apply.yaml")
 								.inputMapping(Map.of(
 										"src", src))
+								.params(terraformParams)
+								.build()))
+				.onSuccess(teamsSuccessNotification())
+				.onFailure(teamsFailureNotification())
+				.build();
+	}
+
+	Job terraformPlanJob(
+			TerraformWatcher watcher,
+			DeploymentManifest manifest,
+			String target,
+			String deploymentManifestPath) {
+		var terraformBackendGcsBucket = configuration.getDeploymentTerraformBackendBucketSuffix() != null
+				&& !configuration.getDeploymentTerraformBackendBucketSuffix().isBlank()
+						? String.format(
+								"%s.%s",
+								manifest.getProject(),
+								configuration.getDeploymentTerraformBackendBucketSuffix())
+						: manifest.getProject();
+
+		var terraformParams = new TreeMap<>(Map.of(
+				"GCP_PROJECT_ID", manifest.getProject(),
+				"GIT_PRIVATE_KEY", "((git.ssh-private-key))",
+				"GIT_USER_EMAIL", configuration.getGithubEmail(),
+				"GIT_USER_NAME", configuration.getGithubUsername(),
+				"GITHUB_REPOSITORY", configuration.getGithubDeploymentRepository(),
+				"GOOGLE_IMPERSONATE_SERVICE_ACCOUNT", String.format(
+						"terraform@%s.iam.gserviceaccount.com",
+						manifest.getProject()),
+				"MANIFEST_PATH", deploymentManifestPath,
+				"PIPELINES_SERVER", configuration.getPipelinesServer(),
+				"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername()));
+
+		terraformParams.putAll(Map.of(
+				"TERRAFORM_BACKEND_GCS_BUCKET", terraformBackendGcsBucket,
+				"TERRAFORM_GROUP_NAME", watcher.getName(),
+				"TERRAFORM_PREFIX", target + "-" + watcher.getName()));
+
+		if (configuration.getPipelinesServer() != null && !configuration.getPipelinesServer().isBlank() &&
+				configuration.getPipelinesServerUsername() != null
+				&& !configuration.getPipelinesServerUsername().isBlank()) {
+			terraformParams.putAll(Map.of(
+					"GITHUB_REPOSITORY", watcher.getGit().getUri()
+							.replace("git@github.com:", "")
+							.replace(".git", ""),
+					"PIPELINES_SERVER", configuration.getPipelinesServer(),
+					"PIPELINES_SERVER_USERNAME", configuration.getPipelinesServerUsername()));
+		}
+
+		return Job.builder()
+				.name(String.format("terraform-plan-%s", watcher.getName()))
+				.plan(List.of(
+						inParallel(List.of(
+								get(BUILD_METADATA),
+								get(CI_SRC_RESOURCE),
+								Get.builder()
+										.get("manifest-pr")
+										.passed(List.of("analyze-pull-request"))
+										.trigger(true)
+										.build())),
+						Task.builder()
+								.task("terraform-plan")
+								.file(CI_SRC_RESOURCE
+										+ "/.concourse/tasks/terraform-deployment/terraform-deployment-pr-plan.yaml")
+								.inputMapping(Map.of("manifest-src", "manifest-pr"))
 								.params(terraformParams)
 								.build()))
 				.onSuccess(teamsSuccessNotification())

@@ -15,9 +15,9 @@ import lombok.extern.jackson.Jacksonized;
 public class RegisterTerraformPlan {
 	JobInfo jobInfo;
 	GitRevision gitRevision;
+	String logs;
 	String packageName;
 	Map<String, String> params;
 	int pullRequestNumber;
 	TerraformExecutionState state;
-
 }
