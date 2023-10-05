@@ -915,7 +915,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								get(BUILD_METADATA),
 								get(CI_SRC_RESOURCE),
 								Get.builder()
-										.get("manifest-pr")
+										.get("pr")
 										.passed(List.of("analyze-pull-request"))
 										.trigger(true)
 										.build())),
@@ -923,7 +923,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.task("terraform-plan")
 								.file(CI_SRC_RESOURCE
 										+ "/.concourse/tasks/terraform-deployment/terraform-deployment-pr-plan.yaml")
-								.inputMapping(Map.of("manifest-src", "manifest-pr"))
+								.inputMapping(Map.of("manifest-src", "pr"))
 								.params(terraformParams)
 								.build()))
 				.onSuccess(teamsSuccessNotification())

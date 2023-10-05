@@ -340,7 +340,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - in_parallel:
 			    - get: build-metadata
 			    - get: ci-src
-			    - get: manifest-pr
+			    - get: pr
 			      passed:
 			      - analyze-pull-request
 			      trigger: true
@@ -360,7 +360,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      TERRAFORM_GROUP_NAME: dataset-1
 			      TERRAFORM_PREFIX: project1-backend-dev-dataset-1
 			    input_mapping:
-			      manifest-src: manifest-pr
+			      manifest-src: pr
 			  on_success:
 			    put: teams
 			    params:
@@ -376,7 +376,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			  - in_parallel:
 			    - get: build-metadata
 			    - get: ci-src
-			    - get: manifest-pr
+			    - get: pr
 			      passed:
 			      - analyze-pull-request
 			      trigger: true
@@ -396,7 +396,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      TERRAFORM_GROUP_NAME: dataset-2
 			      TERRAFORM_PREFIX: project1-backend-dev-dataset-2
 			    input_mapping:
-			      manifest-src: manifest-pr
+			      manifest-src: pr
 			  on_success:
 			    put: teams
 			    params:
