@@ -146,6 +146,7 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 			log.info(message);
 
 			return RegisterTerraformPlanResult.builder()
+					.checkStatus(CommitState.SUCCESS)
 					.message(message)
 					.build();
 		}
