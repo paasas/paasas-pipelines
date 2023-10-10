@@ -1192,20 +1192,10 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						.build()));
 
 		if (isNotBlank(composerConfig.getDags().getDependsOn())) {
-			var dependsOnResource = Optional.ofNullable(manifest.getTerraform()).stream().flatMap(List::stream)
-					.map(TerraformWatcher::getName)
-					.filter(name -> name.equals(composerConfig.getDags().getDependsOn()))
-					.map(name -> "terraform-apply-" + name)
-					.findFirst()
-					.orElseThrow(() -> new IllegalArgumentException(
-							String.format(
-									"could not find a terraform package name %s within the deployment manifest",
-									composerConfig.getDags().getDependsOn())));
-
 			resources.add(
 					Get.builder()
 							.get(String.format("terraform-%s-src", composerConfig.getDags().getDependsOn()))
-							.passed(List.of(dependsOnResource))
+							.passed(List.of(updateComposerVariableJob))
 							.build());
 		}
 
@@ -1230,13 +1220,32 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 		var dagsSrc = String.format("%s-dags-src", composerConfig.getName());
 		var variablesSrc = String.format("%s-variables-src", composerConfig.getName());
 
+		var resources = new ArrayList<Step>(List.of(
+				get(CI_SRC_RESOURCE),
+				getWithTrigger(dagsSrc),
+				getWithTrigger(variablesSrc)));
+
+		if (isNotBlank(composerConfig.getDags().getDependsOn())) {
+			var dependsOnResource = Optional.ofNullable(manifest.getTerraform()).stream().flatMap(List::stream)
+					.map(TerraformWatcher::getName)
+					.filter(name -> name.equals(composerConfig.getDags().getDependsOn()))
+					.map(name -> "terraform-apply-" + name)
+					.findFirst()
+					.orElseThrow(() -> new IllegalArgumentException(
+							String.format(
+									"could not find a terraform package name %s within the deployment manifest",
+									composerConfig.getDags().getDependsOn())));
+
+			resources.add(Get.builder()
+					.get(String.format("terraform-%s-src", composerConfig.getDags().getDependsOn()))
+					.passed(List.of(dependsOnResource))
+					.build());
+		}
+
 		return Job.builder()
 				.name(String.format("update-composer-variables-%s", composerConfig.getName()))
 				.plan(List.of(
-						inParallel(List.of(
-								get(CI_SRC_RESOURCE),
-								getWithTrigger(dagsSrc),
-								getWithTrigger(variablesSrc))),
+						inParallel(resources),
 						Task.builder()
 								.task("update-variables")
 								.file(CI_SRC_RESOURCE

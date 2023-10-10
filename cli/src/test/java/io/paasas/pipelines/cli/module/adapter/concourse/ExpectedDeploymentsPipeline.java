@@ -415,6 +415,9 @@ public abstract class ExpectedDeploymentsPipeline {
 			      trigger: true
 			    - get: composer-1-variables-src
 			      trigger: true
+			    - get: terraform-dataset-1-src
+			      passed:
+			      - terraform-apply-dataset-1
 			  - task: update-variables
 			    file: ci-src/.concourse/tasks/composer-update-variables/composer-update-variables.yaml
 			    params:
@@ -441,7 +444,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      trigger: true
 			    - get: terraform-dataset-1-src
 			      passed:
-			      - terraform-apply-dataset-1
+			      - update-composer-variables-composer-1
 			  - task: update-dags
 			    file: ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml
 			    params:
