@@ -11,6 +11,8 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @Builder(toBuilder = true)
 public class ComposerDags {
+	String dependsOn;
 	GitWatcher git;
 	List<FlexTemplate> flexTemplates;
+	String preUpdateScript;
 }

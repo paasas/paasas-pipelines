@@ -37,6 +37,7 @@ composer:
   bucketPath: dags
   location: us-east1
   dags:
+    dependsOn: dataset-1
     git:
       tag: 0.1.0
       uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
@@ -76,6 +77,11 @@ composer:
       imageRegistryType: GCR
       metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-mdm/metadata.json
       name: gcs-to-bq-mdm
+    
+    preUpdateScript: |
+      !#/bin/bash
+      
+      echo "This is a pre update script"
     
 firebaseApp:
   config: |

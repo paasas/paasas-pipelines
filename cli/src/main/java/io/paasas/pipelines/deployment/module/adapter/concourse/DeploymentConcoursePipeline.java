@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -346,8 +347,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			DeploymentManifest manifest,
 			String deploymentManifestPath) {
 		var builder = Stream.<Job>builder()
-				.add(updateComposerDagsJob(composerConfig, manifest))
-				.add(updateComposerVariablesJob(composerConfig, manifest, deploymentManifestPath));
+				.add(updateComposerVariablesJob(composerConfig, manifest, deploymentManifestPath))
+				.add(updateComposerDagsJob(composerConfig, manifest));
 
 		composerBuildFlexTemplatesJobs(composerConfig, manifest).forEach(builder::add);
 
@@ -1161,6 +1162,8 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 
 	Job updateComposerDagsJob(ComposerConfig composerConfig, DeploymentManifest manifest) {
 		var dagsSrc = String.format("%s-dags-src", composerConfig.getName());
+		var composerVariablesSrc = String.format("%s-variables-src", composerConfig.getName());
+		var updateComposerVariableJob = String.format("update-composer-variables-%s", composerConfig.getName());
 
 		var params = new TreeMap<>(Map.of(
 				"COMPOSER_DAGS_BUCKET_NAME", composerConfig.getBucketName(),
@@ -1171,12 +1174,45 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 						"terraform@%s.iam.gserviceaccount.com",
 						manifest.getProject())));
 
+		if (isNotBlank(composerConfig.getDags().getPreUpdateScript())) {
+			params.put("PRE_UPDATE_SCRIPT", composerConfig.getDags().getPreUpdateScript());
+		}
+
+		var resources = new ArrayList<Step>(List.of(
+				get(CI_SRC_RESOURCE),
+				Get.builder()
+						.get(dagsSrc)
+						.passed(List.of(updateComposerVariableJob))
+						.trigger(true)
+						.build(),
+				Get.builder()
+						.get(composerVariablesSrc)
+						.passed(List.of(updateComposerVariableJob))
+						.trigger(true)
+						.build()));
+
+		if (isNotBlank(composerConfig.getDags().getDependsOn())) {
+			var dependsOnResource = Optional.ofNullable(manifest.getTerraform()).stream().flatMap(List::stream)
+					.map(TerraformWatcher::getName)
+					.filter(name -> name.equals(composerConfig.getDags().getDependsOn()))
+					.map(name -> "terraform-apply-" + name)
+					.findFirst()
+					.orElseThrow(() -> new IllegalArgumentException(
+							String.format(
+									"could not find a terraform package name %s within the deployment manifest",
+									composerConfig.getDags().getDependsOn())));
+
+			resources.add(
+					Get.builder()
+							.get(String.format("terraform-%s-src", composerConfig.getDags().getDependsOn()))
+							.passed(List.of(dependsOnResource))
+							.build());
+		}
+
 		return Job.builder()
 				.name(String.format("update-composer-dags-%s", composerConfig.getName()))
 				.plan(List.of(
-						inParallel(List.of(
-								get(CI_SRC_RESOURCE),
-								getWithTrigger(dagsSrc))),
+						inParallel(resources),
 						Task.builder()
 								.task("update-dags")
 								.file(CI_SRC_RESOURCE
@@ -1191,6 +1227,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 			ComposerConfig composerConfig,
 			DeploymentManifest manifest,
 			String deploymentManifestPath) {
+		var dagsSrc = String.format("%s-dags-src", composerConfig.getName());
 		var variablesSrc = String.format("%s-variables-src", composerConfig.getName());
 
 		return Job.builder()
@@ -1198,6 +1235,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				.plan(List.of(
 						inParallel(List.of(
 								get(CI_SRC_RESOURCE),
+								getWithTrigger(dagsSrc),
 								getWithTrigger(variablesSrc))),
 						Task.builder()
 								.task("update-variables")

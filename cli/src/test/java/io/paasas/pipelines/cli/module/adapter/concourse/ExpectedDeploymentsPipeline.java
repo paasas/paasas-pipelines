@@ -407,25 +407,12 @@ public abstract class ExpectedDeploymentsPipeline {
 			    params:
 			      actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 			      text: Job $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME failed
-			- name: update-composer-dags-composer-1
+			- name: update-composer-variables-composer-1
 			  plan:
 			  - in_parallel:
 			    - get: ci-src
 			    - get: composer-1-dags-src
 			      trigger: true
-			  - task: update-dags
-			    file: ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml
-			    params:
-			      COMPOSER_DAGS_BUCKET_NAME: composer-1-bucket
-			      COMPOSER_DAGS_BUCKET_PATH: dags
-			      COMPOSER_DAGS_PATH: dags-path
-			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
-			    input_mapping:
-			      dags-src: composer-1-dags-src
-			- name: update-composer-variables-composer-1
-			  plan:
-			  - in_parallel:
-			    - get: ci-src
 			    - get: composer-1-variables-src
 			      trigger: true
 			  - task: update-variables
@@ -440,6 +427,34 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			    input_mapping:
 			      composer-variables-src: composer-1-variables-src
+			- name: update-composer-dags-composer-1
+			  plan:
+			  - in_parallel:
+			    - get: ci-src
+			    - get: composer-1-dags-src
+			      passed:
+			      - update-composer-variables-composer-1
+			      trigger: true
+			    - get: composer-1-variables-src
+			      passed:
+			      - update-composer-variables-composer-1
+			      trigger: true
+			    - get: terraform-dataset-1-src
+			      passed:
+			      - terraform-apply-dataset-1
+			  - task: update-dags
+			    file: ci-src/.concourse/tasks/composer-update-dags/composer-update-dags.yaml
+			    params:
+			      COMPOSER_DAGS_BUCKET_NAME: composer-1-bucket
+			      COMPOSER_DAGS_BUCKET_PATH: dags
+			      COMPOSER_DAGS_PATH: dags-path
+			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
+			      PRE_UPDATE_SCRIPT: |
+			        !#/bin/bash
+			        
+			        echo "This is a pre update script"
+			    input_mapping:
+			      dags-src: composer-1-dags-src
 			- name: build-flex-template-api-to-gcs-ingestion
 			  plan:
 			  - in_parallel:
