@@ -20,6 +20,7 @@ import io.paasas.pipelines.server.analysis.module.adapter.database.entity.Terraf
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanExecutionEntity;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanStatusEntity;
 import io.paasas.pipelines.server.github.domain.model.commit.CommitState;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -120,6 +121,7 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 	}
 
 	@Override
+	@Transactional
 	public RegisterTerraformPlanResult registerPlan(RegisterTerraformPlan request) {
 		var optionalExecution = terraformPlanExecutionRepository.findByKey(
 				TerraformExecutionKey.builder()
