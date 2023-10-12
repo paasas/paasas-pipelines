@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.ToString.Exclude;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
 
@@ -32,6 +33,7 @@ public class PullRequestAnalysisEntity {
 	String commitAuthor;
 
 	@Lob
+	@Exclude
 	@Column(length = 16_777_216)
 	String manifest;
 
