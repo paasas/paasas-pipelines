@@ -3,6 +3,7 @@ package io.paasas.pipelines.server.analysis.module.adapter.database;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -92,18 +93,23 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 
 		while (true) {
 			try {
-				terraformPlanStatusRepository.deleteById(execution.getKey());
-
 				var executions = terraformPlanExecutionRepository.findByKeyPullRequestAnalysis(
 						execution.getKey().getPullRequestAnalysis());
 
-				return terraformPlanStatusRepository
-						.save(TerraformPlanStatusEntity.builder()
+				var terraformPlanStatus = terraformPlanStatusRepository.findById(execution.getKey())
+						.stream()
+						.peek(terraformPlanStatusRepository::delete)
+						.findAny()
+						.orElse(TerraformPlanStatusEntity.builder()
 								.key(execution.getKey())
-								.commitState(computeCommitState(executions))
-								.build())
+								.build());
+
+				terraformPlanStatus.setCommitState(computeCommitState(executions));
+
+				return terraformPlanStatusRepository
+						.save(terraformPlanStatus)
 						.getCommitState();
-			} catch (Throwable e) {
+			} catch (DataIntegrityViolationException e) {
 				log.error("failed to persist terraform plan check status", e);
 
 				if (++attempt >= 5) {
