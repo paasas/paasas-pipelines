@@ -27,6 +27,7 @@ import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
 import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 import io.paasas.pipelines.server.analysis.domain.port.api.PullRequestAnalysisDomain;
 import io.paasas.pipelines.server.analysis.domain.port.backend.PullRequestAnalysisRepository;
+import io.paasas.pipelines.server.analysis.domain.port.backend.TerraformPlanExecutionRepository;
 import io.paasas.pipelines.server.github.domain.model.commit.CommitState;
 import io.paasas.pipelines.server.github.domain.model.commit.CreateCommitStatus;
 import io.paasas.pipelines.server.github.domain.model.pull.CreatePullRequestComment;
@@ -120,6 +121,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	CommitStatusRepository commitStatusRepository;
 	PullRequestRepository pullRequestRepository;
 	PullRequestAnalysisRepository repository;
+	TerraformPlanExecutionRepository terraformPlanExecutionRepository;
 
 	@Override
 	public PullRequestAnalysis refresh(RefreshPullRequestAnalysisRequest request) {
@@ -159,6 +161,22 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				CreatePullRequestComment.builder()
 						.body(generatePullRequestReviewBody(deploymentManifest, pullRequestAnalysis))
 						.build());
+
+		var hasTerraformPlanExecutions = !terraformPlanExecutionRepository.findByPullrequest(
+				pullRequestAnalysis.getPullRequestNumber(),
+				pullRequestAnalysis.getRepository())
+				.isEmpty();
+
+		if (hasTerraformPlanExecutions) {
+			commitStatusRepository.createCommitStatus(
+					pullRequestAnalysis.getRepository(),
+					pullRequestAnalysis.getCommit(),
+					CreateCommitStatus.builder()
+							.context("compliance/tf-plan")
+							.description("A terraform plan execution is pending")
+							.state(CommitState.PENDING)
+							.build());
+		}
 
 		if (deploymentManifest.getLabels() != null
 				&& (deploymentManifest.getLabels().contains(DeploymentLabel.ACCP)
@@ -361,10 +379,10 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	static Optional<String> firebaseApp(
 			DeploymentManifest deploymentManifest,
 			PullRequestAnalysis pullRequestAnalysis) {
-		if(pullRequestAnalysis.getFirebase() == null) {
+		if (pullRequestAnalysis.getFirebase() == null) {
 			return Optional.empty();
 		}
-		
+
 		var gitRevision = Optional.ofNullable(pullRequestAnalysis.getFirebase().getDeployments())
 				.orElseGet(() -> List.of())
 				.stream()

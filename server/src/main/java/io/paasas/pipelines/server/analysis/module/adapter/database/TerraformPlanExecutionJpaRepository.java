@@ -14,6 +14,10 @@ public interface TerraformPlanExecutionJpaRepository
 
 	List<TerraformPlanExecutionEntity> findByKeyPullRequestAnalysis(PullRequestAnalysisEntity pullRequestAnalysis);
 
+	List<TerraformPlanExecutionEntity> findByKeyPullRequestAnalysisKeyNumberAndKeyPullRequestAnalysisKeyRepository(
+			int number,
+			String repository);
+
 	Optional<TerraformPlanExecutionEntity> findByKey(TerraformExecutionKey key);
 
 }

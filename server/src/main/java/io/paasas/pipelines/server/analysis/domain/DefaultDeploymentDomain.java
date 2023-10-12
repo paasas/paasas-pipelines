@@ -59,7 +59,7 @@ public class DefaultDeploymentDomain implements DeploymentDomain {
 				request.getGitRevision().getRepository(),
 				request.getGitRevision().getCommit(),
 				CreateCommitStatus.builder()
-						.context("compliance/testing")
+						.context("compliance/tf-plan")
 						.description(computeTerraformPlanCommitStatusDescription(result))
 						.state(result.getCheckStatus())
 						.build());
