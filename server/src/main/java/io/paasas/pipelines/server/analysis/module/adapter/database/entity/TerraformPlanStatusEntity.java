@@ -3,6 +3,7 @@ package io.paasas.pipelines.server.analysis.module.adapter.database.entity;
 import org.springframework.data.domain.Persistable;
 
 import io.paasas.pipelines.server.github.domain.model.commit.CommitState;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +16,7 @@ import lombok.Value;
 import lombok.experimental.FieldDefaults;
 
 @Value
+@Cacheable(false)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
