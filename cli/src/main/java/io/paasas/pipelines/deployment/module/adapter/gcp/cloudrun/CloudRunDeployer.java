@@ -254,7 +254,11 @@ public class CloudRunDeployer implements Deployer {
 
 			revisionTemplaterBuilder.setScaling(revisionScaling);
 		}
-
+		
+		if(app.getContainerConcurrency() != null) {
+			revisionTemplaterBuilder.setMaxInstanceRequestConcurrency(app.getContainerConcurrency());
+		}
+		
 		return revisionTemplaterBuilder.build();
 	}
 

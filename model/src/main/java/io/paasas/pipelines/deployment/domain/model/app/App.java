@@ -15,6 +15,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder(toBuilder = true)
 public class App {
 	List<String> cloudSqlInstances;
+	Integer containerConcurrency;
 	Map<String, String> env;
 	String image;
 	IngressTraffic ingressTraffic;
