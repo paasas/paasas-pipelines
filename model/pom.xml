@@ -3,7 +3,7 @@
   <parent>
     <groupId>io.paasas</groupId>
     <artifactId>paasas-pipelines-parent</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.2-SNAPSHOT</version>
   </parent>
   <artifactId>paasas-pipelines-model</artifactId>
   
