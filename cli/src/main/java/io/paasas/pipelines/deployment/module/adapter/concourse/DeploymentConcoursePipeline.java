@@ -167,7 +167,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 								.name(PULL_REQUEST)
 								.type(CommonResourceTypes.GITHUB_PULL_REQUEST_TYPE)
 								.source(PullRequestSource.builder()
-										.accessToken("((github.userAccessToken))")
+										.accessToken("((github.accessToken))")
 										.repository(configuration.getGithubDeploymentRepository())
 										.paths(List.of(deploymentManifestPath))
 										.build())
@@ -450,7 +450,7 @@ public class DeploymentConcoursePipeline extends ConcoursePipeline {
 				"GOOGLE_PROJECT_ID", deploymentManifest.getProject(),
 				"MANIFEST_PATH", deploymentManifestPath,
 				"MVN_REPOSITORY_USERNAME", configuration.getGithubUsername(),
-				"MVN_REPOSITORY_PASSWORD", "((github.userAccessToken))",
+				"MVN_REPOSITORY_PASSWORD", "((github.accessToken))",
 				"PIPELINES_GCP_IMPERSONATESERVICEACCOUNT", String.format(
 						"terraform@%s.iam.gserviceaccount.com",
 						deploymentManifest.getProject())));

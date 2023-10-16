@@ -301,7 +301,7 @@ public class PlatformConcoursePipeline extends ConcoursePipeline {
 						.name(targetConfig.getName() + "-platform-pr")
 						.type(PULL_REQUEST_RESOURCE_TYPE)
 						.source(PullRequestSource.builder()
-								.accessToken("((github.userAccessToken))")
+								.accessToken("((github.accessToken))")
 								.repository(configuration.getGithubPlatformRepository())
 								.paths(List.of(
 										targetConfig.getPlatformManifestPath(),
