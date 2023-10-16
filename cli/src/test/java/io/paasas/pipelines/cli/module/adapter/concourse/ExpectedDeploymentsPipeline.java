@@ -33,7 +33,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			- name: pr
 			  type: pull-request
 			  source:
-			    access_token: ((github.userAccessToken))
+			    access_token: ((github.accessToken))
 			    repository: daniellavoie/deployment-as-code-demo
 			    paths:
 			    - {{manifest-path}}
@@ -257,7 +257,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
-			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
+			      MVN_REPOSITORY_PASSWORD: ((github.accessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      PIPELINES_SERVER: http://localhost:8080
@@ -631,7 +631,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
-			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
+			      MVN_REPOSITORY_PASSWORD: ((github.accessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      PIPELINES_SERVER: http://localhost:8080
@@ -669,7 +669,7 @@ public abstract class ExpectedDeploymentsPipeline {
 			      GOOGLE_PROJECT_ID: control-plane-377914
 			      MANIFEST_PATH: {{manifest-dir}}/dev.yaml
 			      MVN_EXTRA_OPTS: full-test-suite
-			      MVN_REPOSITORY_PASSWORD: ((github.userAccessToken))
+			      MVN_REPOSITORY_PASSWORD: ((github.accessToken))
 			      MVN_REPOSITORY_USERNAME: daniellavoie
 			      PIPELINES_GCP_IMPERSONATESERVICEACCOUNT: terraform@control-plane-377914.iam.gserviceaccount.com
 			      PIPELINES_SERVER: http://localhost:8080
