@@ -366,14 +366,18 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	}
 
 	static String testReport(TestReport testReport) {
+		var testReportUrl = testReport.getReportUrl() != null && !testReport.getReportUrl().isBlank()
+				? String.format(" - [Tests report](%s)", testReport.getReportUrl())
+				: "";
+
 		return String.format(
-				"* %s **%s - %s** - [Build %s](%s) - [Tests report](%s)",
+				"* %s **%s - %s** - [Build %s](%s)%s",
 				testReport.isSuccessful() ? ":green_circle:" : ":red_circle:",
 				testReport.getTimestamp().format(DATETIME_FORMAT),
 				testReport.getProjectId(),
 				testReport.getBuildName(),
 				testReport.getBuildUrl(),
-				testReport.getReportUrl());
+				testReportUrl);
 	}
 
 	static Optional<String> firebaseApp(
@@ -429,6 +433,18 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 				.flatMap(stream -> stream)
 				.collect(Collectors.joining());
 
+		var revisionUrl = hasTag
+				? String.format(
+						"https://github.com/%s/releases/tag/%s",
+						githubRepository,
+						deploymentManifest.getFirebaseApp().getGit().getTag())
+				: String.format(
+						"https://github.com/%s/tree/%s%s",
+						githubRepository,
+						deploymentManifest.getFirebaseApp().getGit().getBranch(),
+						Optional.ofNullable(deploymentManifest.getFirebaseApp().getGit().getPath())
+								.map(path -> "/" + path).orElse(""));
+
 		return Optional.of(FIREBASE_TEMPLATE
 				.replace("{{WARNINGS}}", warnings)
 				.replace("{{COMMIT}}", commitDetails)
@@ -437,15 +453,12 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 						"{{REVISION}}",
 						hasRevision
 								? String.format(
-										"%s: [%s](https://github.com/%s/tree/%s%s)\n",
+										"%s: [%s](%s)\n",
 										hasTag ? "Tag" : "Branch",
-										hasTag ? deploymentManifest.getFirebaseApp().getGit().getTag()
+										hasTag
+												? deploymentManifest.getFirebaseApp().getGit().getTag()
 												: deploymentManifest.getFirebaseApp().getGit().getBranch(),
-										githubRepository,
-										hasTag ? deploymentManifest.getFirebaseApp().getGit().getTag()
-												: deploymentManifest.getFirebaseApp().getGit().getBranch(),
-										Optional.ofNullable(deploymentManifest.getFirebaseApp().getGit().getPath())
-												.map(path -> "/" + path).orElse(""))
+										revisionUrl)
 
 								: "")
 				.replace("{{TESTS}}", firebaseAppTest(pullRequestAnalysis.getFirebase()))
@@ -546,6 +559,18 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 
 		var githubRepository = terraformWatcher.getGit().getUri().replace("git@github.com:", "").replace(".git", "");
 
+		var revisionUrl = hasTag
+				? String.format(
+						"https://github.com/%s/releases/tag/%s",
+						githubRepository,
+						terraformWatcher.getGit().getTag())
+				: String.format(
+						"https://github.com/%s/tree/%s%s",
+						githubRepository,
+						terraformWatcher.getGit().getBranch(),
+						Optional.ofNullable(terraformWatcher.getGit().getPath())
+								.map(path -> "/" + path).orElse(""));
+
 		return Stream.of(
 				TERRAFORM_ENTRY_TEMPLATE
 						.replace("{{REVISION_WARNINGS}}", !revisionWarnings.isBlank() ? revisionWarnings : "")
@@ -556,17 +581,12 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 								"{{REVISION}}",
 								hasRevision
 										? String.format(
-												"%s: [%s](https://github.com/%s/tree/%s%s)\n",
+												"%s: [%s](%s)\n",
 												hasTag ? "Tag" : "Branch",
 												hasTag
 														? terraformWatcher.getGit().getTag()
 														: terraformWatcher.getGit().getBranch(),
-												githubRepository,
-												hasTag
-														? terraformWatcher.getGit().getTag()
-														: terraformWatcher.getGit().getBranch(),
-												Optional.ofNullable(terraformWatcher.getGit().getPath())
-														.map(path -> "/" + path).orElse(""))
+												revisionUrl)
 
 										: "")
 						.replace(

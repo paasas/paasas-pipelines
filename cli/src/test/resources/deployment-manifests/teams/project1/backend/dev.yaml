@@ -112,10 +112,12 @@ firebaseApp:
     branch: smoke-tests
     uri: git@github.com:teleport-java-client/my-tests.git
     path: firebase-app-tests
+    reportDomain: my-test-domain.com
   - name: full
     extraMavenOpts: full-test-suite
     uri: git@github.com:teleport-java-client/my-tests.git
     path: firebase-app-tests
+    reportDomain: my-test-domain.com
     tag: my-test-tag
     cron: 0 1 * * *
 terraform:

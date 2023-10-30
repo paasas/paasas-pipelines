@@ -13,6 +13,7 @@ public class TestGitWatcher {
 	String extraMavenOpts;
 	String name;
 	String path;
+	String reportDomain;
 	String uri;
 	String tag;
 }

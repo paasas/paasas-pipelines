@@ -97,7 +97,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 				#### Revision
 
 				Commit: [0fef174e8481c540cd42dd5e74aea7db86eda6d5](https://github.com/my-test-org/my-test-repository/commit/0fef174e8481c540cd42dd5e74aea7db86eda6d5)
-				Tag: [2.0.0](https://github.com/my-test-org/my-test-repository/tree/2.0.0)
+				Tag: [2.0.0](https://github.com/my-test-org/my-test-repository/releases/tag/2.0.0)
 				Repository: [my-test-org/my-test-repository](https://github.com/my-test-org/my-test-repository)
 
 				#### Tests
@@ -115,7 +115,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 				##### Revision
 
 				Commit: [ccd1a17014013076ef30b19f1f741e38a3b6374c](https://github.com/my-test-org/my-terraform-repository/commit/ccd1a17014013076ef30b19f1f741e38a3b6374c)
-				Tag: [3.0.0](https://github.com/my-test-org/my-terraform-repository/tree/3.0.0/terraform-subdirectory/test)
+				Tag: [3.0.0](https://github.com/my-test-org/my-terraform-repository/releases/tag/3.0.0)
 				Repository: [my-test-org/my-terraform-repository](https://github.com/my-test-org/my-terraform-repository)
 
 				##### Past deployments
