@@ -12,6 +12,7 @@ import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
@@ -81,7 +82,8 @@ public class GithubWebClientConfig {
 	static void configureCodecs(ClientCodecConfigurer configurer) {
 		var objectMapper = new ObjectMapper()
 				.findAndRegisterModules()
-				.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+				.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
 		configurer.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper));
 		configurer.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper));
