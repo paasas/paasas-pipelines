@@ -64,14 +64,16 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 	}
 
 	@Override
+	@Transactional
 	public Optional<PullRequestAnalysis> findExistingPullRequestAnalysis(
 			int pullRequestNumber,
 			String repository,
 			String projectId) {
-		return this.repository.findByKeyNumberAndKeyRepositoryAndKeyProjectId(
-				pullRequestNumber,
-				repository,
-				projectId)
+		return this.repository
+				.findByKeyNumberAndKeyRepositoryAndKeyProjectId(
+						pullRequestNumber,
+						repository,
+						projectId)
 				.map(entity -> entity.to(null, null, null));
 	}
 
