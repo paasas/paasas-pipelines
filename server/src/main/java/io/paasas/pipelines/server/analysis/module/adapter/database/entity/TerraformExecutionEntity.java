@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import io.paasas.pipelines.server.analysis.domain.model.TerraformExecution;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformExecutionState;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -21,10 +22,14 @@ import lombok.experimental.FieldDefaults;
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TerraformExecutionEntity {
+	LocalDateTime createTimestamp;
+
 	@Enumerated(EnumType.STRING)
 	TerraformExecutionState state;
 
-	LocalDateTime createTimestamp;
+	@Column(length = 65535)
+	String jobUrl;
+
 	LocalDateTime updateTimestamp;
 
 	public TerraformExecution to(String packageName) {

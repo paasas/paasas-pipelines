@@ -20,6 +20,9 @@ import io.paasas.pipelines.server.analysis.domain.model.GitRevision;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformExecution;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformExecutionState;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformPlanExecution;
 import io.paasas.pipelines.server.analysis.domain.model.TestReport;
 
 public class DefaultPullRequestAnalysisDomainTest {
@@ -111,6 +114,8 @@ public class DefaultPullRequestAnalysisDomainTest {
 				### Terraform packages
 
 				#### terraform-1
+				
+				:gray_circle: **Terraform Plan execution is pending**
 
 				##### Revision
 
@@ -123,6 +128,8 @@ public class DefaultPullRequestAnalysisDomainTest {
 				* [2023-09-24 13:44 - my-terraform-google-project](http://another-super-terraform-job-url)
 
 				#### terraform-2
+				
+				:yellow_circle: **Terraform Plan execution is in progress** - [View job](https://terraform-2-plan-job-url)
 
 				:warning: **This artifact is not configured with a tag**
 
@@ -137,6 +144,25 @@ public class DefaultPullRequestAnalysisDomainTest {
 				* [2023-09-24 13:44 - my-terraform-google-project](http://another-super-terraform-job-url)
 
 				#### terraform-3
+				
+				:green_circle: **Terraform Plan execution completed** - [View job](https://terraform-3-plan-job-url)
+
+				:warning: **This artifact is not configured with a tag**
+
+				:warning: **This artifact was never deployed**
+
+				##### Revision
+
+				Branch: [test-branch](https://github.com/my-test-org/my-terraform-repository/tree/test-branch/terraform-subdirectory/test)
+				Repository: [my-test-org/my-terraform-repository](https://github.com/my-test-org/my-terraform-repository)
+
+				##### Past deployments
+
+				* *No deployment recorded*
+
+				#### terraform-4
+				
+				:red_circle: **Terraform Plan execution failed** - [View job](https://terraform-4-plan-job-url)
 
 				:warning: **This artifact is not configured with a tag**
 
@@ -267,10 +293,35 @@ public class DefaultPullRequestAnalysisDomainTest {
 												.branch("test-branch")
 												.build())
 										.build()))
+								.planExecution(TerraformPlanExecution.builder()
+										.execution(TerraformExecution.builder()
+												.jobUrl("https://terraform-2-plan-job-url")
+												.packageName("terraform-2")
+												.state(TerraformExecutionState.RUNNING)
+												.build())
+										.build())
 								.build(),
 						TerraformAnalysis.builder()
 								.packageName("terraform-3")
 								.deployments(List.of())
+								.planExecution(TerraformPlanExecution.builder()
+										.execution(TerraformExecution.builder()
+												.jobUrl("https://terraform-3-plan-job-url")
+												.packageName("terraform-3")
+												.state(TerraformExecutionState.SUCCESS)
+												.build())
+										.build())
+								.build(),
+						TerraformAnalysis.builder()
+								.packageName("terraform-4")
+								.deployments(List.of())
+								.planExecution(TerraformPlanExecution.builder()
+										.execution(TerraformExecution.builder()
+												.jobUrl("https://terraform-4-plan-job-url")
+												.packageName("terraform-4")
+												.state(TerraformExecutionState.FAILED)
+												.build())
+										.build())
 								.build()))
 				.build();
 
@@ -318,6 +369,14 @@ public class DefaultPullRequestAnalysisDomainTest {
 												.build(),
 										TerraformWatcher.builder()
 												.name("terraform-3")
+												.git(GitWatcher.builder()
+														.branch("test-branch")
+														.path("terraform-subdirectory/test")
+														.uri("git@github.com:my-test-org/my-terraform-repository.git")
+														.build())
+												.build(),
+										TerraformWatcher.builder()
+												.name("terraform-4")
 												.git(GitWatcher.builder()
 														.branch("test-branch")
 														.path("terraform-subdirectory/test")

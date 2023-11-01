@@ -5,20 +5,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import io.paasas.pipelines.server.PaasasPipelinesServerApplication;
-import io.paasas.pipelines.server.github.domain.model.pull.CreatePullRequestComment;
-import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
+import io.paasas.pipelines.server.github.domain.model.pull.UpdateIssueCommentRequest;
+import io.paasas.pipelines.server.github.domain.port.backend.IssueCommentRepository;
 
 @SpringBootTest(classes = PaasasPipelinesServerApplication.class, properties = "spring.profiles.active=test,secrets")
 public class WebClientPullRequestClientTest {
 	@Autowired
-	PullRequestRepository pullRequestRepository;
+	IssueCommentRepository issueCommentRepository;
 
 	@Test
 	public void assertListPullRequests() {
-		pullRequestRepository.createPullRequestComment(2, "paasas/paasas-pipelines", CreatePullRequestComment.builder()
+		issueCommentRepository.createIssueComment(2, "paasas/paasas-pipelines", UpdateIssueCommentRequest.builder()
 				.body("yo")
 				.build());
 
-		pullRequestRepository.listPullRequestsReviewComments(2, "paasas/paasas-pipelines");
+		issueCommentRepository.listPullRequestsReviewComments(2, "paasas/paasas-pipelines");
 	}
 }

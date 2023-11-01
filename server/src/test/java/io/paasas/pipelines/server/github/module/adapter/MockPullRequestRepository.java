@@ -3,24 +3,60 @@ package io.paasas.pipelines.server.github.module.adapter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import io.paasas.pipelines.server.github.domain.model.pull.CreatePullRequestComment;
-import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
+import io.paasas.pipelines.server.github.domain.model.issue.IssueComment;
+import io.paasas.pipelines.server.github.domain.model.pull.UpdateIssueCommentRequest;
+import io.paasas.pipelines.server.github.domain.port.backend.IssueCommentRepository;
 
-public class MockPullRequestRepository implements PullRequestRepository {
-	public static final Map<String, String> REVIEW_BODIES = new HashMap<>();
+public class MockPullRequestRepository implements IssueCommentRepository {
+	private static final AtomicInteger COUNTER = new AtomicInteger();
+
+	public static final Map<String, IssueComment> REVIEW_BODIES = new HashMap<>();
 
 	@Override
-	public void createPullRequestComment(
-			int pullNumber,
+	public IssueComment createIssueComment(
+			int pullRequestNumber,
 			String repository,
-			CreatePullRequestComment request) {
-		REVIEW_BODIES.put(String.format("%s/%d", repository, pullNumber), request.getBody());
+			UpdateIssueCommentRequest request) {
+		var commentId = COUNTER.incrementAndGet();
+
+		var issueComment = IssueComment.builder()
+				.body(request.getBody())
+				.id(commentId)
+				.build();
+
+		REVIEW_BODIES.put(String.format("%s/%d/%d", repository, pullRequestNumber, commentId), issueComment);
+
+		return issueComment;
 	}
 
 	@Override
-	public List<Object> listPullRequestsReviewComments(int pullNumber, String repository) {
-		return List.of(REVIEW_BODIES.get(String.format("%s/%d", repository, pullNumber)));
+	public List<IssueComment> listPullRequestsReviewComments(int pullRequestNumber, String repository) {
+		var prefix = String.format("%s/%d", repository, pullRequestNumber);
+
+		return REVIEW_BODIES.entrySet()
+				.stream()
+				.filter(entry -> entry.getKey().startsWith(prefix))
+				.map(Entry::getValue)
+				.toList();
+	}
+
+	@Override
+	public IssueComment updateIssueComment(
+			int commentId,
+			int pullRequestNumber,
+			String repository,
+			UpdateIssueCommentRequest request) {
+		var issueComment = IssueComment.builder()
+				.id(commentId)
+				.body(request.getBody())
+				.build();
+
+		REVIEW_BODIES.get(String.format("%s/%d", repository, pullRequestNumber, commentId));
+
+		return issueComment;
 	}
 
 }

@@ -13,10 +13,11 @@ import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeploym
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlan;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlanResult;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
-import io.paasas.pipelines.server.analysis.domain.model.TerraformExecutionState;
+import io.paasas.pipelines.server.analysis.domain.model.TerraformExecution;
 import io.paasas.pipelines.server.analysis.domain.port.backend.TerraformDeploymentRepository;
-import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestKey;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestAnalysisKey;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformDeploymentEntity;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformExecutionEntity;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformExecutionKey;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanExecutionEntity;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanStatusEntity;
@@ -38,23 +39,10 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 	TerraformPlanStatusJpaRepository terraformPlanStatusRepository;
 
 	CommitState computeCommitState(List<TerraformPlanExecutionEntity> executions) {
-		if (executions.stream()
-				.map(execution -> execution.getExecution().getState())
-				.filter(state -> state == TerraformExecutionState.FAILED)
-				.findAny()
-				.isPresent()) {
-			return CommitState.FAILURE;
-		}
-
-		if (executions.stream()
-				.map(execution -> execution.getExecution().getState())
-				.filter(state -> state == TerraformExecutionState.PENDING || state == TerraformExecutionState.RUNNING)
-				.findAny()
-				.isPresent()) {
-			return CommitState.PENDING;
-		}
-
-		return CommitState.SUCCESS;
+		return TerraformExecution.computeCommitState(executions.stream()
+				.map(TerraformPlanExecutionEntity::getExecution)
+				.map(TerraformExecutionEntity::getState)
+				.toList());
 	}
 
 	@Override
@@ -133,9 +121,10 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 				TerraformExecutionKey.builder()
 						.packageName(request.getPackageName())
 						.pullRequestAnalysis(pullRequestAnalysisRepository
-								.findById(PullRequestKey.builder()
+								.findById(PullRequestAnalysisKey.builder()
 										.number(request.getPullRequestNumber())
 										.repository(request.getGitRevision().getRepository())
+										.projectId(request.getJobInfo().getProjectId())
 										.build())
 								.orElseThrow(() -> new IllegalArgumentException(
 										String.format(
@@ -164,6 +153,7 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 		execution = terraformPlanExecutionRepository.save(
 				execution.toBuilder()
 						.execution(execution.getExecution().toBuilder()
+								.jobUrl(request.getJobInfo().getUrl())
 								.state(request.getState())
 								.updateTimestamp(LocalDateTime.now())
 								.build())

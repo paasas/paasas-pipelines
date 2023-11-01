@@ -27,8 +27,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PullRequestAnalysisEntity {
 	@EmbeddedId
-	PullRequestKey key;
+	PullRequestAnalysisKey key;
 
+	Integer commentId;
 	String commit;
 	String commitAuthor;
 
@@ -36,8 +37,6 @@ public class PullRequestAnalysisEntity {
 	@Exclude
 	@Column(length = 16_777_216)
 	String manifest;
-
-	String projectId;
 
 	@Embedded
 	PullRequestAnalysisJobInfoEntity jobInfo;
@@ -47,13 +46,14 @@ public class PullRequestAnalysisEntity {
 			FirebaseAppAnalysis firebase,
 			List<TerraformAnalysis> terraform) {
 		return PullRequestAnalysis.builder()
+				.cloudRun(cloudRun)
+				.commentId(commentId)
 				.commit(commit)
 				.commitAuthor(commitAuthor)
-				.cloudRun(cloudRun)
 				.firebase(firebase)
 				.jobInfo(jobInfo.to())
 				.manifest(manifest)
-				.projectId(projectId)
+				.projectId(key.getProjectId())
 				.pullRequestNumber(key.getNumber())
 				.terraform(terraform)
 				.build();
@@ -61,15 +61,16 @@ public class PullRequestAnalysisEntity {
 
 	public static PullRequestAnalysisEntity from(PullRequestAnalysis pullRequestAnalysis) {
 		return PullRequestAnalysisEntity.builder()
+				.commentId(pullRequestAnalysis.getCommentId())
 				.commit(pullRequestAnalysis.getCommit())
 				.commitAuthor(pullRequestAnalysis.getCommitAuthor())
-				.key(PullRequestKey.builder()
+				.key(PullRequestAnalysisKey.builder()
 						.number(pullRequestAnalysis.getPullRequestNumber())
+						.projectId(pullRequestAnalysis.getProjectId())
 						.repository(pullRequestAnalysis.getRepository())
 						.build())
 				.jobInfo(PullRequestAnalysisJobInfoEntity.from(pullRequestAnalysis.getJobInfo()))
 				.manifest(pullRequestAnalysis.getManifest())
-				.projectId(pullRequestAnalysis.getProjectId())
 				.build();
 	}
 }

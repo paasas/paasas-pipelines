@@ -14,5 +14,6 @@ public class TerraformAnalysis {
 	List<TerraformDeployment> deployments;
 	String packageName;
 	Map<String, String> params;
+	TerraformPlanExecution planExecution;
 	AnalysisStatus status;
 }

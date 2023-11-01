@@ -7,6 +7,6 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder(toBuilder = true)
-public class CreatePullRequestComment {
+public class UpdateIssueCommentRequest {
 	String body;
 }

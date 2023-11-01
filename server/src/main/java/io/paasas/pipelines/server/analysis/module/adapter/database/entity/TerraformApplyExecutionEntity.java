@@ -27,16 +27,4 @@ public class TerraformApplyExecutionEntity {
 	public TerraformExecution to() {
 		return execution.to(key.getPackageName());
 	}
-
-	public static TerraformApplyExecutionEntity create(
-			String packageName,
-			PullRequestAnalysisEntity pullRequestAnalysis) {
-		return TerraformApplyExecutionEntity.builder()
-				.execution(TerraformExecutionEntity.create())
-				.key(TerraformExecutionKey.builder()
-						.packageName(packageName)
-						.pullRequestAnalysis(pullRequestAnalysis)
-						.build())
-				.build();
-	}
 }

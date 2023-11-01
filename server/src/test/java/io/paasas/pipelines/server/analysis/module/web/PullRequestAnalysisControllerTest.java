@@ -26,13 +26,14 @@ import io.paasas.pipelines.server.analysis.module.adapter.database.PullRequestAn
 import io.paasas.pipelines.server.analysis.module.adapter.database.TerraformPlanExecutionJpaRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.TerraformPlanStatusJpaRepository;
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestAnalysisEntity;
-import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestKey;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.PullRequestAnalysisKey;
+import io.paasas.pipelines.server.analysis.module.adapter.database.entity.TerraformPlanExecutionEntity;
 import io.paasas.pipelines.server.github.domain.model.commit.CommitState;
-import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
+import io.paasas.pipelines.server.github.domain.port.backend.IssueCommentRepository;
 
 public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 	@Autowired
-	PullRequestRepository pullRequestRepository;
+	IssueCommentRepository issueCommentRepository;
 
 	@Autowired
 	PullRequestAnalysisJpaRepository analysisRepository;
@@ -182,7 +183,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 								.url("https://my-build-url")
 								.build())
 						.manifestBase64(new String(Base64.getEncoder().encode("""
-								project: my-project
+								project: my-test-project
 								labels:
 								- prod
 								region: northamerica-northeast1
@@ -224,15 +225,18 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 				1,
 				pullRequestAnalysis.getCloudRun().get(0).getTestReports().size());
 
+		Assertions.assertNotNull(pullRequestAnalysis.getCommentId());
+
 		Assertions.assertEquals(
 				1,
 				pullRequestAnalysis.getFirebase().getDeployments().get(0).getTestReports().size());
 
 		var terraformPlanExecution = terraformPlanExecutionRepository
 				.findByKeyPullRequestAnalysis(PullRequestAnalysisEntity.builder()
-						.key(PullRequestKey.builder()
+						.key(PullRequestAnalysisKey.builder()
 								.number(2)
 								.repository("paasas/paasas-pipelines")
+								.projectId("my-test-project")
 								.build())
 						.build())
 				.stream()
@@ -286,6 +290,21 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 				.expectStatus()
 				.is2xxSuccessful();
 
+		var terraformPlanExecutionEntity = findTerraformPlanExecution();
+
+		terraformPlanExecution = terraformPlanExecutionEntity.to();
+
+		expectedPlanExecution = expectedPlanExecution.toBuilder()
+				.execution(expectedPlanExecution.getExecution().toBuilder()
+						.updateTimestamp(terraformPlanExecution.getExecution().getUpdateTimestamp())
+						.state(TerraformExecutionState.RUNNING)
+						.build())
+				.build();
+
+		Assertions.assertEquals(
+				expectedPlanExecution,
+				terraformPlanExecution);
+
 		client.post()
 				.uri("/api/ci/deployment/terraform-plan")
 				.bodyValue(registerTerraformPlan.toBuilder().state(TerraformExecutionState.SUCCESS).build())
@@ -293,16 +312,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 				.expectStatus()
 				.is2xxSuccessful();
 
-		var terraformPlanExecutionEntity = terraformPlanExecutionRepository
-				.findByKeyPullRequestAnalysis(PullRequestAnalysisEntity.builder()
-						.key(PullRequestKey.builder()
-								.number(2)
-								.repository("paasas/paasas-pipelines")
-								.build())
-						.build())
-				.stream()
-				.findFirst()
-				.orElseThrow();
+		terraformPlanExecutionEntity = findTerraformPlanExecution();
 
 		terraformPlanExecution = terraformPlanExecutionEntity.to();
 
@@ -325,6 +335,20 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 
 		Assertions.assertEquals(CommitState.SUCCESS, terraformPlanStatus.getCommitState());
 
-		pullRequestRepository.listPullRequestsReviewComments(2, "paasas/paasas-pipelines");
+		issueCommentRepository.listPullRequestsReviewComments(2, "paasas/paasas-pipelines");
+	}
+
+	TerraformPlanExecutionEntity findTerraformPlanExecution() {
+		return terraformPlanExecutionRepository
+				.findByKeyPullRequestAnalysis(PullRequestAnalysisEntity.builder()
+						.key(PullRequestAnalysisKey.builder()
+								.number(2)
+								.repository("paasas/paasas-pipelines")
+								.projectId("my-test-project")
+								.build())
+						.build())
+				.stream()
+				.findFirst()
+				.orElseThrow();
 	}
 }

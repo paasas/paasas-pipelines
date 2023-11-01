@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
 import io.paasas.pipelines.deployment.domain.model.TerraformWatcher;
 import io.paasas.pipelines.deployment.domain.model.app.App;
+import io.paasas.pipelines.deployment.domain.model.deployment.JobInfo;
 import io.paasas.pipelines.deployment.domain.model.firebase.FirebaseAppDefinition;
 import io.paasas.pipelines.server.analysis.domain.model.AnalysisStatus;
 import io.paasas.pipelines.server.analysis.domain.model.CloudRunAnalysis;
@@ -19,6 +20,7 @@ import io.paasas.pipelines.server.analysis.domain.model.FirebaseAppAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysis;
 import io.paasas.pipelines.server.analysis.domain.model.PullRequestAnalysisJobInfo;
 import io.paasas.pipelines.server.analysis.domain.model.RefreshPullRequestAnalysisRequest;
+import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlan;
 import io.paasas.pipelines.server.analysis.domain.model.TerraformAnalysis;
 import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunDeploymentRepository;
 import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunTestReportRepository;
@@ -61,6 +63,18 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 				.toList();
 	}
 
+	@Override
+	public Optional<PullRequestAnalysis> findExistingPullRequestAnalysis(
+			int pullRequestNumber,
+			String repository,
+			String projectId) {
+		return this.repository.findByKeyNumberAndKeyRepositoryAndKeyProjectId(
+				pullRequestNumber,
+				repository,
+				projectId)
+				.map(entity -> entity.to(null, null, null));
+	}
+
 	Optional<FirebaseAppAnalysis> firebaseAppAnalysis(DeploymentManifest deploymentManifest) {
 		return Optional.ofNullable(deploymentManifest.getFirebaseApp())
 				.map(this::firebaseAppAnalysis);
@@ -83,40 +97,77 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 				.build();
 	}
 
+	boolean hasBeenDeployedPreviously(TerraformAnalysis terraformAnalysis, String projectId) {
+		return terraformDeploymentRepository
+				.findByPackageNameAndProjectId(terraformAnalysis.getPackageName(), projectId, PageRequest.of(0, 1))
+				.hasContent();
+	}
+
+	PullRequestAnalysis generateAnalysis(
+			Integer commentId,
+			String commit,
+			String commitAuthor,
+			DeploymentManifest deploymentManifest,
+			JobInfo jobInfo,
+			String manifest,
+			int pullRequestNumber,
+			String repository) {
+		var terraformAnalyses = terraformAnalysis(
+				deploymentManifest,
+				pullRequestNumber,
+				repository,
+				deploymentManifest.getProject());
+
+		return PullRequestAnalysis.builder()
+				.commentId(commentId)
+				.commit(commit)
+				.commitAuthor(commitAuthor)
+				.cloudRun(cloudRunAnalysis(deploymentManifest))
+				.firebase(firebaseAppAnalysis(deploymentManifest).orElse(null))
+				.jobInfo(PullRequestAnalysisJobInfo.builder()
+						.build(jobInfo.getBuild())
+						.job(jobInfo.getJob())
+						.pipeline(jobInfo.getPipeline())
+						.team(jobInfo.getTeam())
+						.timestamp(LocalDateTime.now())
+						.url(jobInfo.getUrl())
+						.build())
+				.manifest(manifest)
+				.projectId(jobInfo.getProjectId())
+				.pullRequestNumber(pullRequestNumber)
+				.repository(repository)
+				.terraform(terraformAnalyses)
+				.build();
+	}
+
 	@Override
 	@Transactional
 	public PullRequestAnalysis refresh(
 			DeploymentManifest deploymentManifest,
 			RefreshPullRequestAnalysisRequest request) {
-		var terraformAnalyses = terraformAnalysis(deploymentManifest);
+		var pullRequestAnalysis = generateAnalysis(
+				null,
+				request.getCommit(),
+				request.getCommitAuthor(),
+				deploymentManifest,
+				request.getJobInfo(),
+				new String(Base64.getDecoder().decode(request.getManifestBase64().getBytes())),
+				request.getPullRequestNumber(),
+				request.getRepository());
 
-		var pullRequestAnalysis = PullRequestAnalysis.builder()
-				.commit(request.getCommit())
-				.commitAuthor(request.getCommitAuthor())
-				.cloudRun(cloudRunAnalysis(deploymentManifest))
-				.firebase(firebaseAppAnalysis(deploymentManifest).orElse(null))
-				.jobInfo(PullRequestAnalysisJobInfo.builder()
-						.build(request.getJobInfo().getBuild())
-						.job(request.getJobInfo().getJob())
-						.pipeline(request.getJobInfo().getPipeline())
-						.team(request.getJobInfo().getTeam())
-						.timestamp(LocalDateTime.now())
-						.url(request.getJobInfo().getUrl())
-						.build())
-				.manifest(new String(Base64.getDecoder().decode(request.getManifestBase64().getBytes())))
-				.projectId(request.getJobInfo().getProjectId())
-				.pullRequestNumber(request.getPullRequestNumber())
-				.repository(request.getRepository())
-				.terraform(terraformAnalyses)
-				.build();
-
-		log.info("Updating {}", pullRequestAnalysis);
+		var updatedPullRequestAnalysis = refresh(pullRequestAnalysis);
 
 		refreshTerraformPlanExecutions(
-				terraformAnalyses,
-				repository.save(PullRequestAnalysisEntity.from(pullRequestAnalysis)));
+				pullRequestAnalysis.getTerraform(),
+				updatedPullRequestAnalysis);
 
 		return pullRequestAnalysis;
+	}
+
+	PullRequestAnalysisEntity refresh(PullRequestAnalysis pullRequestAnalysis) {
+		log.info("Updating {}", pullRequestAnalysis);
+
+		return repository.save(PullRequestAnalysisEntity.from(pullRequestAnalysis));
 	}
 
 	private void refreshTerraformPlanExecutions(
@@ -130,34 +181,57 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 						.filter(execution -> !execution.getCommitId().equals(pullRequestAnalysis.getCommit()))
 						.toList());
 
-		// Create new executions only if the terraform resource has already been
-		// deployed on the environment
+		/*
+		 * Create new executions only if the terraform resource has already been
+		 * deployed on the environment. If the terraform resource has never been
+		 * deployed, no concourse jobs is configured to trigger terraform plan.
+		 */
 		terraformPlanExecutionRepository.saveAll(
 				terraformAnalyses
 						.stream()
 						.filter(terraformAnalysis -> hasBeenDeployedPreviously(
 								terraformAnalysis,
-								pullRequestAnalysis.getProjectId()))
+								pullRequestAnalysis.getKey().getProjectId()))
 						.map(terraformAnalysis -> TerraformPlanExecutionEntity
 								.create(terraformAnalysis.getPackageName(), pullRequestAnalysis))
 						.toList());
 	}
 
-	boolean hasBeenDeployedPreviously(TerraformAnalysis terraformAnalysis, String projectId) {
-		return terraformDeploymentRepository
-				.findByPackageNameAndProjectId(terraformAnalysis.getPackageName(), projectId, PageRequest.of(0, 1))
-				.hasContent();
+	@Override
+	@Transactional
+	public PullRequestAnalysis registerTerraformPlan(
+			DeploymentManifest deploymentManifest,
+			PullRequestAnalysis existingPullRequestAnalysis,
+			RegisterTerraformPlan request) {
+		var pullRequestAnalysis = generateAnalysis(
+				existingPullRequestAnalysis.getCommentId(),
+				existingPullRequestAnalysis.getCommit(),
+				existingPullRequestAnalysis.getCommitAuthor(),
+				deploymentManifest,
+				request.getJobInfo(),
+				existingPullRequestAnalysis.getManifest(),
+				request.getPullRequestNumber(),
+				request.getGitRevision().getRepository());
+
+		refresh(pullRequestAnalysis);
+
+		return pullRequestAnalysis;
 	}
 
-	List<TerraformAnalysis> terraformAnalysis(DeploymentManifest deploymentManifest) {
+	List<TerraformAnalysis> terraformAnalysis(
+			DeploymentManifest deploymentManifest,
+			int pullRequestNumber,
+			String repository,
+			String projectId) {
 		return Optional.ofNullable(deploymentManifest.getTerraform())
 				.orElse(List.of())
 				.stream()
-				.map(this::terraformAnalysis)
+				.map(terraformWatcher -> terraformAnalysis(terraformWatcher, pullRequestNumber, repository, projectId))
 				.toList();
 	}
 
-	TerraformAnalysis terraformAnalysis(TerraformWatcher terraformWatcher) {
+	TerraformAnalysis terraformAnalysis(TerraformWatcher terraformWatcher, int pullRequestNumber, String repository,
+			String projectId) {
 		if (terraformWatcher.getGit().getTag() == null || terraformWatcher.getGit().getTag().isBlank()) {
 			return TerraformAnalysis.builder()
 					.deployments(List.of())
@@ -172,8 +246,22 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 						terraformWatcher.getGit().getPath(),
 						terraformWatcher.getGit().getTag())))
 				.packageName(terraformWatcher.getName())
+				.planExecution(terraformPlanExecutionRepository
+						.findByKeyPackageNameAndKeyPullRequestAnalysisKeyNumberAndKeyPullRequestAnalysisKeyRepositoryAndKeyPullRequestAnalysisKeyProjectId(
+								terraformWatcher.getName(),
+								pullRequestNumber,
+								repository,
+								projectId)
+						.map(TerraformPlanExecutionEntity::to)
+						.orElse(null))
 				.status(AnalysisStatus.REVISION_RESOLVED)
 				.build();
+	}
+
+	@Override
+	@Transactional
+	public void updateCommentId(int commentId, int pullRequestNumber, String repository, String projectId) {
+		this.repository.updateCommentId(commentId, pullRequestNumber, repository, projectId);
 	}
 
 }

@@ -8,6 +8,7 @@ import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeploym
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlan;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlanResult;
 import io.paasas.pipelines.server.analysis.domain.port.api.DeploymentDomain;
+import io.paasas.pipelines.server.analysis.domain.port.api.PullRequestAnalysisDomain;
 import io.paasas.pipelines.server.analysis.domain.port.backend.CloudRunDeploymentRepository;
 import io.paasas.pipelines.server.analysis.domain.port.backend.FirebaseAppDeploymentRepository;
 import io.paasas.pipelines.server.analysis.domain.port.backend.TerraformDeploymentRepository;
@@ -27,6 +28,7 @@ public class DefaultDeploymentDomain implements DeploymentDomain {
 	CommitStatusRepository commitStatusRepository;
 	FirebaseAppDeploymentRepository firebaseAppDeploymentRepository;
 	TerraformDeploymentRepository terraformDeploymentRepository;
+	PullRequestAnalysisDomain pullRequestAnalysisDomain;
 
 	@Override
 	public void registerCloudRunDeployment(RegisterCloudRunDeployment request) {
@@ -54,6 +56,8 @@ public class DefaultDeploymentDomain implements DeploymentDomain {
 		log.info("Registering {}", request);
 
 		var result = terraformDeploymentRepository.registerPlan(request);
+		
+		pullRequestAnalysisDomain.registerTerraformPlan(request);
 
 		commitStatusRepository.createCommitStatus(
 				request.getGitRevision().getRepository(),

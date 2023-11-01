@@ -1,0 +1,30 @@
+drop table cloud_run_analysis;
+drop table terraform_analysis;
+drop table firebase_app_analysis;
+
+alter table terraform_apply_execution drop constraint FK4g5eanhc5t7clq6tvtr39xg3y;
+alter table terraform_plan_execution drop constraint FKk6jpukcggh3htdg1wdbbf9hms;
+alter table terraform_plan_status drop constraint FKb25l65yk4dc57buagws6kqyoo;
+
+alter table terraform_apply_execution drop constraint terraform_apply_execution_pkey;
+alter table terraform_plan_execution drop constraint terraform_plan_execution_pkey;
+alter table terraform_plan_status drop constraint terraform_plan_status_pkey;
+
+delete from terraform_apply_execution;
+delete from terraform_plan_execution;
+
+alter table pull_request_analysis add column comment_id integer;
+alter table terraform_apply_execution add column pull_request_analysis_project_id varchar(255), add column job_url varchar(65535);
+alter table terraform_plan_execution add column pull_request_analysis_project_id varchar(255), add column job_url varchar(65535);
+alter table terraform_plan_status add column pull_request_analysis_project_id varchar(255);
+
+ALTER TABLE terraform_apply_execution ADD CONSTRAINT terraform_apply_execution_pkey PRIMARY KEY (pull_request_analysis_number, pull_request_analysis_repository, pull_request_analysis_project_id, package_name);
+ALTER TABLE terraform_plan_execution ADD CONSTRAINT terraform_plan_execution_pkey PRIMARY KEY (pull_request_analysis_number, pull_request_analysis_repository, pull_request_analysis_project_id, package_name);
+ALTER TABLE terraform_plan_status ADD CONSTRAINT terraform_plan_status_pkey PRIMARY KEY (pull_request_analysis_number, pull_request_analysis_repository, pull_request_analysis_project_id, package_name);
+
+ALTER TABLE pull_request_analysis DROP CONSTRAINT pull_request_analysis_pkey;
+ALTER TABLE pull_request_analysis ADD CONSTRAINT pull_request_analysis_pkey PRIMARY KEY (number, repository, project_id);
+
+alter table if exists terraform_apply_execution add constraint FK4g5eanhc5t7clq6tvtr39xg3y foreign key (pull_request_analysis_number, pull_request_analysis_repository, pull_request_analysis_project_id) references pull_request_analysis;
+alter table if exists terraform_plan_execution add constraint FKk6jpukcggh3htdg1wdbbf9hms foreign key (pull_request_analysis_number, pull_request_analysis_repository, pull_request_analysis_project_id) references pull_request_analysis;
+ALTER TABLE if exists terraform_plan_status ADD CONSTRAINT fkb25l65yk4dc57buagws6kqyoo FOREIGN KEY (pull_request_analysis_number, pull_request_analysis_repository, pull_request_analysis_project_id) REFERENCES pull_request_analysis;

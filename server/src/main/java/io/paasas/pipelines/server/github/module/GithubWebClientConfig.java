@@ -17,10 +17,10 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 import io.paasas.pipelines.server.github.domain.port.backend.AccessTokenRepository;
 import io.paasas.pipelines.server.github.domain.port.backend.CommitStatusRepository;
-import io.paasas.pipelines.server.github.domain.port.backend.PullRequestRepository;
+import io.paasas.pipelines.server.github.domain.port.backend.IssueCommentRepository;
 import io.paasas.pipelines.server.github.module.adapter.AccessTokenWebClient;
 import io.paasas.pipelines.server.github.module.adapter.CommitStatusWebClient;
-import io.paasas.pipelines.server.github.module.adapter.PullRequestWebClient;
+import io.paasas.pipelines.server.github.module.adapter.IssueCommentWebClient;
 
 @Configuration
 public class GithubWebClientConfig {
@@ -66,8 +66,8 @@ public class GithubWebClientConfig {
 		}
 
 		@Bean
-		public PullRequestRepository pullRequestRepository(RestTemplate githubRestTemplate) {
-			return new PullRequestWebClient(githubRestTemplate);
+		public IssueCommentRepository issueCommentRepository(RestTemplate githubRestTemplate) {
+			return new IssueCommentWebClient(githubRestTemplate);
 		}
 	}
 
