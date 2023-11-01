@@ -6,9 +6,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.codec.ClientCodecConfigurer;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
-import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,7 +43,9 @@ public class GithubWebClientConfig {
 			var messageConverter = new MappingJackson2HttpMessageConverter();
 			messageConverter.setObjectMapper(new ObjectMapper()
 					.findAndRegisterModules()
-					.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE));
+					.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false));
+
 			return new RestTemplateBuilder()
 					.rootUri(githubConfiguration.getBaseUrl())
 					.defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github+json")
@@ -77,15 +76,5 @@ public class GithubWebClientConfig {
 			throw new IllegalStateException("expected a value for property pipelines.github." + property);
 		}
 
-	}
-
-	static void configureCodecs(ClientCodecConfigurer configurer) {
-		var objectMapper = new ObjectMapper()
-				.findAndRegisterModules()
-				.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-		configurer.defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper));
-		configurer.defaultCodecs().jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper));
 	}
 }
