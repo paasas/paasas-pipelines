@@ -49,6 +49,8 @@ public class MockPullRequestRepository implements IssueCommentRepository {
 			int pullRequestNumber,
 			String repository,
 			UpdateIssueCommentRequest request) {
+		assert commentId != 0;
+
 		var issueComment = IssueComment.builder()
 				.id(commentId)
 				.body(request.getBody())
@@ -58,5 +60,4 @@ public class MockPullRequestRepository implements IssueCommentRepository {
 
 		return issueComment;
 	}
-
 }

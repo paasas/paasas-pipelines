@@ -632,7 +632,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	}
 
 	static Stream<String> terraform(DeploymentManifest deploymentManifest, TerraformAnalysis terraformAnalysis) {
-		log.info("Computing latest git revision from {}", terraformAnalysis.getDeployments());
+		log.debug("Computing latest git revision from {}", terraformAnalysis.getDeployments());
 
 		var terraformWatcher = deploymentManifest.getTerraform().stream()
 				.filter(watcher -> watcher.getName().equals(terraformAnalysis.getPackageName()))

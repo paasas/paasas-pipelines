@@ -12,7 +12,9 @@ import io.paasas.pipelines.server.github.domain.port.backend.IssueCommentReposit
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class IssueCommentWebClient implements IssueCommentRepository {
@@ -49,8 +51,14 @@ public class IssueCommentWebClient implements IssueCommentRepository {
 			int pullRequestNumber,
 			String repository,
 			UpdateIssueCommentRequest request) {
+		assert commentId != 0;
+		assert pullRequestNumber != 0;
+		assert repository != null && !repository.isBlank();
+
+		log.debug("Updating issue  {}/{} comment {} with {}", repository, pullRequestNumber, request);
+
 		return restTemplate.postForObject(
-				"/repos/" + repository + "/issues/{pullNumber}/comments/{commentId}",
+				"/repos/" + repository + "/issues/{pullRequestNumber}/comments/{commentId}",
 				request,
 				IssueComment.class,
 				pullRequestNumber,
