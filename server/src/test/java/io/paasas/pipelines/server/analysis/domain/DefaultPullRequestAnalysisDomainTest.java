@@ -115,7 +115,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 				#### terraform-1
 				
-				:gray_circle: **Terraform Plan execution is pending**
+				:white_circle: **Terraform Plan execution is pending**
 
 				##### Revision
 

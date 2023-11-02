@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDomain {
 	private static String TERRAFORM_PLAN_MESSAGE_FAILED = ":red_circle: **Terraform Plan execution failed**";
-	private static String TERRAFORM_PLAN_MESSAGE_PENDING = ":gray_circle: **Terraform Plan execution is pending**";
+	private static String TERRAFORM_PLAN_MESSAGE_PENDING = ":white_circle: **Terraform Plan execution is pending**";
 	private static String TERRAFORM_PLAN_MESSAGE_RUNNING = ":yellow_circle: **Terraform Plan execution is in progress**";
 	private static String TERRAFORM_PLAN_MESSAGE_SUCCESS = ":green_circle: **Terraform Plan execution completed**";
 
