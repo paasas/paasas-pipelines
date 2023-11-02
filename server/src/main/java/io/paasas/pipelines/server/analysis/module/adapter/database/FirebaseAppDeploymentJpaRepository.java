@@ -2,6 +2,7 @@ package io.paasas.pipelines.server.analysis.module.adapter.database;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -18,5 +19,5 @@ public interface FirebaseAppDeploymentJpaRepository extends JpaRepository<Fireba
 				( (gitRevision.path IS NULL AND :path IS NULL) OR (gitRevision.path = :path)) AND
 				CONCAT('git@github.com:', gitRevision.repository, '.git') = :uri AND
 				gitRevision.tag = :tag""")
-	List<FirebaseAppDeploymentEntity> find(String path, String uri, String tag);
+	List<FirebaseAppDeploymentEntity> find(String path, String uri, String tag, Sort sort);
 }

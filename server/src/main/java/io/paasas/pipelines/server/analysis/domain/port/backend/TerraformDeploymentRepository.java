@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import io.paasas.pipelines.server.analysis.domain.model.FindDeploymentRequest;
 import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformDeployment;
@@ -12,7 +13,7 @@ import io.paasas.pipelines.server.analysis.domain.model.RegisterTerraformPlanRes
 import io.paasas.pipelines.server.analysis.domain.model.TerraformDeployment;
 
 public interface TerraformDeploymentRepository {
-	List<TerraformDeployment> find(FindDeploymentRequest findRequest);
+	List<TerraformDeployment> find(FindDeploymentRequest findRequest, Sort sort);
 
 	void registerDeployment(RegisterTerraformDeployment registerTerraformDeployment);
 

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import io.paasas.pipelines.server.analysis.domain.model.FindDeploymentRequest;
@@ -46,8 +47,8 @@ public class DatabaseTerraformDeploymentRepository implements TerraformDeploymen
 	}
 
 	@Override
-	public List<TerraformDeployment> find(FindDeploymentRequest findRequest) {
-		return repository.find(findRequest.gitPath(), findRequest.gitUri(), findRequest.gitTag())
+	public List<TerraformDeployment> find(FindDeploymentRequest findRequest, Sort sort) {
+		return repository.find(findRequest.gitPath(), findRequest.gitUri(), findRequest.gitTag(), sort)
 				.stream()
 				.map(TerraformDeploymentEntity::to)
 				.toList();

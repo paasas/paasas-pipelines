@@ -74,6 +74,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 
 				##### Past deployments
 
+				* [2023-09-24 13:43 - my-google-project](http://some-super-duper-job-url)
 				* [2023-09-24 13:42 - my-google-project](http://some-super-duper-job-url)
 
 				#### not-deployed-app
@@ -219,15 +220,25 @@ public class DefaultPullRequestAnalysisDomainTest {
 												.build()))
 								.build(),
 						CloudRunAnalysis.builder()
-								.deployments(List.of(CloudRunDeployment.builder()
-										.deploymentInfo(DeploymentInfo.builder()
-												.url("http://some-super-duper-job-url")
-												.projectId("my-google-project")
-												.timestamp(DEPLOYMENT_TIMESTAMP_1)
-												.build())
-										.image("my-image")
-										.tag("1.0.0")
-										.build()))
+								.deployments(List.of(
+										CloudRunDeployment.builder()
+												.deploymentInfo(DeploymentInfo.builder()
+														.url("http://some-super-duper-job-url")
+														.projectId("my-google-project")
+														.timestamp(DEPLOYMENT_TIMESTAMP_2)
+														.build())
+												.image("my-image")
+												.tag("1.0.0")
+												.build(),
+										CloudRunDeployment.builder()
+												.deploymentInfo(DeploymentInfo.builder()
+														.url("http://some-super-duper-job-url")
+														.projectId("my-google-project")
+														.timestamp(DEPLOYMENT_TIMESTAMP_1)
+														.build())
+												.image("my-image")
+												.tag("1.0.0")
+												.build()))
 								.serviceName("untested-app")
 								.testReports(List.of())
 								.build(),

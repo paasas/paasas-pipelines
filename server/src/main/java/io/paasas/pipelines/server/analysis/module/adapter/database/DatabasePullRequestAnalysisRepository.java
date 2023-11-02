@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 
 import io.paasas.pipelines.deployment.domain.model.DeploymentManifest;
@@ -49,9 +51,15 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 
 	CloudRunAnalysis appAnalysis(App app) {
 		return CloudRunAnalysis.builder()
-				.deployments(cloudRunDeploymentRepository.findByImageAndTag(app.getImage(), app.getTag()))
+				.deployments(cloudRunDeploymentRepository.findByImageAndTag(
+						app.getImage(),
+						app.getTag(),
+						Sort.by(Direction.DESC, "deploymentInfo.timestamp")))
 				.serviceName(app.getName())
-				.testReports(cloudRunTestReportRepository.findByImageAndTag(app.getImage(), app.getTag()))
+				.testReports(cloudRunTestReportRepository.findByImageAndTag(
+						app.getImage(),
+						app.getTag(),
+						Sort.by(Direction.DESC, "testInfo.timestamp")))
 				.build();
 	}
 
@@ -94,7 +102,8 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 				.deployments(firebaseAppDeploymentRepository.find(new FindDeploymentRequest(
 						firebaseAppDefinition.getGit().getUri(),
 						firebaseAppDefinition.getGit().getPath(),
-						firebaseAppDefinition.getGit().getTag())))
+						firebaseAppDefinition.getGit().getTag()),
+						Sort.by(Direction.DESC, "deploymentInfo.timestamp")))
 				.status(AnalysisStatus.REVISION_RESOLVED)
 				.build();
 	}
@@ -246,7 +255,8 @@ public class DatabasePullRequestAnalysisRepository implements PullRequestAnalysi
 				.deployments(terraformDeploymentRepository.find(new FindDeploymentRequest(
 						terraformWatcher.getGit().getUri(),
 						terraformWatcher.getGit().getPath(),
-						terraformWatcher.getGit().getTag())))
+						terraformWatcher.getGit().getTag()),
+						Sort.by(Direction.DESC, "deploymentInfo.timestamp")))
 				.packageName(terraformWatcher.getName())
 				.planExecution(terraformPlanExecutionRepository
 						.findByKeyPackageNameAndKeyPullRequestAnalysisKeyNumberAndKeyPullRequestAnalysisKeyRepositoryAndKeyPullRequestAnalysisKeyProjectId(

@@ -2,6 +2,7 @@ package io.paasas.pipelines.server.analysis.module.adapter.database;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import io.paasas.pipelines.server.analysis.domain.model.FindDeploymentRequest;
@@ -22,8 +23,8 @@ public class DatabaseFirebaseAppDeploymentRepository implements FirebaseAppDeplo
 	FirebaseTestReportJpaRepository testReportRepository;
 
 	@Override
-	public List<FirebaseAppDeployment> find(FindDeploymentRequest findRequest) {
-		return repository.find(findRequest.gitPath(), findRequest.gitUri(), findRequest.gitTag())
+	public List<FirebaseAppDeployment> find(FindDeploymentRequest findRequest, Sort sort) {
+		return repository.find(findRequest.gitPath(), findRequest.gitUri(), findRequest.gitTag(), sort)
 				.stream()
 				.map(this::to)
 				.toList();

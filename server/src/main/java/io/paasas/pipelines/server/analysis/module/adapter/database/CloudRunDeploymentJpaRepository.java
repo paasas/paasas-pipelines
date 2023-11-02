@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import io.paasas.pipelines.server.analysis.module.adapter.database.entity.CloudRunDeploymentEntity;
@@ -15,5 +16,5 @@ public interface CloudRunDeploymentJpaRepository extends JpaRepository<CloudRunD
 			String app,
 			Pageable pageable);
 
-	List<CloudRunDeploymentEntity> findByImageAndTag(String image, String tag);
+	List<CloudRunDeploymentEntity> findByImageAndTag(String image, String tag, Sort sort);
 }

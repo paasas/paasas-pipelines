@@ -2,6 +2,7 @@ package io.paasas.pipelines.server.analysis.module.adapter.database;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import io.paasas.pipelines.server.analysis.domain.model.RegisterCloudRunTestReport;
@@ -20,8 +21,8 @@ public class DatabaseCloudRunTestReportRepository implements CloudRunTestReportR
 	CloudRunTestReportJpaRepository repository;
 
 	@Override
-	public List<TestReport> findByImageAndTag(String image, String tag) {
-		return repository.findByImageAndTag(image, tag)
+	public List<TestReport> findByImageAndTag(String image, String tag, Sort sort) {
+		return repository.findByImageAndTag(image, tag, sort)
 				.stream()
 				.map(CloudRunTestReportEntity::to)
 				.toList();

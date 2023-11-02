@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,7 +21,7 @@ public interface TerraformDeploymentJpaRepository extends JpaRepository<Terrafor
 				( ( gitRevision.path IS NULL AND :path IS NULL) OR gitRevision.path = :path) AND
 				CONCAT('git@github.com:', gitRevision.repository, '.git') = :uri AND
 				gitRevision.tag = :tag""")
-	List<TerraformDeploymentEntity> find(String path, String uri, String tag);
+	List<TerraformDeploymentEntity> find(String path, String uri, String tag, Sort sort);
 
 	Page<TerraformDeploymentEntity> findByPackageNameAndDeploymentInfoProjectId(
 			String packageName,

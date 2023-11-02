@@ -3,6 +3,7 @@ package io.paasas.pipelines.server.analysis.module.adapter.database;
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 
@@ -22,8 +23,8 @@ public class DatabaseCloudRunDeploymentRepository implements CloudRunDeploymentR
 	CloudRunDeploymentJpaRepository repository;
 
 	@Override
-	public List<CloudRunDeployment> findByImageAndTag(String image, String tag) {
-		return repository.findByImageAndTag(image, tag)
+	public List<CloudRunDeployment> findByImageAndTag(String image, String tag, Sort sort) {
+		return repository.findByImageAndTag(image, tag, sort)
 				.stream()
 				.map(this::to)
 				.toList();
