@@ -56,7 +56,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 	private static final String NO_DEPLOYMENT_WARNING = ":warning: **This artifact was never deployed**\n\n";
 
 	private static final String REVIEW_TEMPLATE = """
-			# Pull Request Analysis
+			# Pull Request Analysis for {{PROJECT}}
 
 			## Artifacts
 
@@ -369,6 +369,7 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 			DeploymentManifest deploymentManifest,
 			PullRequestAnalysis pullRequestAnalysis) {
 		return REVIEW_TEMPLATE
+				.replace("{{PROJECT}}", deploymentManifest.getProject())
 				.replace(
 						"{{IMPACTED_ARTIFACTS}}",
 						Stream

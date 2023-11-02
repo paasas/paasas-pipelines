@@ -36,7 +36,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 	@Test
 	void assertStandardTemplate() {
 		var expectedResult = """
-				# Pull Request Analysis
+				# Pull Request Analysis for my-google-project
 
 				## Artifacts
 
@@ -343,6 +343,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 												.name("not-deployed-app")
 												.image("my-image")
 												.tag("1.0.0").build()))
+								.project("my-google-project")
 								.firebaseApp(FirebaseAppDefinition.builder()
 										.git(GitWatcher.builder()
 												.branch("test-branch")
@@ -390,7 +391,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 	@Test
 	void assertNotDeployedFirebaseApp() {
 		var expectedResult = """
-				# Pull Request Analysis
+				# Pull Request Analysis for my-google-project
 
 				## Artifacts
 
@@ -425,6 +426,7 @@ public class DefaultPullRequestAnalysisDomainTest {
 				expectedResult,
 				DefaultPullRequestAnalysisDomain.generatePullRequestReviewBody(
 						DeploymentManifest.builder()
+								.project("my-google-project")
 								.firebaseApp(FirebaseAppDefinition.builder()
 										.git(GitWatcher.builder()
 												.branch("test-branch")
