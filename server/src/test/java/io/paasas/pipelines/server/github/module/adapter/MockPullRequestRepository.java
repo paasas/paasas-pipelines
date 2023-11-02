@@ -56,7 +56,7 @@ public class MockPullRequestRepository implements IssueCommentRepository {
 				.body(request.getBody())
 				.build();
 
-		REVIEW_BODIES.get(String.format("%s/%d", repository, pullRequestNumber, commentId));
+		REVIEW_BODIES.put(String.format("%s/%d/%d", repository, pullRequestNumber, commentId), issueComment);
 
 		return issueComment;
 	}
