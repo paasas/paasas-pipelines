@@ -27,7 +27,7 @@ public class MockPullRequestRepository implements IssueCommentRepository {
 				.id(commentId)
 				.build();
 
-		REVIEW_BODIES.put(String.format("%s/%d/%d", repository, pullRequestNumber, commentId), issueComment);
+		REVIEW_BODIES.put(String.format("%s/%d", repository, commentId), issueComment);
 
 		return issueComment;
 	}
@@ -46,7 +46,6 @@ public class MockPullRequestRepository implements IssueCommentRepository {
 	@Override
 	public IssueComment updateIssueComment(
 			int commentId,
-			int pullRequestNumber,
 			String repository,
 			UpdateIssueCommentRequest request) {
 		assert commentId != 0;
@@ -56,7 +55,7 @@ public class MockPullRequestRepository implements IssueCommentRepository {
 				.body(request.getBody())
 				.build();
 
-		REVIEW_BODIES.put(String.format("%s/%d/%d", repository, pullRequestNumber, commentId), issueComment);
+		REVIEW_BODIES.put(String.format("%s/%d", repository, commentId), issueComment);
 
 		return issueComment;
 	}

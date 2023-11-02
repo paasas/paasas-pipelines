@@ -15,7 +15,6 @@ public interface IssueCommentRepository {
 
 	IssueComment updateIssueComment(
 			int commentId,
-			int pullRequestNumber,
 			String repository,
 			UpdateIssueCommentRequest request);
 }

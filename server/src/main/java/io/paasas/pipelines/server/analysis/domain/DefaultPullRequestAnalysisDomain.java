@@ -214,7 +214,6 @@ public class DefaultPullRequestAnalysisDomain implements PullRequestAnalysisDoma
 			PullRequestAnalysis pullRequestAnalysis) {
 		issueCommentRepository.updateIssueComment(
 				pullRequestAnalysis.getCommentId(),
-				pullRequestAnalysis.getPullRequestNumber(),
 				pullRequestAnalysis.getRepository(),
 				UpdateIssueCommentRequest.builder()
 						.body(generatePullRequestReviewBody(deploymentManifest, pullRequestAnalysis))

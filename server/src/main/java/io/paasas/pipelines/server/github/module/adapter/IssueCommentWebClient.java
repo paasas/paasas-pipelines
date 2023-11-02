@@ -48,20 +48,17 @@ public class IssueCommentWebClient implements IssueCommentRepository {
 	@Override
 	public IssueComment updateIssueComment(
 			int commentId,
-			int pullRequestNumber,
 			String repository,
 			UpdateIssueCommentRequest request) {
 		assert commentId != 0;
-		assert pullRequestNumber != 0;
 		assert repository != null && !repository.isBlank();
 
-		log.debug("Updating issue  {}/{} comment {} with {}", repository, pullRequestNumber, request);
+		log.debug("Updating issue comment {} from {} with {}", commentId, repository, request);
 
 		return restTemplate.postForObject(
-				"/repos/" + repository + "/issues/{pullRequestNumber}/comments/{commentId}",
+				"/repos/" + repository + "/issues/comments/{commentId}",
 				request,
 				IssueComment.class,
-				pullRequestNumber,
 				commentId);
 	}
 }
