@@ -296,6 +296,7 @@ public class PullRequestAnalysisControllerTest extends AnalysisWebTest {
 
 		expectedPlanExecution = expectedPlanExecution.toBuilder()
 				.execution(expectedPlanExecution.getExecution().toBuilder()
+						.jobUrl("https://my-terraform-plan-url")
 						.updateTimestamp(terraformPlanExecution.getExecution().getUpdateTimestamp())
 						.state(TerraformExecutionState.RUNNING)
 						.build())
