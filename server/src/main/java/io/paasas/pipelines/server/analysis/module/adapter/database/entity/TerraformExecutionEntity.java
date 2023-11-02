@@ -35,6 +35,7 @@ public class TerraformExecutionEntity {
 	public TerraformExecution to(String packageName) {
 		return TerraformExecution.builder()
 				.createTimestamp(createTimestamp)
+				.jobUrl(jobUrl)
 				.packageName(packageName)
 				.state(state)
 				.updateTimestamp(updateTimestamp)
