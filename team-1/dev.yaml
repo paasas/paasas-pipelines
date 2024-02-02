@@ -2,7 +2,7 @@ project: control-plane-377914
 region: northamerica-northeast1
 apps:
 - name: demo-webapp
-  image: gcr.io/cloudrun/container/hello
+  image: gcr.io/cloudrun/container/hello-test
   tag: latest
   registryType: GCR
   serviceAccount: cloud-run@control-plane-377914.iam.gserviceaccount.com
