@@ -1,0 +1,150 @@
+project: control-plane-377914
+region: northamerica-northeast1
+apps:
+- name: demo-webapp
+  image: gcr.io/cloudrun/container/hello
+  tag: latest
+  registryType: GCR
+  serviceAccount: cloud-run@control-plane-377914.iam.gserviceaccount.com
+  env:
+    MY_ENV_VAR: env-variable
+  secretEnv:
+    DOCUMENTAPI_CLIENT_ID: DOCUMENTAPI_CLIENT_ID
+    DOCUMENTAPI_CLIENT_SECRET: LOOKERSDK_BASE_URL
+    LOOKERSDK_CLIENT_ID: LOOKERSDK_CLIENT_ID
+    LOOKERSDK_CLIENT_SECRET: LOOKERSDK_CLIENT_SECRET
+    LOOKERSDK_EMBED_HOST: LOOKERSDK_EMBED_HOST
+    LOOKERSDK_EMBED_SECRET: LOOKERSDK_EMBED_SECRET
+  port: 8080
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  startupProbe:
+    timeoutSeconds: 240
+    periodSeconds: 240
+    failureThreshold: 1
+    tcpSocket:
+      port: 8080
+  cloudSql:
+  - databaseName: test-db
+    defaultSchema: my-schema
+    instanceName: test-instance
+    jumpboxInstanceName: jumpbox
+    jumpboxInstanceZone: test-zone
+    migrations: 
+      uri: git@github.com:teleport-java-client/cloud-sql-migration.git
+      path: migration-test-path
+      tag: migration-test-tag
+    passwordSecretName: test-password-secret 
+    port: 5432
+    region: test-region
+    user: test-user
+  tests:
+  - name: main 
+    uri: git@github.com:teleport-java-client/my-cloud-run-tests.git
+    path: cloud-run-tests
+    tag: my-cloud-run-tests-tag
+composer:
+- name: composer-1
+  bucketName: composer-1-bucket
+  bucketPath: dags
+  location: us-east1
+  dags:
+    dependsOn: dataset-1
+    git:
+      tag: 0.1.0
+      uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
+      path: dags-path
+    flexTemplates:
+    - gcsPath: flex-templates/iawealth-api-to-gcs-ingestion
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-api-to-gcs-ingestion
+      imageTag: v1.0.0
+      imageRegistryType: GCR
+      metadataFile: cloud-composer/dags/raw/df-docker-metadata/api-to-gcs-ingestion/metadata.json
+      name: api-to-gcs-ingestion
+      
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-cob
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-cob
+      imageTag: v1.0.0
+      imageRegistryType: GCR
+      metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-cob/metadata.json
+      name: gcs-to-bq-cob
+      
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-csv-ingestion
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-csv-ingestion
+      imageTag: v1.0.0
+      imageRegistryType: GCR
+      metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-csv-ingestion/metadata.json
+      name: gcs-to-bq-csv-ingestion
+      
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-json-ingestion
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-json-ingestion
+      imageTag: v1.0.0
+      imageRegistryType: GCR
+      metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-json-ingestion/metadata.json
+      name: gcs-to-bq-json-ingestion
+
+    - gcsPath: flex-templates/iawealth-gcs-to-bq-mdm
+      image: gcr.io/prj-iapw-cicd-c-cicd-vld4/dataflow/iawealth-gcs-to-bq-mdm
+      imageTag: v1.0.0
+      imageRegistryType: GCR
+      metadataFile: cloud-composer/dags/raw/df-docker-metadata/gcs-to-bq-mdm/metadata.json
+      name: gcs-to-bq-mdm
+    
+    preUpdateScript: |
+      !#/bin/bash
+      
+      echo "This is a pre update script"
+    
+firebaseApp:
+  config: |
+    {
+      "hosting": {
+        "headers": [{
+          "source": "*",
+          "headers": [{
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }]
+        }]
+      }
+    }
+  git:
+    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
+    path: firebase-app
+    # branch: firebase-app
+    tag: my-tag
+  githubRepository: teleport-java-client/paas-moe-le-cloud
+  npm:
+    command: env-cmd -f .env npm run build
+    installArgs: --legacy-peer-deps
+    env: |
+      my-test-env: my-test-value
+  tests:
+  - name: smoke-tests
+    branch: smoke-tests
+    uri: git@github.com:teleport-java-client/my-tests.git
+    path: firebase-app-tests
+    reportDomain: my-test-domain.com
+  - name: full
+    extraMavenOpts: full-test-suite
+    uri: git@github.com:teleport-java-client/my-tests.git
+    path: firebase-app-tests
+    reportDomain: my-test-domain.com
+    tag: my-test-tag
+    cron: 0 1 * * *
+terraform:
+- name: dataset-1
+  githubRepository: teleport-java-client/paas-moe-le-cloud
+  git:
+    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
+    branch: my-branch
+    tag: v0.10.0
+    path: dataset-1
+- name: dataset-2
+  githubRepository: teleport-java-client/paas-moe-le-cloud
+  git:
+    uri: git@github.com:teleport-java-client/paas-moe-le-cloud.git
+    branch: my-branch
+    path: dataset-2
